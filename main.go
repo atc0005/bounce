@@ -16,7 +16,7 @@ import (
 	"github.com/atc0005/bounce/config"
 
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/russross/blackfriday"
+	"github.com/russross/blackfriday/v2"
 )
 
 func loadMarkdown(filename string) ([]byte, error) {
