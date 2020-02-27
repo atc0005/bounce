@@ -174,33 +174,13 @@ func main() {
 	// SETUP ROUTES
 
 	// Direct request for root of site OR unspecified route (e.g.,"catch-all")
-	http.HandleFunc("/",
-		frontPageHandler(
-			readme,
-			htmlFallbackIndexPage,
-			appConfig.SkipMarkdownSanitization,
-		),
-	)
+	http.HandleFunc("/", frontPageHandler(readme, htmlFallbackIndexPage, appConfig.SkipMarkdownSanitization))
 
 	// Direct request for readme file
-	http.HandleFunc(
-		fmt.Sprintf("/%s", readme),
-		frontPageHandler(
-			readme,
-			htmlFallbackIndexPage,
-			appConfig.SkipMarkdownSanitization,
-		),
-	)
+	http.HandleFunc(readme, frontPageHandler(readme, htmlFallbackIndexPage, appConfig.SkipMarkdownSanitization))
 
 	// Direct request for changelog file
-	http.HandleFunc(
-		fmt.Sprintf("/%s", changelog),
-		frontPageHandler(
-			changelog,
-			htmlFallbackIndexPage,
-			appConfig.SkipMarkdownSanitization,
-		),
-	)
+	http.HandleFunc(changelog, frontPageHandler(changelog, htmlFallbackIndexPage, appConfig.SkipMarkdownSanitization))
 
 	// TODO: Add useful endpoints for testing here
 
