@@ -8,10 +8,13 @@
 package main
 
 import (
+	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/atc0005/bounce/config"
 
@@ -76,19 +79,24 @@ func frontPageHandler(skipSanitize bool) http.HandlerFunc {
 
 func main() {
 
-	log.Println("Initializing application")
+	log.Println("DEBUG: Initializing application")
 
 	appConfig, err := config.NewConfig()
 	if err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			os.Exit(0)
+		}
 		log.Fatalf("Failed to initialize application: %s", err)
 	}
 
-	log.Printf("%+v\n", appConfig)
+	log.Printf("DEBUG: %+v\n", appConfig)
 
 	log.Printf("Listening on port %d", appConfig.LocalTCPPort)
 
+	// Setup routes
 	http.HandleFunc("/", frontPageHandler(appConfig.SkipMarkdownSanitization))
 
-	// listen on port 8080 on any interface, block until app is terminated
-	log.Fatal(http.ListenAndServe(":8000", nil))
+	// listen on specified port on any interface, block until app is terminated
+	listenAddress := fmt.Sprintf(":%d", appConfig.LocalTCPPort)
+	log.Fatal(http.ListenAndServe(listenAddress, nil))
 }
