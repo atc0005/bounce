@@ -22,6 +22,31 @@ import (
 	"github.com/russross/blackfriday/v2"
 )
 
+const (
+	readme    string = "README.md"
+	changelog string = "CHANGELOG.md"
+)
+
+const htmlHeader string = `
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>bounce - Small utility to assist with building HTTP endpoints</title>
+  <meta name="description" content="bounce - Small utility to assist with building HTTP endpoints">
+  <meta name="author" content="atc0005">
+
+</head>
+<body>
+`
+
+const htmlFooter string = `
+</body>
+</html>
+`
+
 func loadMarkdown(filename string) ([]byte, error) {
 
 	data, err := ioutil.ReadFile(filename)
@@ -54,7 +79,7 @@ func processMarkdown(b []byte, skipSanitize bool) ([]byte, error) {
 
 }
 
-func frontPageHandler(skipSanitize bool) http.HandlerFunc {
+func frontPageHandler(requestedFile string, skipSanitize bool) http.HandlerFunc {
 
 	// return "type" of http.HandlerFunc as expected by http.HandleFunc() this
 	// function receives `w` and `r` from http.HandleFunc; we do not have to
@@ -62,16 +87,21 @@ func frontPageHandler(skipSanitize bool) http.HandlerFunc {
 	// as arguments.
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		log.Println("frontPageHandler endpoint hit")
+		log.Println("DEBUG: frontPageHandler endpoint hit")
 		//fmt.Fprintf(w, "frontPageHandler endpoint hit")
 
-		filename := "README.md"
+		filename := requestedFile
 		markdownInput, err := loadMarkdown(filename)
 		if err != nil {
 			log.Fatalf("Unable to open %s: %s", filename, err)
 		}
 		bytes, err := processMarkdown(markdownInput, skipSanitize)
-		htmlOutput := string(bytes)
+		htmlOutput := fmt.Sprintf(
+			"%s\n%s\n%s",
+			htmlHeader,
+			htmlFooter,
+			string(bytes),
+		)
 		fmt.Fprintf(w, htmlOutput)
 
 	}
@@ -94,7 +124,8 @@ func main() {
 	log.Printf("Listening on port %d", appConfig.LocalTCPPort)
 
 	// Setup routes
-	http.HandleFunc("/", frontPageHandler(appConfig.SkipMarkdownSanitization))
+	http.HandleFunc("/", frontPageHandler(readme, appConfig.SkipMarkdownSanitization))
+	http.HandleFunc(fmt.Sprintf("/%s", changelog), frontPageHandler(changelog, appConfig.SkipMarkdownSanitization))
 
 	// listen on specified port on any interface, block until app is terminated
 	listenAddress := fmt.Sprintf(":%d", appConfig.LocalTCPPort)
