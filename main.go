@@ -42,6 +42,17 @@ const htmlHeader string = `
 <body>
 `
 
+const htmlFallbackIndexPage string = `
+<p>
+  Welcome to the landing page for the bounce web application. This application
+  is primarily intended to be used as a HTTP endpoint for testing webhook
+  payloads. Over time, it may grow other related features to aid in testing
+  other tools that submit data via HTTP requests.
+</p>
+
+The list of links below are the currently supported endpoints for this application:
+`
+
 const htmlFooter string = `
 </body>
 </html>
@@ -51,7 +62,7 @@ func loadMarkdown(filename string) ([]byte, error) {
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		log.Printf("error loading Markdown file %q: %s", filename, err)
+		log.Printf("DEBUG: error loading Markdown file %q: %s", filename, err)
 		return nil, err
 	}
 	return data, nil
@@ -68,18 +79,34 @@ func processMarkdown(b []byte, skipSanitize bool) ([]byte, error) {
 	}
 
 	if !skipSanitize {
+		log.Printf("DEBUG: Performing Markdown sanitization as requested: %v", skipSanitize)
 		unsafe := blackfriday.Run(b)
 		data := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 		return data, nil
 	}
 
+	log.Printf("DEBUG: Skipping Markdown sanitization as requested: %v", skipSanitize)
 	data := blackfriday.Run(b)
-
 	return data, nil
 
 }
 
-func frontPageHandler(requestedFile string, skipSanitize bool) http.HandlerFunc {
+// renderDefaultIndexPage is called if the default or user-requested Markdown
+// file cannot be opened (e.g., this application binary is being run from
+// outside of the directory containing the file)
+func renderDefaultIndexPage() string {
+
+	// FIXME: Direct constant access
+	return fmt.Sprintf(
+		"%s\n%s\n%s",
+		htmlHeader,
+		htmlFallbackIndexPage,
+		htmlFooter,
+	)
+
+}
+
+func frontPageHandler(requestedFile string, fallbackContent string, skipSanitize bool) http.HandlerFunc {
 
 	// return "type" of http.HandlerFunc as expected by http.HandleFunc() this
 	// function receives `w` and `r` from http.HandleFunc; we do not have to
@@ -93,15 +120,36 @@ func frontPageHandler(requestedFile string, skipSanitize bool) http.HandlerFunc 
 		filename := requestedFile
 		markdownInput, err := loadMarkdown(filename)
 		if err != nil {
-			log.Fatalf("Unable to open %s: %s", filename, err)
+			log.Printf("Failed to load Markdown file %q: %s", filename, err)
+			log.Println("Falling back to static, hard-coded index page.")
+
+			htmlOutput := renderDefaultIndexPage()
+			fmt.Fprintf(w, htmlOutput)
+			return
 		}
+
+		log.Printf("DEBUG: Successfully loaded Markdown file: %q", filename)
+		log.Println("DEBUG: Attempting to generate HTML output from loaded Markdown file")
+
 		bytes, err := processMarkdown(markdownInput, skipSanitize)
+		if err != nil {
+			log.Printf("Failed to parse Markdown file %q: %s", filename, err)
+			log.Println("Falling back to static, hard-coded index page.")
+
+			htmlOutput := renderDefaultIndexPage()
+			fmt.Fprintf(w, htmlOutput)
+			return
+		}
+
+		log.Println("DEBUG: Successfully converted HTML from Markdown file")
+
 		htmlOutput := fmt.Sprintf(
 			"%s\n%s\n%s",
 			htmlHeader,
 			htmlFooter,
 			string(bytes),
 		)
+
 		fmt.Fprintf(w, htmlOutput)
 
 	}
@@ -123,11 +171,40 @@ func main() {
 
 	log.Printf("Listening on port %d", appConfig.LocalTCPPort)
 
-	// Setup routes
-	http.HandleFunc("/", frontPageHandler(readme, appConfig.SkipMarkdownSanitization))
-	http.HandleFunc(fmt.Sprintf("/%s", changelog), frontPageHandler(changelog, appConfig.SkipMarkdownSanitization))
+	// SETUP ROUTES
 
-	// listen on specified port on any interface, block until app is terminated
+	// Direct request for root of site OR unspecified route (e.g.,"catch-all")
+	http.HandleFunc("/",
+		frontPageHandler(
+			readme,
+			htmlFallbackIndexPage,
+			appConfig.SkipMarkdownSanitization,
+		),
+	)
+
+	// Direct request for readme file
+	http.HandleFunc(
+		fmt.Sprintf("/%s", readme),
+		frontPageHandler(
+			readme,
+			htmlFallbackIndexPage,
+			appConfig.SkipMarkdownSanitization,
+		),
+	)
+
+	// Direct request for changelog file
+	http.HandleFunc(
+		fmt.Sprintf("/%s", changelog),
+		frontPageHandler(
+			changelog,
+			htmlFallbackIndexPage,
+			appConfig.SkipMarkdownSanitization,
+		),
+	)
+
+	// TODO: Add useful endpoints for testing here
+
+	// listen on specified port on ALL IP Addresses, block until app is terminated
 	listenAddress := fmt.Sprintf(":%d", appConfig.LocalTCPPort)
 	log.Fatal(http.ListenAndServe(listenAddress, nil))
 }

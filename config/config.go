@@ -107,7 +107,7 @@ func NewConfig() (*Config, error) {
 		&config.InputFile,
 		"input-file",
 		defaultInputMarkdownFile,
-		"Path to Markdown file to process and display. The default is this repo's README.md file.",
+		"Path to Markdown file to process and display for the index/landing/home page. The default is this repo's README.md file.",
 	)
 	mainFlagSet.IntVar(
 		&config.LocalTCPPort,
