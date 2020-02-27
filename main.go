@@ -78,15 +78,15 @@ func processMarkdown(b []byte, skipSanitize bool) ([]byte, error) {
 		return nil, fmt.Errorf("aborting processing of nil pointer")
 	}
 
-	if !skipSanitize {
-		log.Printf("DEBUG: Performing Markdown sanitization as requested: %v", !skipSanitize)
-		unsafe := blackfriday.Run(b)
-		data := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
+	if skipSanitize {
+		log.Printf("DEBUG: Skipping Markdown sanitization as requested: %v", skipSanitize)
+		data := blackfriday.Run(b)
 		return data, nil
 	}
 
-	log.Printf("DEBUG: Skipping Markdown sanitization as requested: %v", !skipSanitize)
-	data := blackfriday.Run(b)
+	log.Printf("DEBUG: Performing Markdown sanitization as requested: %v", skipSanitize)
+	unsafe := blackfriday.Run(b)
+	data := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 	return data, nil
 
 }
