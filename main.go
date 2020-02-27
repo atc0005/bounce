@@ -79,13 +79,13 @@ func processMarkdown(b []byte, skipSanitize bool) ([]byte, error) {
 	}
 
 	if !skipSanitize {
-		log.Printf("DEBUG: Performing Markdown sanitization as requested: %v", skipSanitize)
+		log.Printf("DEBUG: Performing Markdown sanitization as requested: %v", !skipSanitize)
 		unsafe := blackfriday.Run(b)
 		data := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 		return data, nil
 	}
 
-	log.Printf("DEBUG: Skipping Markdown sanitization as requested: %v", skipSanitize)
+	log.Printf("DEBUG: Skipping Markdown sanitization as requested: %v", !skipSanitize)
 	data := blackfriday.Run(b)
 	return data, nil
 
@@ -114,8 +114,27 @@ func frontPageHandler(requestedFile string, fallbackContent string, skipSanitize
 	// as arguments.
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		log.Println("DEBUG: frontPageHandler endpoint hit")
+		log.Printf("DEBUG: frontPageHandler endpoint hit for path: %q\n", r.URL.Path)
 		//fmt.Fprintf(w, "frontPageHandler endpoint hit")
+
+		// TODO: Stub out handling of non "/" requests (e.g., /favicon.ico)
+		//
+		// https://github.com/golang/go/issues/4799
+		// https://github.com/golang/go/commit/1a819be59053fa1d6b76cb9549c9a117758090ee
+		//
+		// if req.URL.Path != "/" {
+		// 	http.NotFound(w, req)
+		// 	return
+		// }
+
+		// TODO
+		// Build some kind of "banned" list?
+		// Probably better to whitelist instead.
+		if r.URL.Path == "/favicon.ico" {
+			log.Printf("DEBUG: rejecting request for %q\n", r.URL.Path)
+			http.NotFound(w, r)
+			return
+		}
 
 		filename := requestedFile
 		markdownInput, err := loadMarkdown(filename)
