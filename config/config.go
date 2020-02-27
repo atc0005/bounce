@@ -148,6 +148,7 @@ func validate(c Config) error {
 	// c.SkipMarkdownSanitization
 
 	if c.InputFile == "" {
+		log.Printf("input file %q invalid", c.InputFile)
 		return fmt.Errorf(
 			"input file %q invalid. Please specify the path to a valid Markdown file for display or leave blank to use the default %q file included with this code repo",
 			c.InputFile,
@@ -196,6 +197,7 @@ func validate(c Config) error {
 		)
 
 	default:
+		log.Printf("invalid port %d specified", c.LocalTCPPort)
 		return fmt.Errorf(
 			"port %d is not a valid TCP port for this application",
 			c.LocalTCPPort,
