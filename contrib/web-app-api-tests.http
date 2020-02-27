@@ -1,0 +1,58 @@
+# Copyright 2020 Adam Chalkley
+#
+# https://github.com/atc0005/bounce
+#
+# Licensed under the MIT License. See LICENSE file in the project root for
+# full license information.
+
+##############################################################################
+# Purpose: Provide sample HTTP requests to test the web application within
+# this repo. These requests can be executed/submitted using a compatible tool
+# such as the REST Client extension for Visual Studio Code. See
+# https://github.com/Huachao/vscode-restclient for additional details.
+##############################################################################
+
+# Note: These commands are meant to be run from WITHIN the contrib subdirectory
+
+
+### GET | Front page (SUCCESS)
+
+GET http://localhost:8000/ HTTP/1.1
+
+### POST | Front page (FAIL)
+
+POST http://localhost:8000/ HTTP/1.1
+
+
+### Test | Echo endpoint | Unformatted JSON
+
+POST http://localhost:8000/api/v1/echo HTTP/1.1
+content-type: application/json
+
+< ./splunk-test-payload-unformatted.json
+
+### Test | Echo endpoint | Preformatted JSON
+
+POST http://localhost:8000/api/v1/echo HTTP/1.1
+content-type: application/json
+
+< ./splunk-test-payload-formatted.json
+
+### Test | Echo endpoint via curl call
+
+curl -X POST -H "Content-Type: application/json" -d @splunk-test-payload-unformatted.json http://localhost:8000/api/v1/echo
+
+### Test | Echo | JSON endpoint | Unformatted JSON
+
+POST http://localhost:8000/api/v1/echo/json HTTP/1.1
+content-type: application/json
+
+< ./splunk-test-payload-unformatted.json
+
+### Test | Echo | JSON endpoint | Preformatted JSON
+
+POST http://localhost:8000/api/v1/echo/json HTTP/1.1
+content-type: application/json
+
+< ./splunk-test-payload-formatted.json
+
