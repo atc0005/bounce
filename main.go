@@ -51,33 +51,26 @@ func processMarkdown(b []byte, skipSanitize bool) ([]byte, error) {
 
 }
 
-func frontPageHandler(w http.ResponseWriter, r *http.Request, skipSanitize bool) http.HandlerFunc {
+func frontPageHandler(skipSanitize bool) http.HandlerFunc {
 
-	log.Println("frontPageHandler endpoint hit")
-	//fmt.Fprintf(w, "frontPageHandler endpoint hit")
-
-	filename := "README.md"
-	markdownInput, err := loadMarkdown(filename)
-	if err != nil {
-		log.Fatalf("Unable to open %s: %s", filename, err)
-	}
-	bytes, err := processMarkdown(markdownInput, skipSanitize)
-	htmlOutput := string(bytes)
-	fmt.Fprintf(w, htmlOutput)
-
-	return func(w http.Responsewriter, r *http.Request) {
-
-	}
-}
-
-func makeHandler(fn func(http.ResponseWriter, *http.Request, bool)) http.HandlerFunc {
+	// return "type" of http.HandlerFunc as expected by http.HandleFunc() this
+	// function receives `w` and `r` from http.HandleFunc; we do not have to
+	// write frontPageHandler() so that it directly receives those `w` and `r`
+	// as arguments.
 	return func(w http.ResponseWriter, r *http.Request) {
-		m := validPath.FindStringSubmatch(r.URL.Path)
-		if m == nil {
-			http.NotFound(w, r)
-			return
+
+		log.Println("frontPageHandler endpoint hit")
+		//fmt.Fprintf(w, "frontPageHandler endpoint hit")
+
+		filename := "README.md"
+		markdownInput, err := loadMarkdown(filename)
+		if err != nil {
+			log.Fatalf("Unable to open %s: %s", filename, err)
 		}
-		fn(w, r, m[2])
+		bytes, err := processMarkdown(markdownInput, skipSanitize)
+		htmlOutput := string(bytes)
+		fmt.Fprintf(w, htmlOutput)
+
 	}
 }
 
@@ -87,15 +80,13 @@ func main() {
 
 	appConfig, err := config.NewConfig()
 	if err != nil {
-		log.Fatal("Failed to initialize application: %s", err)
+		log.Fatalf("Failed to initialize application: %s", err)
 	}
 
 	log.Printf("%+v\n", appConfig)
 
-	log.Printf("Listening on %s at port %d")
+	log.Printf("Listening on port %d", appConfig.LocalTCPPort)
 
-	// GET requests
-	http.HandlerFunc()
 	http.HandleFunc("/", frontPageHandler(appConfig.SkipMarkdownSanitization))
 
 	// listen on port 8080 on any interface, block until app is terminated
