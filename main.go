@@ -66,42 +66,6 @@ func renderDefaultIndexPage() string {
 
 }
 
-func frontPageHandler() http.HandlerFunc {
-
-	// return "type" of http.HandlerFunc as expected by http.HandleFunc() this
-	// function receives `w` and `r` from http.HandleFunc; we do not have to
-	// write frontPageHandler() so that it directly receives those `w` and `r`
-	// as arguments.
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		msgReply := fmt.Sprintf("DEBUG: frontPageHandler endpoint hit for path: %q\n", r.URL.Path)
-		log.Printf(msgReply)
-		//fmt.Fprintf(w, msgReply)
-
-		// TODO: Stub out handling of non "/" requests (e.g., /favicon.ico)
-		//
-		// https://github.com/golang/go/issues/4799
-		// https://github.com/golang/go/commit/1a819be59053fa1d6b76cb9549c9a117758090ee
-		//
-		// if req.URL.Path != "/" {
-		// 	http.NotFound(w, req)
-		// 	return
-		// }
-
-		// TODO
-		// Build some kind of "banned" list?
-		// Probably better to whitelist instead.
-		if r.URL.Path == "/favicon.ico" {
-			log.Printf("DEBUG: rejecting request for %q\n", r.URL.Path)
-			http.NotFound(w, r)
-			return
-		}
-
-		fmt.Fprintf(w, renderDefaultIndexPage())
-
-	}
-}
-
 func main() {
 
 	log.Println("DEBUG: Initializing application")
@@ -119,9 +83,14 @@ func main() {
 	log.Printf("Listening on port %d", appConfig.LocalTCPPort)
 
 	// SETUP ROUTES
+	// See handlers.go for handler definitions
 
 	// Direct request for root of site OR unspecified route (e.g.,"catch-all")
-	http.HandleFunc("/", frontPageHandler())
+	// Purpose: Landing page for list of routes, catch-all
+	http.HandleFunc("/", frontPageHandler)
+
+	// GET requests; testing endpoint
+	http.HandleFunc("/api/v1/echo", echoHandler)
 
 	// TODO: Add useful endpoints for testing here
 
