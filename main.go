@@ -18,8 +18,7 @@ import (
 
 	"github.com/atc0005/bounce/config"
 
-	"github.com/microcosm-cc/bluemonday"
-	"github.com/russross/blackfriday/v2"
+	"github.com/shurcooL/github_flavored_markdown"
 )
 
 const (
@@ -80,14 +79,16 @@ func processMarkdown(b []byte, skipSanitize bool) ([]byte, error) {
 
 	if skipSanitize {
 		log.Printf("DEBUG: Skipping Markdown sanitization as requested: %v", skipSanitize)
-		data := blackfriday.Run(b)
-		return data, nil
+		//data := blackfriday.Run(b)
+		ghfm := github_flavored_markdown.Markdown(b)
+		return ghfm, nil
 	}
 
 	log.Printf("DEBUG: Performing Markdown sanitization as requested: %v", skipSanitize)
-	unsafe := blackfriday.Run(b)
-	data := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
-	return data, nil
+	//unsafe := blackfriday.Run(b)
+	///data := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
+	ghfm := github_flavored_markdown.Markdown(b)
+	return ghfm, nil
 
 }
 
