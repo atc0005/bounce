@@ -109,6 +109,8 @@ func renderDefaultIndexPage() string {
 
 func frontPageHandler(requestedFile string, fallbackContent string, skipSanitize bool) http.HandlerFunc {
 
+	log.Printf("DEBUG: requested file outside of return: %q\n", requestedFile)
+
 	// return "type" of http.HandlerFunc as expected by http.HandleFunc() this
 	// function receives `w` and `r` from http.HandleFunc; we do not have to
 	// write frontPageHandler() so that it directly receives those `w` and `r`
@@ -116,6 +118,7 @@ func frontPageHandler(requestedFile string, fallbackContent string, skipSanitize
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("DEBUG: frontPageHandler endpoint hit for path: %q\n", r.URL.Path)
+		log.Printf("DEBUG: requested file inside return: %q\n", requestedFile)
 		//fmt.Fprintf(w, "frontPageHandler endpoint hit")
 
 		// TODO: Stub out handling of non "/" requests (e.g., /favicon.ico)
