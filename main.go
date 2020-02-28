@@ -84,7 +84,7 @@ func processMarkdown(b []byte, skipSanitize bool) ([]byte, error) {
 		return ghfm, nil
 	}
 
-	log.Printf("DEBUG: Performing Markdown sanitization as requested: %v", skipSanitize)
+	log.Printf("DEBUG: Performing Markdown sanitization as requested: %v", !skipSanitize)
 	//unsafe := blackfriday.Run(b)
 	///data := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 	ghfm := github_flavored_markdown.Markdown(b)
