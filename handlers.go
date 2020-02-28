@@ -6,40 +6,46 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/atc0005/bounce/routes"
 )
 
-func frontPageHandler(w http.ResponseWriter, r *http.Request) {
+func frontPageHandler(header string, mainContent string, routes routes.Routes, footer string) http.HandlerFunc {
 
-	msgReply := fmt.Sprintf("DEBUG: frontPageHandler endpoint hit for path: %q\n", r.URL.Path)
-	log.Printf(msgReply)
-	//fmt.Fprintf(w, msgReply)
+	return func(w http.ResponseWriter, r *http.Request) {
 
-	// TODO: Stub out handling of non "/" requests (e.g., /favicon.ico)
-	//
-	// https://github.com/golang/go/issues/4799
-	// https://github.com/golang/go/commit/1a819be59053fa1d6b76cb9549c9a117758090ee
-	//
-	// if req.URL.Path != "/" {
-	// 	http.NotFound(w, req)
-	// 	return
-	// }
+		msgReply := fmt.Sprintf("DEBUG: frontPageHandler endpoint hit for path: %q\n", r.URL.Path)
+		log.Printf(msgReply)
+		//fmt.Fprintf(w, msgReply)
 
-	// TODO
-	// Build some kind of "banned" list?
-	// Probably better to whitelist instead.
-	// if r.URL.Path == "/favicon.ico" {
-	// 	log.Printf("DEBUG: rejecting request for %q\n", r.URL.Path)
-	// 	http.NotFound(w, r)
-	// 	return
-	// }
+		// TODO: Stub out handling of non "/" requests (e.g., /favicon.ico)
+		//
+		// https://github.com/golang/go/issues/4799
+		// https://github.com/golang/go/commit/1a819be59053fa1d6b76cb9549c9a117758090ee
+		//
+		// if req.URL.Path != "/" {
+		// 	http.NotFound(w, req)
+		// 	return
+		// }
 
-	if r.URL.Path != "/" {
-		log.Printf("DEBUG: Rejecting request %q; not explicitly handled by a route.\n", r.URL.Path)
-		http.NotFound(w, r)
-		return
+		// TODO
+		// Build some kind of "banned" list?
+		// Probably better to whitelist instead.
+		// if r.URL.Path == "/favicon.ico" {
+		// 	log.Printf("DEBUG: rejecting request for %q\n", r.URL.Path)
+		// 	http.NotFound(w, r)
+		// 	return
+		// }
+
+		if r.URL.Path != "/" {
+			log.Printf("DEBUG: Rejecting request %q; not explicitly handled by a route.\n", r.URL.Path)
+			http.NotFound(w, r)
+			return
+		}
+
+		fmt.Fprintf(w, renderDefaultIndexPage(header, mainContent, routes, footer))
+
 	}
-
-	fmt.Fprintf(w, renderDefaultIndexPage())
 
 }
 

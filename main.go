@@ -16,6 +16,7 @@ import (
 	"os"
 
 	"github.com/atc0005/bounce/config"
+	"github.com/atc0005/bounce/routes"
 )
 
 const (
@@ -54,13 +55,14 @@ const htmlFooter string = `
 </html>
 `
 
-func renderDefaultIndexPage() string {
+func renderDefaultIndexPage(header string, mainContent string, routes routes.Routes, footer string) string {
 
 	// FIXME: Direct constant access
 	return fmt.Sprintf(
-		"%s\n%s\n%s",
+		"%s\n%s\n%s\n%s",
 		htmlHeader,
 		htmlFallbackIndexPage,
+		routes.GenerateEndPointsTable(),
 		htmlFooter,
 	)
 
@@ -85,61 +87,32 @@ func main() {
 	// SETUP ROUTES
 	// See handlers.go for handler definitions
 
+	// TODO: replace use of http.DefaultServeMux with a custom mux to meet
+	// recommended best practices
+
+	// TODO: Use (work-in-progress) routes package to register these routes
+	// for later use *and* display on the index page
+
+	// NOTE: The entry below needs further work.
+	// I need to replace renderDefaultIndexPage() (or at least update it)
+	// as it currently requires arguments that don't make sense yet
+
+	var ourRoutes routes.Routes
+	ourRoutes.Add(routes.Route{
+		Name:        "index",
+		Pattern:     "/",
+		Method:      http.MethodGet,
+		HandlerFunc: frontPageHandler(htmlHeader, htmlFallbackIndexPage, htmlFooter),
+	})
+
 	// Direct request for root of site OR unspecified route (e.g.,"catch-all")
 	// Purpose: Landing page for list of routes, catch-all
-	http.HandleFunc("/", frontPageHandler)
+	// http.HandleFunc("/", frontPageHandler(htmlHeader, htmlFallbackIndexPage, ourRoutes, htmlFooter))
 
-	// GET requests; testing endpoint
-	http.HandleFunc("/api/v1/echo", echoHandler)
+	// // GET requests; testing endpoint
+	// http.HandleFunc("/api/v1/echo", echoHandler)
 
 	// TODO: Add useful endpoints for testing here
-
-	// https://stackoverflow.com/a/37244145/903870
-	// v := reflect.ValueOf(http.DefaultServeMux).Elem()
-	// fmt.Printf("routes: %v\n", v.FieldByName("m"))
-
-	// https://stackoverflow.com/a/37247014/903870
-	// httpMux := reflect.ValueOf(http.DefaultServeMux).Elem()
-	// finList := httpMux.FieldByIndex([]int{1})
-	// fmt.Println(finList)
-
-	// Broken attempt below
-	//
-	// httpMux := reflect.ValueOf(http.DefaultServeMux).Elem()
-	// finList := httpMux.FieldByIndex([]int{1})
-	// fmt.Println(finList)
-	// fmt.Printf("finList is of type: %T", finList)
-	// var routes map[string]string
-	// var ok bool
-	// if routes, ok = finList.Interface().(map[string]string); !ok {
-	// 	fmt.Println("Unable to properly obtain list of routes")
-	// }
-	// fmt.Println("Defined routes:")
-	// for k, v := range routes {
-	// 	fmt.Println("Key:", k, "Value:", v)
-	// }
-
-	// v := reflect.ValueOf(http.DefaultServeMux).Elem()
-	// //fmt.Printf("routes: %v\n", v.FieldByName("m"))
-	// routesReflectValue := v.FieldByName("m")
-
-	// fmt.Printf("routes: %v\n", routesReflectValue)
-	// fmt.Printf("routesReflectValue is of type: %T", routesReflectValue)
-	// var routes map[string]string
-	// var ok bool
-	// if routes, ok = routesReflectValue.Interface().(map[string]string); !ok {
-	// 	fmt.Println("Unable to properly obtain list of routes")
-	// }
-	// fmt.Println("Defined routes:")
-	// for k, v := range routes {
-	// 	fmt.Println("Key:", k, "Value:", v)
-	// }
-
-	// 	type MyInt int
-	// var x MyInt = 7
-	// v := reflect.ValueOf(x)
-	// y := v.Interface().(float64) // y will have type float64.
-	// fmt.Println(y)
 
 	// listen on specified port on ALL IP Addresses, block until app is terminated
 	listenAddress := fmt.Sprintf(":%d", appConfig.LocalTCPPort)
