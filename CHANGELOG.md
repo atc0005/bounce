@@ -26,18 +26,14 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
-## [v0.1.0] - 2020-02-xx
+## [v0.1.0] - 2020-03-xx
 
 ### Added
 
 This initial prototype supports/provides:
 
 - User configurable port to listen on for incoming HTTP requests
-- Initial landing page for this application is rendered from either the
-  `README.md` file in this repo (default setting) or a user-specified Markdown
-  file. The `CHANGELOG.md` file is also presented to the user if requested.
-  - Note: Sanitization of Markdown content is applied by default, but this can
-    be disabled by command-line flag if desired
+- TODO: List routes here along with brief summary of behavior expected for each
 
 Worth noting (in no particular order):
 

@@ -12,6 +12,7 @@ Small utility to assist with building HTTP endpoints
   - [Overview](#overview)
   - [Status](#status)
   - [Features](#features)
+  - [Available Endpoints](#available-endpoints)
   - [Changelog](#changelog)
   - [Requirements](#requirements)
   - [How to install it](#how-to-install-it)
@@ -44,12 +45,14 @@ in testing other tools that submit data via HTTP requests.
 ## Features
 
 - User configurable port to listen on for incoming HTTP requests
-- Default "home" or "frontpage" for this application is rendered from either
-  default `README.md` file in this repo, user-specified Markdown file *or* a
-  static index page rendered from hard-coded content within the application
-  (failsafe)
-  - Note: Sanitization of Markdown content is applied by default, but this can
-    be disabled by command-line flag if desired
+
+## Available Endpoints
+
+- **TODO***: List all endpoints here in table format
+  - supported HTTP Methods
+  - supported request content types (e.g., plain, JSON, etc)
+  - expected response content types (e.g., plain, JSON, etc)
+  - ...
 
 ## Changelog
 
@@ -122,22 +125,15 @@ Tested using:
 
 ### Command-line Arguments
 
-| Option          | Required | Default     | Repeat | Possible                                | Description                                                                                                                                    |
-| --------------- | -------- | ----------- | ------ | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `h`, `help`     | No       | `false`     | No     | `h`, `help`                             | Show Help text along with the list of supported flags.                                                                                         |
-| `input-file`    | No       | `README.md` | No     | *valid file name characters*            | Path to Markdown file to process and display for the index/landing/home page. The default is this `README.md` file.                            |
-| `port`          | No       | `8000`      | No     | *valid whole numbers* (see Description) | TCP port that this application should listen on for incoming HTTP requests.                                                                    |
-| `skip-sanitize` | No       | `false`     | No     | `true`, `false`                         | Whether sanitization of Markdown input should be skipped. The default is to perform this sanitization to help protect against untrusted input. |
+| Option      | Required | Default | Repeat | Possible                                | Description                                                                 |
+| ----------- | -------- | ------- | ------ | --------------------------------------- | --------------------------------------------------------------------------- |
+| `h`, `help` | No       | `false` | No     | `h`, `help`                             | Show Help text along with the list of supported flags.                      |
+| `port`      | No       | `8000`  | No     | *valid whole numbers* (see Description) | TCP port that this application should listen on for incoming HTTP requests. |
 
 ### Worth noting
 
 - For best results, limit your choice of TCP port to a an unprivileged user
   port between `1024` and `49151`
-- The Markdown file specified by the `input-file` flag is used when rendering
-  an index page for specific content in this repo
-  - `/`
-  - `/README.md`
-  - `/CHANGELOG.md`
 
 ## How to use it
 
@@ -167,3 +163,5 @@ support is "coming soon".
   - <https://en.wikipedia.org/wiki/MinGW>
   - <http://mingw-w64.org/>
   - <https://www.msys2.org/>
+
+- <https://gobyexample.com/http-servers>
