@@ -3,8 +3,7 @@ module github.com/atc0005/bounce
 go 1.13
 
 require (
-	github.com/microcosm-cc/bluemonday v1.0.2
-	github.com/russross/blackfriday/v2 v2.0.1
+	github.com/microcosm-cc/bluemonday v1.0.2 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shurcooL/github_flavored_markdown v0.0.0-20181002035957-2122de532470
 	github.com/shurcooL/go v0.0.0-20191216061654-b114cc39af9f // indirect
