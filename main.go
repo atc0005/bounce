@@ -200,10 +200,10 @@ func main() {
 	http.HandleFunc("/", frontPageHandler(readme, htmlFallbackIndexPage, appConfig.SkipMarkdownSanitization))
 
 	// Direct request for readme file
-	http.HandleFunc(readme, frontPageHandler(readme, htmlFallbackIndexPage, appConfig.SkipMarkdownSanitization))
+	http.HandleFunc("/"+readme, frontPageHandler(readme, htmlFallbackIndexPage, appConfig.SkipMarkdownSanitization))
 
 	// Direct request for changelog file
-	http.HandleFunc(changelog, frontPageHandler(changelog, htmlFallbackIndexPage, appConfig.SkipMarkdownSanitization))
+	http.HandleFunc("/"+changelog, frontPageHandler(changelog, htmlFallbackIndexPage, appConfig.SkipMarkdownSanitization))
 
 	// TODO: Add useful endpoints for testing here
 
