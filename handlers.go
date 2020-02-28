@@ -45,15 +45,11 @@ func frontPageHandler(w http.ResponseWriter, r *http.Request) {
 
 func echoHandler(w http.ResponseWriter, r *http.Request) {
 
-	//fmt.Fprintf(w, "echoHandler endpoint hit")
-	log.Println("echoHandler endpoint hit")
-
-	// Only try to get the body if the client submitted a payload
-	if r.Method == http.MethodPost {
-		log.Println("POST request received; TODO: validate data")
-	}
-
 	mw := io.MultiWriter(w, os.Stdout)
+
+	//fmt.Fprintf(w, "echoHandler endpoint hit")
+	fmt.Fprintf(mw, "echoHandler endpoint hit\n")
+	fmt.Fprintf(mw, "HTTP Method used by client: %s\n", r.Method)
 
 	// https://gobyexample.com/http-servers
 	fmt.Fprintf(mw, "Request received.\n")
@@ -65,11 +61,16 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fmt.Fprintf(mw, "Body:\n")
-	_, err := io.Copy(mw, r.Body)
-	if err != nil {
-		log.Println(err)
-		return
+	// Only try to get the body if the client submitted a payload
+	if r.Method == http.MethodPost {
+		fmt.Fprintf(mw, "POST request received; reading Body value ...\n")
+
+		fmt.Fprintf(mw, "Body:\n")
+		_, err := io.Copy(mw, r.Body)
+		if err != nil {
+			log.Println(err)
+			return
+		}
 	}
 
 }
