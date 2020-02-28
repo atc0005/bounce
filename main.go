@@ -11,14 +11,11 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/atc0005/bounce/config"
-
-	"github.com/shurcooL/github_flavored_markdown"
 )
 
 const (
@@ -57,44 +54,6 @@ const htmlFooter string = `
 </html>
 `
 
-func loadMarkdown(filename string) ([]byte, error) {
-
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		log.Printf("DEBUG: error loading Markdown file %q: %s", filename, err)
-		return nil, err
-	}
-	return data, nil
-}
-
-// processMarkdown runs a Markdown processor against the stored Page content
-// and replaces supported Markdown with HTML equivalents for display to
-// the client.
-func processMarkdown(b []byte, skipSanitize bool) ([]byte, error) {
-
-	// add protection against nil pointer deference
-	if b == nil {
-		return nil, fmt.Errorf("aborting processing of nil pointer")
-	}
-
-	if skipSanitize {
-		log.Printf("DEBUG: Skipping Markdown sanitization as requested: %v", skipSanitize)
-		//data := blackfriday.Run(b)
-		ghfm := github_flavored_markdown.Markdown(b)
-		return ghfm, nil
-	}
-
-	log.Printf("DEBUG: Performing Markdown sanitization as requested: %v", !skipSanitize)
-	//unsafe := blackfriday.Run(b)
-	///data := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
-	ghfm := github_flavored_markdown.Markdown(b)
-	return ghfm, nil
-
-}
-
-// renderDefaultIndexPage is called if the default or user-requested Markdown
-// file cannot be opened (e.g., this application binary is being run from
-// outside of the directory containing the file)
 func renderDefaultIndexPage() string {
 
 	// FIXME: Direct constant access
@@ -107,9 +66,7 @@ func renderDefaultIndexPage() string {
 
 }
 
-func frontPageHandler(requestedFile string, fallbackContent string, skipSanitize bool) http.HandlerFunc {
-
-	log.Printf("DEBUG: requested file outside of return: %q\n", requestedFile)
+func frontPageHandler() http.HandlerFunc {
 
 	// return "type" of http.HandlerFunc as expected by http.HandleFunc() this
 	// function receives `w` and `r` from http.HandleFunc; we do not have to
@@ -117,9 +74,9 @@ func frontPageHandler(requestedFile string, fallbackContent string, skipSanitize
 	// as arguments.
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		log.Printf("DEBUG: frontPageHandler endpoint hit for path: %q\n", r.URL.Path)
-		log.Printf("DEBUG: requested file inside return: %q\n", requestedFile)
-		//fmt.Fprintf(w, "frontPageHandler endpoint hit")
+		msgReply := fmt.Sprintf("DEBUG: frontPageHandler endpoint hit for path: %q\n", r.URL.Path)
+		log.Printf(msgReply)
+		//fmt.Fprintf(w, msgReply)
 
 		// TODO: Stub out handling of non "/" requests (e.g., /favicon.ico)
 		//
@@ -140,40 +97,7 @@ func frontPageHandler(requestedFile string, fallbackContent string, skipSanitize
 			return
 		}
 
-		filename := requestedFile
-		markdownInput, err := loadMarkdown(filename)
-		if err != nil {
-			log.Printf("Failed to load Markdown file %q: %s", filename, err)
-			log.Println("Falling back to static, hard-coded index page.")
-
-			htmlOutput := renderDefaultIndexPage()
-			fmt.Fprintf(w, htmlOutput)
-			return
-		}
-
-		log.Printf("DEBUG: Successfully loaded Markdown file: %q", filename)
-		log.Println("DEBUG: Attempting to generate HTML output from loaded Markdown file")
-
-		bytes, err := processMarkdown(markdownInput, skipSanitize)
-		if err != nil {
-			log.Printf("Failed to parse Markdown file %q: %s", filename, err)
-			log.Println("Falling back to static, hard-coded index page.")
-
-			htmlOutput := renderDefaultIndexPage()
-			fmt.Fprintf(w, htmlOutput)
-			return
-		}
-
-		log.Println("DEBUG: Successfully converted HTML from Markdown file")
-
-		htmlOutput := fmt.Sprintf(
-			"%s\n%s\n%s",
-			htmlHeader,
-			htmlFooter,
-			string(bytes),
-		)
-
-		fmt.Fprintf(w, htmlOutput)
+		fmt.Fprintf(w, renderDefaultIndexPage())
 
 	}
 }
@@ -197,13 +121,7 @@ func main() {
 	// SETUP ROUTES
 
 	// Direct request for root of site OR unspecified route (e.g.,"catch-all")
-	http.HandleFunc("/", frontPageHandler(readme, htmlFallbackIndexPage, appConfig.SkipMarkdownSanitization))
-
-	// Direct request for readme file
-	http.HandleFunc("/"+readme, frontPageHandler(readme, htmlFallbackIndexPage, appConfig.SkipMarkdownSanitization))
-
-	// Direct request for changelog file
-	http.HandleFunc("/"+changelog, frontPageHandler(changelog, htmlFallbackIndexPage, appConfig.SkipMarkdownSanitization))
+	http.HandleFunc("/", frontPageHandler())
 
 	// TODO: Add useful endpoints for testing here
 

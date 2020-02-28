@@ -26,9 +26,7 @@ const myAppURL string = "https://github.com/atc0005/bounce"
 
 // Default flag settings if not overridden by user input
 const (
-	defaultLocalTCPPort             int    = 8000
-	defaultInputMarkdownFile        string = "README.md"
-	defaultSkipMarkdownSanitization bool   = false
+	defaultLocalTCPPort int = 8000
 )
 
 // TCP port ranges
@@ -72,15 +70,6 @@ func Usage(flagSet *flag.FlagSet) func() {
 // command-line flags
 type Config struct {
 
-	// InputFile represents the full path to an input Markdown file. This is
-	// usually the path to this repo's README.md file.
-	InputFile string
-
-	// SkipMarkdownSanitization indicates whether sanitization of Markdown
-	// input should be skipped. The default is to perform this sanitization to
-	// help protect against untrusted input.
-	SkipMarkdownSanitization bool
-
 	// LocalTCPPort is the TCP port that this application should listen on for
 	// incoming requests
 	LocalTCPPort int
@@ -88,9 +77,7 @@ type Config struct {
 
 func (c *Config) String() string {
 	return fmt.Sprintf(
-		"InputFile: %v, SkipMarkdownSanitization: %v, LocalTCPPort: %d",
-		c.InputFile,
-		c.SkipMarkdownSanitization,
+		"LocalTCPPort: %d",
 		c.LocalTCPPort,
 	)
 }
@@ -103,23 +90,11 @@ func NewConfig() (*Config, error) {
 
 	mainFlagSet := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 
-	mainFlagSet.StringVar(
-		&config.InputFile,
-		"input-file",
-		defaultInputMarkdownFile,
-		"Path to Markdown file to process and display for the index/landing/home page. The default is this repo's README.md file.",
-	)
 	mainFlagSet.IntVar(
 		&config.LocalTCPPort,
 		"port",
 		defaultLocalTCPPort,
 		"TCP port that this application should listen on for incoming HTTP requests.",
-	)
-	mainFlagSet.BoolVar(
-		&config.SkipMarkdownSanitization,
-		"skip-sanitize",
-		defaultSkipMarkdownSanitization,
-		"Whether sanitization of Markdown input should be skipped. The default is to perform this sanitization to help protect against untrusted input.",
 	)
 
 	mainFlagSet.Usage = Usage(mainFlagSet)
@@ -143,18 +118,6 @@ func NewConfig() (*Config, error) {
 
 // validate confirms that all config struct fields have reasonable values
 func validate(c Config) error {
-
-	// Default setting is a valid value,
-	// c.SkipMarkdownSanitization
-
-	if c.InputFile == "" {
-		log.Printf("input file %q invalid", c.InputFile)
-		return fmt.Errorf(
-			"input file %q invalid. Please specify the path to a valid Markdown file for display or leave blank to use the default %q file included with this code repo",
-			c.InputFile,
-			defaultInputMarkdownFile,
-		)
-	}
 
 	switch {
 
