@@ -94,6 +94,37 @@ func main() {
 
 	// TODO: Add useful endpoints for testing here
 
+	// https://stackoverflow.com/a/37244145/903870
+	// v := reflect.ValueOf(http.DefaultServeMux).Elem()
+	// fmt.Printf("routes: %v\n", v.FieldByName("m"))
+
+	// https://stackoverflow.com/a/37247014/903870
+	// httpMux := reflect.ValueOf(http.DefaultServeMux).Elem()
+	// finList := httpMux.FieldByIndex([]int{1})
+	// fmt.Println(finList)
+
+	// Broken attempt below
+	//
+	// httpMux := reflect.ValueOf(http.DefaultServeMux).Elem()
+	// finList := httpMux.FieldByIndex([]int{1})
+	// fmt.Println(finList)
+	// fmt.Printf("finList is of type: %T", finList)
+	// var routes map[string]string
+	// var ok bool
+	// if routes, ok = finList.Interface().(map[string]string); !ok {
+	// 	fmt.Println("Unable to properly obtain list of routes")
+	// }
+	// fmt.Println("Defined routes:")
+	// for k, v := range routes {
+	// 	fmt.Println("Key:", k, "Value:", v)
+	// }
+
+	// 	type MyInt int
+	// var x MyInt = 7
+	// v := reflect.ValueOf(x)
+	// y := v.Interface().(float64) // y will have type float64.
+	// fmt.Println(y)
+
 	// listen on specified port on ALL IP Addresses, block until app is terminated
 	listenAddress := fmt.Sprintf(":%d", appConfig.LocalTCPPort)
 	log.Fatal(http.ListenAndServe(listenAddress, nil))
