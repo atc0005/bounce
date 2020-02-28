@@ -119,6 +119,22 @@ func main() {
 	// 	fmt.Println("Key:", k, "Value:", v)
 	// }
 
+	// v := reflect.ValueOf(http.DefaultServeMux).Elem()
+	// //fmt.Printf("routes: %v\n", v.FieldByName("m"))
+	// routesReflectValue := v.FieldByName("m")
+
+	// fmt.Printf("routes: %v\n", routesReflectValue)
+	// fmt.Printf("routesReflectValue is of type: %T", routesReflectValue)
+	// var routes map[string]string
+	// var ok bool
+	// if routes, ok = routesReflectValue.Interface().(map[string]string); !ok {
+	// 	fmt.Println("Unable to properly obtain list of routes")
+	// }
+	// fmt.Println("Defined routes:")
+	// for k, v := range routes {
+	// 	fmt.Println("Key:", k, "Value:", v)
+	// }
+
 	// 	type MyInt int
 	// var x MyInt = 7
 	// v := reflect.ValueOf(x)
