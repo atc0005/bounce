@@ -152,20 +152,11 @@ func main() {
 		Description:    "The echo endpoint prints received values to stdout and returns them via HTTP response",
 		Pattern:        "/echo",
 		AllowedMethods: []string{http.MethodGet, http.MethodPost},
-		HandlerFunc:    handleIndex(htmlTemplate, &ourRoutes),
+		HandlerFunc:    echoHandler,
 	})
 
 	mux := http.NewServeMux()
 	ourRoutes.RegisterWithServeMux(mux)
-
-	// Direct request for root of site OR unspecified route (e.g.,"catch-all")
-	// Purpose: Landing page for list of routes, catch-all
-	// http.HandleFunc("/", handleIndex(htmlHeader, htmlFallbackIndexPage, ourRoutes, htmlFooter))
-
-	// // GET requests; testing endpoint
-	// http.HandleFunc("/api/v1/echo", echoHandler)
-
-	// TODO: Add useful endpoints for testing here
 
 	// listen on specified port on ALL IP Addresses, block until app is terminated
 	log.Printf("Listening on port %d", appConfig.LocalTCPPort)
