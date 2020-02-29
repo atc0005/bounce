@@ -15,7 +15,7 @@ import (
 // then passed on to the renderDefaultIndexPage function to generate a dynamic
 // index of the available routes or "endpoints" for users to target with test
 // payloads
-func handleIndex(htmlTemplateText string, routes routes.Routes) http.HandlerFunc {
+func handleIndex(htmlTemplateText string, rs *routes.Routes) http.HandlerFunc {
 
 	htmlTemplate := template.Must(template.New("indexPage").Parse(htmlTemplate))
 
@@ -50,7 +50,19 @@ func handleIndex(htmlTemplateText string, routes routes.Routes) http.HandlerFunc
 			return
 		}
 
-		htmlTemplate.Execute(w, routes)
+		data := struct {
+			Routes routes.Routes
+		}{
+			Routes: *rs,
+		}
+
+		log.Println("length of routes:", len(*rs))
+
+		for _, route := range *rs {
+			log.Println("route:", route)
+		}
+
+		htmlTemplate.Execute(w, data)
 
 		//fmt.Fprintf(w, renderDefaultIndexPage(htmlTemplate, routes))
 

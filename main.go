@@ -50,8 +50,8 @@ const htmlTemplate string = `
 The list of links below are the currently supported endpoints for this application:
 
 <ul>
-{{range .Name}}
-<li>{{ . }}</li>
+{{range .Routes }}
+<li>{{ .Name }}</li>
 {{else}}<li><strong>no routes?</strong></li>
 {{end}}
 </ul>
@@ -93,7 +93,7 @@ func main() {
 		Description: "Main page, fallback for unspecified routes",
 		Pattern:     "/",
 		Method:      http.MethodGet,
-		HandlerFunc: handleIndex(htmlTemplate, ourRoutes),
+		HandlerFunc: handleIndex(htmlTemplate, &ourRoutes),
 	})
 
 	mux := http.NewServeMux()
