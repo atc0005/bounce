@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -10,14 +11,17 @@ import (
 	"github.com/atc0005/bounce/routes"
 )
 
-// frontPageHandler receives various values that are then passed on to the
-// renderDefaultIndexPage function to generate a dynamic index of the
-// available routes or "endpoints" for users to target with test payloads
-func frontPageHandler(header string, mainContent string, routes routes.Routes, footer string) http.HandlerFunc {
+// handleIndex receives our HTML template and our defined routes. Both are
+// then passed on to the renderDefaultIndexPage function to generate a dynamic
+// index of the available routes or "endpoints" for users to target with test
+// payloads
+func handleIndex(htmlTemplateText string, routes routes.Routes) http.HandlerFunc {
+
+	htmlTemplate := template.Must(template.New("indexPage").Parse(htmlTemplate))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		msgReply := fmt.Sprintf("DEBUG: frontPageHandler endpoint hit for path: %q\n", r.URL.Path)
+		msgReply := fmt.Sprintf("DEBUG: handleIndex endpoint hit for path: %q\n", r.URL.Path)
 		log.Printf(msgReply)
 		//fmt.Fprintf(w, msgReply)
 
@@ -46,7 +50,9 @@ func frontPageHandler(header string, mainContent string, routes routes.Routes, f
 			return
 		}
 
-		fmt.Fprintf(w, renderDefaultIndexPage(header, mainContent, routes, footer))
+		htmlTemplate.Execute(w, routes)
+
+		//fmt.Fprintf(w, renderDefaultIndexPage(htmlTemplate, routes))
 
 	}
 

@@ -24,7 +24,7 @@ const (
 	changelog string = "CHANGELOG.md"
 )
 
-const htmlHeader string = `
+const htmlTemplate string = `
 <!doctype html>
 
 <html lang="en">
@@ -37,9 +37,9 @@ const htmlHeader string = `
 
 </head>
 <body>
-`
 
-const htmlFallbackIndexPage string = `
+<h1>Welcome!</h1>
+
 <p>
   Welcome to the landing page for the bounce web application. This application
   is primarily intended to be used as a HTTP endpoint for testing webhook
@@ -48,25 +48,17 @@ const htmlFallbackIndexPage string = `
 </p>
 
 The list of links below are the currently supported endpoints for this application:
-`
 
-const htmlFooter string = `
+<ul>
+{{range .Name}}
+<li>{{ . }}</li>
+{{else}}<li><strong>no routes?</strong></li>
+{{end}}
+</ul>
+
 </body>
 </html>
 `
-
-func renderDefaultIndexPage(header string, mainContent string, routes routes.Routes, footer string) string {
-
-	// FIXME: Direct constant access
-	return fmt.Sprintf(
-		"%s\n%s\n%s\n%s",
-		htmlHeader,
-		htmlFallbackIndexPage,
-		routes.GenerateEndPointsTable(),
-		htmlFooter,
-	)
-
-}
 
 func main() {
 
@@ -100,14 +92,18 @@ func main() {
 	var ourRoutes routes.Routes
 	ourRoutes.Add(routes.Route{
 		Name:        "index",
+		Description: "Main page, fallback for unspecified routes",
 		Pattern:     "/",
 		Method:      http.MethodGet,
-		HandlerFunc: frontPageHandler(htmlHeader, htmlFallbackIndexPage, htmlFooter),
+		HandlerFunc: handleIndex(htmlTemplate, ourRoutes),
 	})
+
+	mux := http.NewServeMux()
+	ourRoutes.RegisterWithServeMux(mux)
 
 	// Direct request for root of site OR unspecified route (e.g.,"catch-all")
 	// Purpose: Landing page for list of routes, catch-all
-	// http.HandleFunc("/", frontPageHandler(htmlHeader, htmlFallbackIndexPage, ourRoutes, htmlFooter))
+	// http.HandleFunc("/", handleIndex(htmlHeader, htmlFallbackIndexPage, ourRoutes, htmlFooter))
 
 	// // GET requests; testing endpoint
 	// http.HandleFunc("/api/v1/echo", echoHandler)
