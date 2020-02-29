@@ -35,6 +35,37 @@ const htmlTemplate string = `
   <meta name="description" content="bounce - Small utility to assist with building HTTP endpoints">
   <meta name="author" content="atc0005">
 
+  <!--
+	  https://www.w3schools.com/css/css_table.asp
+	  http://web.simmons.edu/~grabiner/comm244/weekfour/code-test.html
+  -->
+  <style>
+  table {
+	border-collapse: collapse;
+	width: 100%;
+  }
+
+  th, td {
+	text-align: left;
+	padding: 8px;
+  }
+
+  tr:nth-child(even){background-color: #f2f2f2}
+
+  th {
+	background-color: #4CAF50;
+	color: white;
+  }
+
+  code {
+	background-color: #eee;
+	border: 1px solid #999;
+	display: block;
+	padding: 0.5em;
+  }
+
+  </style>
+
 </head>
 <body>
 
@@ -47,14 +78,34 @@ const htmlTemplate string = `
   other tools that submit data via HTTP requests.
 </p>
 
-The list of links below are the currently supported endpoints for this application:
+<p>
+  The list of links below are the currently supported endpoints for this
+  application:
+</p>
 
-<ul>
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Pattern</th>
+    <th>Description</th>
+    <th>Allowed Methods</th>
+  </tr>
 {{range .}}
-<li>{{ .Name }}</li>
-{{else}}<li><strong>Error: no routes defined?</strong></li>
+  <tr>
+    <td><code>{{ .Name }}</code></td>
+    <td><code>{{ .Pattern }}</code></td>
+	<td><code>{{ .Description }}</td>
+	<td>{{range .AllowedMethods}}<code>{{ . }}</code> {{end}}</td>
+  </tr>
+{{else}}
+<tr>
+  <td><code>Failed to parse routes</code></td>
+  <td><code>N/A</code></td>
+  <td><code>N/A</code></td>
+  <td><code>N/A</code></td>
+</tr>
 {{end}}
-</ul>
+</table>
 
 </body>
 </html>
