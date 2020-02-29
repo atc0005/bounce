@@ -50,9 +50,9 @@ const htmlTemplate string = `
 The list of links below are the currently supported endpoints for this application:
 
 <ul>
-{{range .Routes }}
+{{range .}}
 <li>{{ .Name }}</li>
-{{else}}<li><strong>no routes?</strong></li>
+{{else}}<li><strong>Error: no routes defined?</strong></li>
 {{end}}
 </ul>
 
@@ -89,11 +89,19 @@ func main() {
 
 	var ourRoutes routes.Routes
 	ourRoutes.Add(routes.Route{
-		Name:        "index",
-		Description: "Main page, fallback for unspecified routes",
-		Pattern:     "/",
-		Method:      http.MethodGet,
-		HandlerFunc: handleIndex(htmlTemplate, &ourRoutes),
+		Name:           "index",
+		Description:    "Main page, fallback for unspecified routes",
+		Pattern:        "/",
+		AllowedMethods: []string{http.MethodGet},
+		HandlerFunc:    handleIndex(htmlTemplate, &ourRoutes),
+	})
+
+	ourRoutes.Add(routes.Route{
+		Name:           "echo",
+		Description:    "The echo endpoint prints received values to stdout and returns them via HTTP response",
+		Pattern:        "/echo",
+		AllowedMethods: []string{http.MethodGet, http.MethodPost},
+		HandlerFunc:    handleIndex(htmlTemplate, &ourRoutes),
 	})
 
 	mux := http.NewServeMux()

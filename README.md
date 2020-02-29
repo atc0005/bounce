@@ -165,3 +165,4 @@ support is "coming soon".
   - <https://www.msys2.org/>
 
 - <https://gobyexample.com/http-servers>
+- <https://stackoverflow.com/questions/24556001/how-to-range-over-slice-of-structs-instead-of-struct-of-slices>

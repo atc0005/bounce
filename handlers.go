@@ -11,10 +11,12 @@ import (
 	"github.com/atc0005/bounce/routes"
 )
 
-// handleIndex receives our HTML template and our defined routes. Both are
-// then passed on to the renderDefaultIndexPage function to generate a dynamic
-// index of the available routes or "endpoints" for users to target with test
-// payloads
+// handleIndex receives our HTML template and our defined routes as a pointer.
+// Both are used to generate a dynamic index of the available routes or
+// "endpoints" for users to target with test payloads. A pointer is used because
+// by the time this handler is defined, the full set of routes has *not* been
+// defined. Using a pointer, we are able to access the complete collection
+// of defined routes when this handler is finally called.
 func handleIndex(htmlTemplateText string, rs *routes.Routes) http.HandlerFunc {
 
 	htmlTemplate := template.Must(template.New("indexPage").Parse(htmlTemplate))
@@ -50,21 +52,14 @@ func handleIndex(htmlTemplateText string, rs *routes.Routes) http.HandlerFunc {
 			return
 		}
 
-		data := struct {
-			Routes routes.Routes
-		}{
-			Routes: *rs,
-		}
-
-		log.Println("length of routes:", len(*rs))
+		log.Println("DEBUG: length of routes:", len(*rs))
+		log.Printf("DEBUG: Type of *rs is %T. Fields: %v+", *rs, *rs)
 
 		for _, route := range *rs {
-			log.Println("route:", route)
+			log.Println("DEBUG: route:", route)
 		}
 
-		htmlTemplate.Execute(w, data)
-
-		//fmt.Fprintf(w, renderDefaultIndexPage(htmlTemplate, routes))
+		htmlTemplate.Execute(w, *rs)
 
 	}
 
