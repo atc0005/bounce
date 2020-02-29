@@ -61,17 +61,15 @@ const htmlTemplate string = `
   submit bug reports. Feedback is welcome.
 </p>
 
-<p>
-  NOTE: The primary developer of this application is new to Go, so there are
-  likely many rough edges. Please let us know what problems you encounter
-  so that we may work to resolve them in a future release.
-</p>
+<h2>Purpose</h2>
 
  <p>
   This application is primarily intended to be used as a HTTP endpoint for
   testing webhook payloads. Over time, it may grow other related features
   to aid in testing other tools that submit data via HTTP requests.
 </p>
+
+<h2>Supported endpoints</h2>
 
 <p>
   The list of links below are the currently supported endpoints for this
@@ -101,6 +99,16 @@ const htmlTemplate string = `
 </tr>
 {{end}}
 </table>
+
+<h2>Feedback</h2>
+
+<p>
+  NOTE: The primary developer of this application is new to Go, so there are
+  likely many rough edges. Please let us know what problems you encounter
+  so that we may work to resolve them in a future release.
+</p>
+
+
 
 </body>
 </html>
