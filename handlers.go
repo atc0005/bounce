@@ -1,3 +1,10 @@
+// Copyright 2020 Adam Chalkley
+//
+// https://github.com/atc0005/bounce
+//
+// Licensed under the MIT License. See LICENSE file in the project root for
+// full license information.
+
 package main
 
 import (
@@ -20,6 +27,8 @@ import (
 func handleIndex(htmlTemplateText string, rs *routes.Routes) http.HandlerFunc {
 
 	htmlTemplate := template.Must(template.New("indexPage").Parse(htmlTemplate))
+
+	// FIXME: Guard against POST requests to this endpoint?
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -70,16 +79,16 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 	mw := io.MultiWriter(w, os.Stdout)
 
 	//fmt.Fprintf(w, "echoHandler endpoint hit")
-	fmt.Fprintf(mw, "echoHandler endpoint hit\n")
-	fmt.Fprintf(mw, "HTTP Method used by client: %s\n", r.Method)
+	fmt.Fprintf(mw, "DEBUG: echoHandler endpoint hit\n\n")
 
-	// https://gobyexample.com/http-servers
-	fmt.Fprintf(mw, "Request received.\n")
-	fmt.Fprintf(mw, "Headers:\n")
+	fmt.Fprintf(mw, "HTTP Method used by client: %s\n", r.Method)
+	fmt.Fprintf(mw, "Client IP Address: %s\n", GetIP(r))
+
+	fmt.Fprintf(mw, "\nHeaders:\n\n")
 
 	for name, headers := range r.Header {
 		for _, h := range headers {
-			fmt.Fprintf(mw, "%v: %v\n", name, h)
+			fmt.Fprintf(mw, "  * %v: %v\n", name, h)
 		}
 	}
 

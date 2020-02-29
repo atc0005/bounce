@@ -166,3 +166,5 @@ support is "coming soon".
 
 - <https://gobyexample.com/http-servers>
 - <https://stackoverflow.com/questions/24556001/how-to-range-over-slice-of-structs-instead-of-struct-of-slices>
+- <https://golangcode.com/get-the-request-ip-addr/>
+- <https://github.com/eddturtle/golangcode-site>
