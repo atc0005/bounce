@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -25,7 +25,7 @@ type Routes []Route
 func (rs *Routes) Add(r ...Route) {
 
 	for _, newRoute := range r {
-		fmt.Printf("DEBUG: Add %s to routes ...\n", newRoute.Name)
+		log.Printf("DEBUG: Add %s to routes ...\n", newRoute.Name)
 		*rs = append(*rs, newRoute)
 	}
 }
@@ -37,7 +37,7 @@ func (rs *Routes) RegisterWithServeMux(mux *http.ServeMux) {
 	// TODO: How would we check for errors registering our route?
 
 	for _, route := range *rs {
-		fmt.Printf("DEBUG: Register %s with ServeMux ...\n", route.Name)
+		log.Printf("DEBUG: Register %s with ServeMux ...\n", route.Name)
 		mux.HandleFunc(route.Pattern, route.HandlerFunc)
 	}
 

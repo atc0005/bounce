@@ -74,8 +74,6 @@ func main() {
 
 	log.Printf("DEBUG: %+v\n", appConfig)
 
-	log.Printf("Listening on port %d", appConfig.LocalTCPPort)
-
 	// SETUP ROUTES
 	// See handlers.go for handler definitions
 
@@ -111,6 +109,7 @@ func main() {
 	// TODO: Add useful endpoints for testing here
 
 	// listen on specified port on ALL IP Addresses, block until app is terminated
+	log.Printf("Listening on port %d", appConfig.LocalTCPPort)
 	listenAddress := fmt.Sprintf(":%d", appConfig.LocalTCPPort)
-	log.Fatal(http.ListenAndServe(listenAddress, nil))
+	log.Fatal(http.ListenAndServe(listenAddress, mux))
 }
