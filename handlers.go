@@ -10,6 +10,9 @@ import (
 	"github.com/atc0005/bounce/routes"
 )
 
+// frontPageHandler receives various values that are then passed on to the
+// renderDefaultIndexPage function to generate a dynamic index of the
+// available routes or "endpoints" for users to target with test payloads
 func frontPageHandler(header string, mainContent string, routes routes.Routes, footer string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
