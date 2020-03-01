@@ -23,6 +23,11 @@ const htmlTemplate string = `
 	  http://web.simmons.edu/~grabiner/comm244/weekfour/code-test.html
   -->
   <style>
+
+  body {
+	  padding: 0em 0.5em 0em 0.5em;
+  }
+
   table {
 	border-collapse: collapse;
 	width: 100%;
