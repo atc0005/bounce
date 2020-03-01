@@ -160,51 +160,58 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 				return
 			}
-			// Add some whitespace to separate previous/upcoming contents
-			fmt.Fprintf(mw, "\n\n")
 
-			// https://www.alexedwards.net/blog/how-to-properly-parse-a-json-request-body
-			//
-			// If the Content-Type header is present, check that it has the value
-			// application/json. Note that we are using the gddo/httputil/header
-			// package to parse and extract the value here, so the check works
-			// even if the client includes additional charset or boundary
-			// information in the header.
-			contentTypeHeader := r.Header.Get("Content-Type")
-			if contentTypeHeader != "" {
-				value, _ := header.ParseValueAndParams(r.Header, "Content-Type")
-				if value != "application/json" {
-					msg := fmt.Sprintf("Submitted request %q does not contain the expected application/json Content-Type header.", contentTypeHeader)
-					fmt.Fprintf(os.Stdout, msg)
-					http.Error(w, msg, http.StatusUnsupportedMediaType)
+			// Only attempt to parse the request body as JSON if the
+			// JSON-specific endpoint was used
+			if r.URL.Path == apiV1EchoJSONEndpointPattern {
+
+				// Add some whitespace to separate previous/upcoming contents
+				fmt.Fprintf(mw, "\n\n")
+
+				// https://www.alexedwards.net/blog/how-to-properly-parse-a-json-request-body
+				//
+				// If the Content-Type header is present, check that it has the value
+				// application/json. Note that we are using the gddo/httputil/header
+				// package to parse and extract the value here, so the check works
+				// even if the client includes additional charset or boundary
+				// information in the header.
+				contentTypeHeader := r.Header.Get("Content-Type")
+				if contentTypeHeader != "" {
+					value, _ := header.ParseValueAndParams(r.Header, "Content-Type")
+					if value != "application/json" {
+						msg := fmt.Sprintf("Submitted request %q does not contain the expected application/json Content-Type header.", contentTypeHeader)
+						fmt.Fprintf(os.Stdout, msg)
+						http.Error(w, msg, http.StatusUnsupportedMediaType)
+						return
+					}
+				}
+
+				fmt.Fprintf(mw, "Formatted Body:\n")
+
+				// https://golang.org/pkg/encoding/json/#Indent
+				var prettyJSON bytes.Buffer
+				// FIXME: Is it safe now to access requestBody (byte slice)
+				// directly with all of the additional "wrappers" applied to it?
+				err = json.Indent(&prettyJSON, requestBody, "", "\t")
+				if err != nil {
+					errorMsg := fmt.Sprintf("JSON parse error: %s", err)
+					fmt.Fprintf(os.Stdout, errorMsg)
+					http.Error(w, errorMsg, http.StatusBadRequest)
 					return
 				}
+				fmt.Fprintf(mw, prettyJSON.String())
+
+				// https://golang.org/pkg/encoding/json/#MarshalIndent
+				// prettyJSON, err := json.MarshalIndent(&buffer, "", "\t")
+				// if err != nil {
+				// 	errorMsg := fmt.Sprintf("JSON parse error: %s", err)
+				// 	fmt.Fprintf(mw, errorMsg)
+				// 	http.Error(w, errorMsg, http.StatusBadRequest)
+				// 	return
+				// }
+				// fmt.Fprintf(mw, string(prettyJSON))
+
 			}
-
-			fmt.Fprintf(mw, "Formatted Body:\n")
-
-			// https://golang.org/pkg/encoding/json/#Indent
-			var prettyJSON bytes.Buffer
-			// FIXME: Is it safe now to access requestBody (byte slice)
-			// directly with all of the additional "wrappers" applied to it?
-			err = json.Indent(&prettyJSON, requestBody, "", "\t")
-			if err != nil {
-				errorMsg := fmt.Sprintf("JSON parse error: %s", err)
-				fmt.Fprintf(os.Stdout, errorMsg)
-				http.Error(w, errorMsg, http.StatusBadRequest)
-				return
-			}
-			fmt.Fprintf(mw, prettyJSON.String())
-
-			// https://golang.org/pkg/encoding/json/#MarshalIndent
-			// prettyJSON, err := json.MarshalIndent(&buffer, "", "\t")
-			// if err != nil {
-			// 	errorMsg := fmt.Sprintf("JSON parse error: %s", err)
-			// 	fmt.Fprintf(mw, errorMsg)
-			// 	http.Error(w, errorMsg, http.StatusBadRequest)
-			// 	return
-			// }
-			// fmt.Fprintf(mw, string(prettyJSON))
 
 		default:
 			fmt.Fprintf(mw, "ERROR: Unsupported method %q received; please try again using %s method\n", r.Method, http.MethodPost)
