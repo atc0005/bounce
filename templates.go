@@ -91,7 +91,7 @@ const htmlTemplate string = `
 {{range .}}
   <tr>
     <td><code>{{ .Name }}</code></td>
-    <td><code>{{ .Pattern }}</code></td>
+    <td><a href="{{ .Pattern }}"><code>{{ .Pattern }}</code></a></td>
 	<td><code>{{ .Description }}</td>
 	<td>{{range .AllowedMethods}}<code>{{ . }}</code> {{end}}</td>
   </tr>
