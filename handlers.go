@@ -115,9 +115,20 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// Only try to get the body if the client submitted a payload
-		if r.Method == http.MethodPost {
-			fmt.Fprintf(mw, "POST request received; reading Body value ...\n")
+		switch r.Method {
+
+		case http.MethodGet:
+			fmt.Fprintf(mw, "Sorry, this endpoint only accepts JSON data via %s requests.\n", http.MethodPost)
+			fmt.Fprintf(mw, "Please see the README for examples and then try again.\n")
+
+		case http.MethodPost:
+
+			// /api/v1/echo
+			// /api/v1/echo/json
+			//
+			//
+			// return 404 if not one of those EXACT endpoints
+			// return helpful text if /api/v1/echo/json and NOT POST method or expected content-type
 
 			// Copy body to a buffer since we'll use it in multiple places and
 			// (I think?) you can only read from r.Body once
@@ -130,6 +141,10 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 				return
 			}
+
+		default:
+			fmt.Fprintf(mw, "ERROR: Unsupported method %q received; please try again using %s method\n", r.Method, http.MethodPost)
+
 		}
 
 	default:
@@ -137,12 +152,5 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-
-	// /api/v1/echo
-	// /api/v1/echo/json
-	//
-	//
-	// return 404 if not one of those EXACT endpoints
-	// return helpful text if /api/v1/echo/json and NOT POST method or expected content-type
 
 }
