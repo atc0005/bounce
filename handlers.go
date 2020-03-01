@@ -17,6 +17,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/atc0005/bounce/routes"
 
@@ -104,8 +105,11 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 
 		mw := io.MultiWriter(w, os.Stdout)
 
+		t := time.Now()
+
 		//fmt.Fprintf(w, "echoHandler endpoint hit")
 		fmt.Fprintf(mw, "DEBUG: echoHandler endpoint hit\n\n")
+		fmt.Fprintf(mw, "Request received: %v", t.Format(time.RFC3339))
 
 		fmt.Fprintf(mw, "Endpoint path requested by client: %s\n", r.URL.Path)
 		fmt.Fprintf(mw, "HTTP Method used by client: %s\n", r.Method)
