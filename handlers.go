@@ -218,7 +218,7 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Add some whitespace to separate previous/upcoming contents
-			fmt.Fprintf(mw, "\n\n")
+			fmt.Fprintf(mw, "\n\n\n")
 
 		default:
 			fmt.Fprintf(mw, "ERROR: Unsupported method %q received; please try again using %s method\n", r.Method, http.MethodPost)
