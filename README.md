@@ -48,11 +48,10 @@ in testing other tools that submit data via HTTP requests.
 
 ## Available Endpoints
 
-- **TODO***: List all endpoints here in table format
-  - supported HTTP Methods
-  - supported request content types (e.g., plain, JSON, etc)
-  - expected response content types (e.g., plain, JSON, etc)
-  - ...
+| Name    | Pattern | Description                                                         | Allowed Methods | Supported Request content types | Expected Response content type |
+| ------- | ------- | ------------------------------------------------------------------- | --------------- | ------------------------------- | ------------------------------ |
+| `index` | `/`     | Main page, fallback for unspecified routes                          | `GET`           | TODO                            | TODO                           |
+| `echo`  | `/echo` | Prints received values to stdout and returns them via HTTP response | `GET`, `POST`   | TODO                            | TODO                           |
 
 ## Changelog
 

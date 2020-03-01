@@ -65,7 +65,7 @@ func main() {
 
 	ourRoutes.Add(routes.Route{
 		Name:           "echo",
-		Description:    "The echo endpoint prints received values to stdout and returns them via HTTP response",
+		Description:    "Prints received values to stdout and returns them via HTTP response",
 		Pattern:        "/echo",
 		AllowedMethods: []string{http.MethodGet, http.MethodPost},
 		HandlerFunc:    echoHandler,
