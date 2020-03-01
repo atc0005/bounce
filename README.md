@@ -61,11 +61,11 @@ dynamic listing of the available endpoints. Please [open an
 issue](https://github.com/atc0005/bounce/issues) if you find that there is a
 mismatch between these entries and those listed on the application `index`.
 
-| Name        | Pattern             | Description                                                                                                                            | Allowed Methods | Supported Request content types  | Expected Response content type |
-| ----------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------- | -------------------------------- | ------------------------------ |
-| `index`     | `/`                 | Main page, fallback for unspecified routes                                                                                             | `GET`           | `text/plain`                     | `text/html`                    |
-| `echo`      | `/api/v1/echo`      | Prints received values to stdout and returns them (as-is, no "pretty" formatting) via HTTP response                                    | `GET`, `POST`   | `text/plain`, `application/json` | `text/plain`                   |
-| `echo-json` | `/api/v1/echo/json` | Accepts `application/json` content via `POST` HTTP method only. Prints "pretty printed" output to stdout and returns via HTTP response | `POST`          | `application/json`               | `text/plain`                   |
+| Name        | Pattern             | Description                                                                                          | Allowed Methods                | Supported Request content types  | Expected Response content type |
+| ----------- | ------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------ | -------------------------------- | ------------------------------ |
+| `index`     | `/`                 | Main page, fallback for unspecified routes.                                                          | `GET`                          | `text/plain`                     | `text/html`                    |
+| `echo`      | `/api/v1/echo`      | Prints received values to stdout and returns them (as-is, no "pretty" formatting) via HTTP response. | `GET`, `POST`                  | `text/plain`, `application/json` | `text/plain`                   |
+| `echo-json` | `/api/v1/echo/json` | Prints "pretty printed" JSON request body to stdout and returns via HTTP response.                   | `GET` (limited), `POST` (JSON) | `text/plain`, `application/json` | `text/plain`                   |
 
 ## Changelog
 
@@ -274,6 +274,7 @@ Note:
   - <https://golangcode.com/get-the-request-ip-addr/>
   - <https://github.com/eddturtle/golangcode-site>
   - <https://stackoverflow.com/questions/19038598/how-can-i-pretty-print-json-using-go/42426889>
+  - <https://stackoverflow.com/questions/43021058/golang-read-request-body/43021236#43021236>
 
 - Splunk / JSON payload
   - [Splunk Enterprise (v8.0.1) > Alerting Manual > Use a webhook alert action](https://docs.splunk.com/Documentation/Splunk/8.0.1/Alert/Webhooks)

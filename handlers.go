@@ -9,9 +9,11 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -115,6 +117,8 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		fmt.Fprintf(mw, "\nUnformatted Body:\n\n")
+
 		switch r.Method {
 
 		case http.MethodGet:
@@ -122,6 +126,8 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(mw, "Please see the README for examples and then try again.\n")
 
 		case http.MethodPost:
+
+			var err error
 
 			// /api/v1/echo
 			// /api/v1/echo/json
@@ -132,15 +138,53 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 
 			// Copy body to a buffer since we'll use it in multiple places and
 			// (I think?) you can only read from r.Body once
-			buffer := bytes.Buffer{}
-			_, err := io.Copy(&buffer, r.Body)
+			// buffer := bytes.Buffer{}
+			// _, err = io.Copy(&buffer, r.Body)
+			// requestBodyReader := bytes.NewReader(buffer.Bytes())
+			requestBody, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				errorMsg := fmt.Sprintf("Error reading request body: %s", err)
+				fmt.Fprintf(mw, errorMsg)
+				http.Error(w, errorMsg, http.StatusBadRequest)
+				return
+			}
+			requestBodyBuffer := bytes.NewBuffer(requestBody)
+			// TODO: Do we really need an io.ReadCloser here?
+			requestBodyReader := ioutil.NopCloser(requestBodyBuffer)
 
-			fmt.Fprintf(mw, "Body:\n")
-			_, err = io.Copy(mw, &buffer)
+			// write out request body in raw format
+			_, err = io.Copy(mw, requestBodyReader)
 			if err != nil {
 				log.Println(err)
 				return
 			}
+
+			// TODO: Check content-type for application/json
+
+			fmt.Fprintf(mw, "\n\nFormatted Body:\n")
+
+			// https://golang.org/pkg/encoding/json/#Indent
+			var prettyJSON bytes.Buffer
+			// FIXME: Is it safe now to access requestBody (byte slice)
+			// directly with all of the additional "wrappers" applied to it?
+			err = json.Indent(&prettyJSON, requestBody, "", "\t")
+			if err != nil {
+				errorMsg := fmt.Sprintf("JSON parse error: %s", err)
+				fmt.Fprintf(mw, errorMsg)
+				http.Error(w, errorMsg, http.StatusBadRequest)
+				return
+			}
+			fmt.Fprintf(mw, prettyJSON.String())
+
+			// https://golang.org/pkg/encoding/json/#MarshalIndent
+			// prettyJSON, err := json.MarshalIndent(&buffer, "", "\t")
+			// if err != nil {
+			// 	errorMsg := fmt.Sprintf("JSON parse error: %s", err)
+			// 	fmt.Fprintf(mw, errorMsg)
+			// 	http.Error(w, errorMsg, http.StatusBadRequest)
+			// 	return
+			// }
+			// fmt.Fprintf(mw, string(prettyJSON))
 
 		default:
 			fmt.Fprintf(mw, "ERROR: Unsupported method %q received; please try again using %s method\n", r.Method, http.MethodPost)
