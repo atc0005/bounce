@@ -161,12 +161,12 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
+			// Add some whitespace to separate previous/upcoming contents
+			fmt.Fprintf(mw, "\n\n")
+
 			// Only attempt to parse the request body as JSON if the
 			// JSON-specific endpoint was used
 			if r.URL.Path == apiV1EchoJSONEndpointPattern {
-
-				// Add some whitespace to separate previous/upcoming contents
-				fmt.Fprintf(mw, "\n\n")
 
 				// https://www.alexedwards.net/blog/how-to-properly-parse-a-json-request-body
 				//
