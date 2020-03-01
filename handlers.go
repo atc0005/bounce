@@ -74,6 +74,14 @@ func handleIndex(htmlTemplateText string, rs *routes.Routes) http.HandlerFunc {
 
 }
 
+// TODO: Convert this so that it serves multiple endpoints
+//
+// /api/v1/echo
+// /api/v1/echo/json
+// /api/v1/echo/json/pretty
+//
+// return 404 if not one of those EXACT endpoints
+
 func echoHandler(w http.ResponseWriter, r *http.Request) {
 
 	mw := io.MultiWriter(w, os.Stdout)

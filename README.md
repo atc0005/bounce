@@ -23,8 +23,13 @@ Small utility to assist with building HTTP endpoints
   - [How to use it](#how-to-use-it)
     - [General](#general)
     - [Examples](#examples)
-      - [Local: View headers submitted by your browser](#local-view-headers-submitted-by-your-browser)
+      - [Local: View headers submitted by `GET` request using your browser](#local-view-headers-submitted-by-get-request-using-your-browser)
+      - [Local: Submit JSON payload using `curl`, receive unformatted response](#local-submit-json-payload-using-curl-receive-unformatted-response)
+      - [Local: Submit JSON payload to JSON-specific endpoint, get unformatted response](#local-submit-json-payload-to-json-specific-endpoint-get-unformatted-response)
+      - [Local: Submit JSON payload to JSON-specific endpoint, get formatted response](#local-submit-json-payload-to-json-specific-endpoint-get-formatted-response)
   - [References](#references)
+    - [Dependencies](#dependencies)
+    - [Instruction / Examples](#instruction--examples)
 
 ## Project home
 
@@ -57,10 +62,10 @@ dynamic listing of the available endpoints. Please [open an
 issue](https://github.com/atc0005/bounce/issues) if you find that there is a
 mismatch between these entries and those listed on the application `index`.
 
-| Name    | Pattern | Description                                                         | Allowed Methods | Supported Request content types | Expected Response content type |
-| ------- | ------- | ------------------------------------------------------------------- | --------------- | ------------------------------- | ------------------------------ |
-| `index` | `/`     | Main page, fallback for unspecified routes                          | `GET`           | TODO                            | TODO                           |
-| `echo`  | `/echo` | Prints received values to stdout and returns them via HTTP response | `GET`, `POST`   | TODO                            | TODO                           |
+| Name    | Pattern        | Description                                                                                         | Allowed Methods | Supported Request content types  | Expected Response content type |
+| ------- | -------------- | --------------------------------------------------------------------------------------------------- | --------------- | -------------------------------- | ------------------------------ |
+| `index` | `/`            | Main page, fallback for unspecified routes                                                          | `GET`           | TODO                             | TODO                           |
+| `echo`  | `/api/v1/echo` | Prints received values to stdout and returns them (as-is, no "pretty" formatting) via HTTP response | `GET`, `POST`   | `text/plain`, `application/json` | `text/plain`                   |
 
 ## Changelog
 
@@ -167,7 +172,7 @@ Tested using:
 
 ### Examples
 
-#### Local: View headers submitted by your browser
+#### Local: View headers submitted by `GET` request using your browser
 
 ```ShellSession
 ./bounce.exe -port 8000
@@ -206,7 +211,68 @@ Items to note:
 - I visited the `/echo` endpoint (`http://localhost:8000/echo`) from Google Chrome Canary
 - The same headers shown here are also shown in the browser
 
+#### Local: Submit JSON payload using `curl`, receive unformatted response
+
+```ShellSession
+$ curl -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload.json http://localhost:8000/api/v1/echo
+DEBUG: echoHandler endpoint hit
+
+HTTP Method used by client: POST
+Client IP Address: 127.0.0.1:53098
+
+Headers:
+
+  * User-Agent: curl/7.68.0
+  * Accept: */*
+  * Content-Type: application/json
+  * Content-Length: 306
+POST request received; reading Body value ...
+Body:
+{    "result": {        "sourcetype": "mongod",        "count": "8"    },    "sid": "scheduler_admin_search_W2_at_14232356_132",    "results_link": "http://web.example.local:8000/app/search/@go?sid=scheduler_admin_search_W2_at_14232356_132",    "search_name": null,    "owner": "admin",    "app": "search"}
+```
+
+Items to note:
+
+- Output shown above is not wrapped
+- `curl` was executed from within a `Git Bash` shell session
+- The current working directory was the root of the cloned repo
+- We used a sample Splunk Webhook request JSON payload provided in the official docs
+  - see "Splunk Enterprise > Alerting Manual > Use a webhook alert action"
+- Non-plaintext submissions are *not* "pretty-printed" or formatted in any way
+
+#### Local: Submit JSON payload to JSON-specific endpoint, get unformatted response
+
+```ShellSession
+$ curl -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload.json http://localhost:8000/api/v1/echo/json
+
+TODO
+```
+
+Note:
+
+- Output was not modified, but copied as-is from the terminal session
+- Output was *NOT* "pretty-printed" by the application
+- `curl` was executed from within a `Git Bash` shell session
+- The current working directory was the root of the cloned repo
+
+#### Local: Submit JSON payload to JSON-specific endpoint, get formatted response
+
+```ShellSession
+$ curl -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload.json http://localhost:8000/api/v1/echo/json/pretty
+
+TODO
+```
+
+Note:
+
+- Output was not modified, but copied as-is from the terminal session
+- Output was "pretty-printed" by the application
+- `curl` was executed from within a `Git Bash` shell session
+- The current working directory was the root of the cloned repo
+
 ## References
+
+### Dependencies
 
 - `make` on Windows
   - <https://stackoverflow.com/questions/32127524/how-to-install-and-use-make-in-windows>
@@ -215,7 +281,14 @@ Items to note:
   - <http://mingw-w64.org/>
   - <https://www.msys2.org/>
 
-- <https://gobyexample.com/http-servers>
-- <https://stackoverflow.com/questions/24556001/how-to-range-over-slice-of-structs-instead-of-struct-of-slices>
-- <https://golangcode.com/get-the-request-ip-addr/>
-- <https://github.com/eddturtle/golangcode-site>
+### Instruction / Examples
+
+- General
+  - <https://gobyexample.com/http-servers>
+  - <https://stackoverflow.com/questions/24556001/how-to-range-over-slice-of-structs-instead-of-struct-of-slices>
+  - <https://golangcode.com/get-the-request-ip-addr/>
+  - <https://github.com/eddturtle/golangcode-site>
+  - <https://stackoverflow.com/questions/19038598/how-can-i-pretty-print-json-using-go/42426889>
+
+- Splunk / JSON payload
+  - [Splunk Enterprise (v8.0.1) > Alerting Manual > Use a webhook alert action](https://docs.splunk.com/Documentation/Splunk/8.0.1/Alert/Webhooks)
