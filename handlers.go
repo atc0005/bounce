@@ -19,6 +19,8 @@ import (
 	"os"
 
 	"github.com/atc0005/bounce/routes"
+
+	"github.com/golang/gddo/httputil/header"
 )
 
 // API endpoint patterns supported by this application
@@ -158,10 +160,28 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 				return
 			}
+			// Add some whitespace to separate previous/upcoming contents
+			fmt.Fprintf(mw, "\n\n")
 
-			// TODO: Check content-type for application/json
+			// https://www.alexedwards.net/blog/how-to-properly-parse-a-json-request-body
+			//
+			// If the Content-Type header is present, check that it has the value
+			// application/json. Note that we are using the gddo/httputil/header
+			// package to parse and extract the value here, so the check works
+			// even if the client includes additional charset or boundary
+			// information in the header.
+			contentTypeHeader := r.Header.Get("Content-Type")
+			if contentTypeHeader != "" {
+				value, _ := header.ParseValueAndParams(r.Header, "Content-Type")
+				if value != "application/json" {
+					msg := fmt.Sprintf("Submitted request %q does not contain the expected application/json Content-Type header.", contentTypeHeader)
+					fmt.Fprintf(os.Stdout, msg)
+					http.Error(w, msg, http.StatusUnsupportedMediaType)
+					return
+				}
+			}
 
-			fmt.Fprintf(mw, "\n\nFormatted Body:\n")
+			fmt.Fprintf(mw, "Formatted Body:\n")
 
 			// https://golang.org/pkg/encoding/json/#Indent
 			var prettyJSON bytes.Buffer
@@ -170,7 +190,7 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 			err = json.Indent(&prettyJSON, requestBody, "", "\t")
 			if err != nil {
 				errorMsg := fmt.Sprintf("JSON parse error: %s", err)
-				fmt.Fprintf(mw, errorMsg)
+				fmt.Fprintf(os.Stdout, errorMsg)
 				http.Error(w, errorMsg, http.StatusBadRequest)
 				return
 			}

@@ -275,6 +275,7 @@ Note:
   - <https://github.com/eddturtle/golangcode-site>
   - <https://stackoverflow.com/questions/19038598/how-can-i-pretty-print-json-using-go/42426889>
   - <https://stackoverflow.com/questions/43021058/golang-read-request-body/43021236#43021236>
+  - <https://www.alexedwards.net/blog/how-to-properly-parse-a-json-request-body>
 
 - Splunk / JSON payload
   - [Splunk Enterprise (v8.0.1) > Alerting Manual > Use a webhook alert action](https://docs.splunk.com/Documentation/Splunk/8.0.1/Alert/Webhooks)
