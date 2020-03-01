@@ -8,6 +8,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"io"
@@ -16,6 +17,14 @@ import (
 	"os"
 
 	"github.com/atc0005/bounce/routes"
+)
+
+// API endpoint patterns supported by this application
+//
+// TODO: Find a better location for these values
+const (
+	apiV1EchoEndpointPattern     string = "/api/v1/echo"
+	apiV1EchoJSONEndpointPattern string = "/api/v1/echo/json"
 )
 
 // handleIndex receives our HTML template and our defined routes as a pointer.
@@ -78,38 +87,62 @@ func handleIndex(htmlTemplateText string, rs *routes.Routes) http.HandlerFunc {
 //
 // /api/v1/echo
 // /api/v1/echo/json
-// /api/v1/echo/json/pretty
+//
 //
 // return 404 if not one of those EXACT endpoints
-
+// return helpful text if /api/v1/echo/json and NOT POST method or expected content-type
 func echoHandler(w http.ResponseWriter, r *http.Request) {
 
-	mw := io.MultiWriter(w, os.Stdout)
+	switch r.URL.Path {
 
-	//fmt.Fprintf(w, "echoHandler endpoint hit")
-	fmt.Fprintf(mw, "DEBUG: echoHandler endpoint hit\n\n")
+	// Expected endpoint patterns for this handler
+	case apiV1EchoEndpointPattern, apiV1EchoJSONEndpointPattern:
 
-	fmt.Fprintf(mw, "HTTP Method used by client: %s\n", r.Method)
-	fmt.Fprintf(mw, "Client IP Address: %s\n", GetIP(r))
+		mw := io.MultiWriter(w, os.Stdout)
 
-	fmt.Fprintf(mw, "\nHeaders:\n\n")
+		//fmt.Fprintf(w, "echoHandler endpoint hit")
+		fmt.Fprintf(mw, "DEBUG: echoHandler endpoint hit\n\n")
 
-	for name, headers := range r.Header {
-		for _, h := range headers {
-			fmt.Fprintf(mw, "  * %v: %v\n", name, h)
+		fmt.Fprintf(mw, "Endpoint path requested by client: %s\n", r.URL.Path)
+		fmt.Fprintf(mw, "HTTP Method used by client: %s\n", r.Method)
+		fmt.Fprintf(mw, "Client IP Address: %s\n", GetIP(r))
+
+		fmt.Fprintf(mw, "\nHeaders:\n\n")
+
+		for name, headers := range r.Header {
+			for _, h := range headers {
+				fmt.Fprintf(mw, "  * %v: %v\n", name, h)
+			}
 		}
+
+		// Only try to get the body if the client submitted a payload
+		if r.Method == http.MethodPost {
+			fmt.Fprintf(mw, "POST request received; reading Body value ...\n")
+
+			// Copy body to a buffer since we'll use it in multiple places and
+			// (I think?) you can only read from r.Body once
+			buffer := bytes.Buffer{}
+			_, err := io.Copy(&buffer, r.Body)
+
+			fmt.Fprintf(mw, "Body:\n")
+			_, err = io.Copy(mw, &buffer)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+		}
+
+	default:
+		log.Printf("DEBUG: Rejecting request %q; not explicitly handled by a route.\n", r.URL.Path)
+		http.NotFound(w, r)
+		return
 	}
 
-	// Only try to get the body if the client submitted a payload
-	if r.Method == http.MethodPost {
-		fmt.Fprintf(mw, "POST request received; reading Body value ...\n")
-
-		fmt.Fprintf(mw, "Body:\n")
-		_, err := io.Copy(mw, r.Body)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-	}
+	// /api/v1/echo
+	// /api/v1/echo/json
+	//
+	//
+	// return 404 if not one of those EXACT endpoints
+	// return helpful text if /api/v1/echo/json and NOT POST method or expected content-type
 
 }

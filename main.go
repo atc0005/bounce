@@ -66,15 +66,15 @@ func main() {
 	ourRoutes.Add(routes.Route{
 		Name:           "echo",
 		Description:    "Prints received values to stdout and returns them via HTTP response",
-		Pattern:        "/api/v1/echo",
+		Pattern:        apiV1EchoEndpointPattern,
 		AllowedMethods: []string{http.MethodGet, http.MethodPost},
 		HandlerFunc:    echoHandler,
 	})
 
 	ourRoutes.Add(routes.Route{
-		Name:           "echo",
+		Name:           "echo-json",
 		Description:    "Prints formatted JSON response to stdout and via HTTP response",
-		Pattern:        "/api/v1/echo/json/pretty",
+		Pattern:        apiV1EchoJSONEndpointPattern,
 		AllowedMethods: []string{http.MethodPost},
 		HandlerFunc:    echoHandler,
 	})

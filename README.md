@@ -25,7 +25,6 @@ Small utility to assist with building HTTP endpoints
     - [Examples](#examples)
       - [Local: View headers submitted by `GET` request using your browser](#local-view-headers-submitted-by-get-request-using-your-browser)
       - [Local: Submit JSON payload using `curl`, receive unformatted response](#local-submit-json-payload-using-curl-receive-unformatted-response)
-      - [Local: Submit JSON payload to JSON-specific endpoint, get unformatted response](#local-submit-json-payload-to-json-specific-endpoint-get-unformatted-response)
       - [Local: Submit JSON payload to JSON-specific endpoint, get formatted response](#local-submit-json-payload-to-json-specific-endpoint-get-formatted-response)
   - [References](#references)
     - [Dependencies](#dependencies)
@@ -62,10 +61,11 @@ dynamic listing of the available endpoints. Please [open an
 issue](https://github.com/atc0005/bounce/issues) if you find that there is a
 mismatch between these entries and those listed on the application `index`.
 
-| Name    | Pattern        | Description                                                                                         | Allowed Methods | Supported Request content types  | Expected Response content type |
-| ------- | -------------- | --------------------------------------------------------------------------------------------------- | --------------- | -------------------------------- | ------------------------------ |
-| `index` | `/`            | Main page, fallback for unspecified routes                                                          | `GET`           | TODO                             | TODO                           |
-| `echo`  | `/api/v1/echo` | Prints received values to stdout and returns them (as-is, no "pretty" formatting) via HTTP response | `GET`, `POST`   | `text/plain`, `application/json` | `text/plain`                   |
+| Name        | Pattern             | Description                                                                                                                            | Allowed Methods | Supported Request content types  | Expected Response content type |
+| ----------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------- | -------------------------------- | ------------------------------ |
+| `index`     | `/`                 | Main page, fallback for unspecified routes                                                                                             | `GET`           | `text/plain`                     | `text/html`                    |
+| `echo`      | `/api/v1/echo`      | Prints received values to stdout and returns them (as-is, no "pretty" formatting) via HTTP response                                    | `GET`, `POST`   | `text/plain`, `application/json` | `text/plain`                   |
+| `echo-json` | `/api/v1/echo/json` | Accepts `application/json` content via `POST` HTTP method only. Prints "pretty printed" output to stdout and returns via HTTP response | `POST`          | `application/json`               | `text/plain`                   |
 
 ## Changelog
 
@@ -240,25 +240,10 @@ Items to note:
   - see "Splunk Enterprise > Alerting Manual > Use a webhook alert action"
 - Non-plaintext submissions are *not* "pretty-printed" or formatted in any way
 
-#### Local: Submit JSON payload to JSON-specific endpoint, get unformatted response
-
-```ShellSession
-$ curl -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload.json http://localhost:8000/api/v1/echo/json
-
-TODO
-```
-
-Note:
-
-- Output was not modified, but copied as-is from the terminal session
-- Output was *NOT* "pretty-printed" by the application
-- `curl` was executed from within a `Git Bash` shell session
-- The current working directory was the root of the cloned repo
-
 #### Local: Submit JSON payload to JSON-specific endpoint, get formatted response
 
 ```ShellSession
-$ curl -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload.json http://localhost:8000/api/v1/echo/json/pretty
+$ curl -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload.json http://localhost:8000/api/v1/echo/json
 
 TODO
 ```
