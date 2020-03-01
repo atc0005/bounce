@@ -83,7 +83,9 @@ func main() {
 	ourRoutes.RegisterWithServeMux(mux)
 
 	// listen on specified port on ALL IP Addresses, block until app is terminated
-	log.Printf("Listening on port %d", appConfig.LocalTCPPort)
-	listenAddress := fmt.Sprintf(":%d", appConfig.LocalTCPPort)
+	log.Printf("Listening on %s port %d ",
+		appConfig.LocalIPAddress, appConfig.LocalTCPPort)
+	listenAddress := fmt.Sprintf("%s:%d",
+		appConfig.LocalIPAddress, appConfig.LocalTCPPort)
 	log.Fatal(http.ListenAndServe(listenAddress, mux))
 }

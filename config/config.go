@@ -26,7 +26,8 @@ const myAppURL string = "https://github.com/atc0005/bounce"
 
 // Default flag settings if not overridden by user input
 const (
-	defaultLocalTCPPort int = 8000
+	defaultLocalTCPPort int    = 8000
+	defaultLocalIP      string = "localhost"
 )
 
 // TCP port ranges
@@ -73,12 +74,17 @@ type Config struct {
 	// LocalTCPPort is the TCP port that this application should listen on for
 	// incoming requests
 	LocalTCPPort int
+
+	// LocalIPAddress is the IP Address that this application should listen on
+	// for incoming requests
+	LocalIPAddress string
 }
 
 func (c *Config) String() string {
 	return fmt.Sprintf(
-		"LocalTCPPort: %d",
+		"LocalTCPPort: %d, LocalIPAddress: %s",
 		c.LocalTCPPort,
+		c.LocalIPAddress,
 	)
 }
 
@@ -95,6 +101,13 @@ func NewConfig() (*Config, error) {
 		"port",
 		defaultLocalTCPPort,
 		"TCP port that this application should listen on for incoming HTTP requests.",
+	)
+
+	mainFlagSet.StringVar(
+		&config.LocalIPAddress,
+		"ipaddr",
+		defaultLocalIP,
+		"Local IP Address that this application should listen on for incoming HTTP requests.",
 	)
 
 	mainFlagSet.Usage = Usage(mainFlagSet)
@@ -165,6 +178,10 @@ func validate(c Config) error {
 			"port %d is not a valid TCP port for this application",
 			c.LocalTCPPort,
 		)
+	}
+
+	if c.LocalIPAddress == "" {
+		return fmt.Errorf("local IP Address not provided")
 	}
 
 	// if we made it this far then we signal all is well
