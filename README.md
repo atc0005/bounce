@@ -21,6 +21,9 @@ Small utility to assist with building HTTP endpoints
     - [Command-line Arguments](#command-line-arguments)
     - [Worth noting](#worth-noting)
   - [How to use it](#how-to-use-it)
+    - [General](#general)
+    - [Examples](#examples)
+      - [Local: View headers submitted by your browser](#local-view-headers-submitted-by-your-browser)
   - [References](#references)
 
 ## Project home
@@ -39,7 +42,7 @@ in testing other tools that submit data via HTTP requests.
 
 **Under development.**
 
-- While this application runs, no useful routes have yet to be defined
+- Available endpoints/routes are limited
 - Defined behavior for this application is subject to change
 
 ## Features
@@ -47,6 +50,12 @@ in testing other tools that submit data via HTTP requests.
 - User configurable port to listen on for incoming HTTP requests
 
 ## Available Endpoints
+
+Below is a static listing of the available endpoints that may be used for
+testing with this application. Visiting the `index` should also generate a
+dynamic listing of the available endpoints. Please [open an
+issue](https://github.com/atc0005/bounce/issues) if you find that there is a
+mismatch between these entries and those listed on the application `index`.
 
 | Name    | Pattern | Description                                                         | Allowed Methods | Supported Request content types | Expected Response content type |
 | ------- | ------- | ------------------------------------------------------------------- | --------------- | ------------------------------- | ------------------------------ |
@@ -131,17 +140,21 @@ Tested using:
 
 ### Worth noting
 
-- For best results, limit your choice of TCP port to a an unprivileged user
+- For best results, limit your choice of TCP port to an unprivileged user
   port between `1024` and `49151`
 
 ## How to use it
 
+### General
+
 1. Build or obtain a pre-compiled copy of the executable appropriate for your
    operating system
+   - NOTE: As of this writing, CI-enabled automatic builds for new releases is
+     not yet available. We hope to add this in the near future.
 1. Pick a TCP port where you will have the application listen
    - e.g., `8000`
-1. Open this TCP port in the firewall on the system where this application
-   will run
+1. Open your chosen TCP port in the firewall on the system where this
+   application will run
    - if possible, limit access to just the remote system submitting HTTP
      requests
    - skip this step if you plan to only submit HTTP requests from your own
@@ -150,9 +163,48 @@ Tested using:
 1. Visit the index page for this application at the appropriate IP Address and
    the port you specified
    - e.g., `http://localhost:8000/`
+1. Chose one of the available routes that meet your requirements
 
-Note: As of this writing no useful routes for testing have been defined. That
-support is "coming soon".
+### Examples
+
+#### Local: View headers submitted by your browser
+
+```ShellSession
+./bounce.exe -port 8000
+2020/03/01 04:58:37 DEBUG: Initializing application
+2020/03/01 04:58:37 DEBUG: Valid, non-privileged user port between 1024 and 49151 configured: 8000
+2020/03/01 04:58:37 DEBUG: LocalTCPPort: 8000
+2020/03/01 04:58:37 DEBUG: Add index to routes ...
+2020/03/01 04:58:37 DEBUG: Add echo to routes ...
+2020/03/01 04:58:37 DEBUG: Register index with ServeMux ...
+2020/03/01 04:58:37 DEBUG: Register echo with ServeMux ...
+2020/03/01 04:58:37 Listening on port 8000
+DEBUG: echoHandler endpoint hit
+
+HTTP Method used by client: GET
+Client IP Address: [::1]:52555
+
+Headers:
+
+  * User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/82.0.4074.0 Safari/537.36
+  * Sec-Fetch-Site: none
+  * Sec-Fetch-Mode: navigate
+  * Sec-Fetch-User: ?1
+  * Sec-Fetch-Dest: document
+  * Connection: keep-alive
+  * Upgrade-Insecure-Requests: 1
+  * Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+  * Accept-Encoding: gzip, deflate, br
+  * Accept-Language: en-US,en;q=0.9
+
+```
+
+Items to note:
+
+- Port `8000` is the default, we're just being explicit here.
+- I ran the application on Windows 10 Version 1903
+- I visited the `/echo` endpoint (`http://localhost:8000/echo`) from Google Chrome Canary
+- The same headers shown here are also shown in the browser
 
 ## References
 
