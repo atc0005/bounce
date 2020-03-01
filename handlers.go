@@ -108,7 +108,7 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 		t := time.Now()
 
 		//fmt.Fprintf(w, "echoHandler endpoint hit")
-		fmt.Fprintf(mw, "DEBUG: echoHandler endpoint hit\n\n")
+		fmt.Fprintf(mw, "\n\nDEBUG: echoHandler endpoint hit\n\n")
 		fmt.Fprintf(mw, "Request received: %v\n", t.Format(time.RFC3339))
 
 		fmt.Fprintf(mw, "Endpoint path requested by client: %s\n", r.URL.Path)
