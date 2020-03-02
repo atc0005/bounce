@@ -138,10 +138,11 @@ Tested using:
 
 ### Command-line Arguments
 
-| Option      | Required | Default | Repeat | Possible                                | Description                                                                 |
-| ----------- | -------- | ------- | ------ | --------------------------------------- | --------------------------------------------------------------------------- |
-| `h`, `help` | No       | `false` | No     | `h`, `help`                             | Show Help text along with the list of supported flags.                      |
-| `port`      | No       | `8000`  | No     | *valid whole numbers* (see Description) | TCP port that this application should listen on for incoming HTTP requests. |
+| Option      | Required | Default     | Repeat | Possible                                | Description                                                                         |
+| ----------- | -------- | ----------- | ------ | --------------------------------------- | ----------------------------------------------------------------------------------- |
+| `h`, `help` | No       | `false`     | No     | `h`, `help`                             | Show Help text along with the list of supported flags.                              |
+| `port`      | No       | `8000`      | No     | *valid whole numbers* (see Description) | TCP port that this application should listen on for incoming HTTP requests.         |
+| `ipaddr`    | No       | `localhost` | No     | *valid fqdn, local name or IP Address*  | Local IP Address that this application should listen on for incoming HTTP requests. |
 
 ### Worth noting
 
