@@ -120,7 +120,6 @@ const handleIndexTemplate string = `
 `
 
 const echoHandlerTemplate string = `
-
 Request received: {{if .Datestamp }}{{ .Datestamp }}{{end}}
 Endpoint path requested by client: {{if .EndpointPath }}{{ .EndpointPath }}{{end}}
 HTTP Method used by client: {{if .HTTPMethod }}{{ .HTTPMethod }}{{end}}
@@ -128,34 +127,38 @@ Client IP Address: {{if .ClientIPAddress }}{{ .ClientIPAddress }}{{end}}
 
 Headers:
 
-{{ range $key, $value := .Headers }}
-  * {{ $key }}: {{ $value }}
+{{ range $key, $slice := .Headers }}
+  * {{ $key }}: {{ range $sliceValue := $slice }}{{ . }}{{end}}
 {{- else}}
   * None
 {{- end}}
 
-
-Unformatted Body:
-
 {{if .RequestError}}
-{{- .RequestError }}
-{{- end}}
+Request error:
 
+{{.RequestError }}
+{{end}}
 {{if .Body}}
-{{- .Body }}
-{{- end}}
+Unformatted request body:
 
+{{ .Body }}
+{{- else}}
+No request body was provided by client.
+{{- end}}
 {{if .BodyError}}
-{{- .BodyError }}
-{{- end}}
+Error processing request body:
 
+{{ .BodyError }}
+{{end}}
 {{if .ContentTypeError}}
-{{- .ContentTypeError }}
-{{- end}}
+Error processing Content-Type header:
 
+{{ .ContentTypeError }}
+{{end}}
 {{if .FormattedBody }}
 Formatted Body:
-{{- .FormattedBody }}
+
+{{ .FormattedBody }}
 {{- end}}
 
 

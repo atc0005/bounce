@@ -133,18 +133,24 @@ func echoHandler(templateText string) http.HandlerFunc {
 			}
 		}
 
+		fmt.Fprintf(os.Stdout, "DEBUG: echoHandler endpoint hit\n\n")
+
+		ourResponse.Datestamp = time.Now().Format((time.RFC3339))
+		ourResponse.EndpointPath = r.URL.Path
+		ourResponse.HTTPMethod = r.Method
+		ourResponse.ClientIPAddress = GetIP(r)
+		ourResponse.Headers = r.Header
+
 		switch r.URL.Path {
 
 		// Expected endpoint patterns for this handler
-		case apiV1EchoEndpointPattern, apiV1EchoJSONEndpointPattern:
+		case apiV1EchoEndpointPattern:
 
-			fmt.Fprintf(mw, "DEBUG: echoHandler endpoint hit\n\n")
+			// Write out what we have. Nothing further to do for this endpoint
+			writeTemplate()
+			return
 
-			ourResponse.Datestamp = time.Now().Format((time.RFC3339))
-			ourResponse.EndpointPath = r.URL.Path
-			ourResponse.HTTPMethod = r.Method
-			ourResponse.ClientIPAddress = GetIP(r)
-			ourResponse.Headers = r.Header
+		case apiV1EchoJSONEndpointPattern:
 
 			switch r.Method {
 
@@ -157,7 +163,7 @@ func echoHandler(templateText string) http.HandlerFunc {
 				)
 				ourResponse.RequestError = errorMsg
 
-				http.Error(w, errorMsg, http.StatusMethodNotAllowed)
+				http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 				writeTemplate()
 				return
 
