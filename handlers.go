@@ -156,13 +156,9 @@ func echoHandler(templateText string) http.HandlerFunc {
 					http.MethodPost,
 				)
 				ourResponse.RequestError = errorMsg
-				writeTemplate()
 
-				// TODO: Do we need to issue this status code if we want the rest
-				// of the content to display normally in the client?
-				// http: superfluous response.WriteHeader call from main.echoHandler.func1
-				// TODO: Should this come BEFORE we try to write out our template?
 				http.Error(w, errorMsg, http.StatusMethodNotAllowed)
+				writeTemplate()
 				return
 
 			case http.MethodPost:
@@ -177,11 +173,10 @@ func echoHandler(templateText string) http.HandlerFunc {
 				requestBody, err := ioutil.ReadAll(r.Body)
 				if err != nil {
 					errorMsg := fmt.Sprintf("Error reading request body: %s", err)
-
 					ourResponse.BodyError = errorMsg
-					writeTemplate()
 
 					http.Error(w, errorMsg, http.StatusBadRequest)
+					writeTemplate()
 					return
 				}
 				//requestBodyBuffer := bytes.NewBuffer(requestBody)
@@ -206,11 +201,10 @@ func echoHandler(templateText string) http.HandlerFunc {
 						value, _ := header.ParseValueAndParams(r.Header, "Content-Type")
 						if value != "application/json" {
 							errorMsg := fmt.Sprintf("Submitted request %q does not contain the expected application/json Content-Type header.", contentTypeHeader)
-
 							ourResponse.ContentTypeError = errorMsg
-							writeTemplate()
 
 							http.Error(w, errorMsg, http.StatusUnsupportedMediaType)
+							writeTemplate()
 							return
 						}
 					}
@@ -222,11 +216,10 @@ func echoHandler(templateText string) http.HandlerFunc {
 					err = json.Indent(&prettyJSON, requestBody, "", "\t")
 					if err != nil {
 						errorMsg := fmt.Sprintf("JSON parse error: %s", err)
-
 						ourResponse.FormattedBodyError = errorMsg
-						writeTemplate()
 
 						http.Error(w, errorMsg, http.StatusBadRequest)
+						writeTemplate()
 						return
 					}
 					ourResponse.FormattedBody = prettyJSON.String()
@@ -250,11 +243,10 @@ func echoHandler(templateText string) http.HandlerFunc {
 
 			default:
 				errorMsg := fmt.Sprintf("ERROR: Unsupported method %q received; please try again using %s method", r.Method, http.MethodPost)
-
 				ourResponse.RequestError = errorMsg
-				writeTemplate()
 
 				http.Error(w, errorMsg, http.StatusMethodNotAllowed)
+				writeTemplate()
 				return
 			}
 
