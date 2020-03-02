@@ -60,7 +60,7 @@ func main() {
 		Description:    "Main page, fallback for unspecified routes",
 		Pattern:        "/",
 		AllowedMethods: []string{http.MethodGet},
-		HandlerFunc:    handleIndex(htmlTemplate, &ourRoutes),
+		HandlerFunc:    handleIndex(handleIndexTemplate, &ourRoutes),
 	})
 
 	ourRoutes.Add(routes.Route{
@@ -68,7 +68,7 @@ func main() {
 		Description:    "Prints received values to stdout and returns them via HTTP response",
 		Pattern:        apiV1EchoEndpointPattern,
 		AllowedMethods: []string{http.MethodGet, http.MethodPost},
-		HandlerFunc:    echoHandler,
+		HandlerFunc:    echoHandler(echoHandlerTemplate),
 	})
 
 	ourRoutes.Add(routes.Route{
@@ -76,7 +76,7 @@ func main() {
 		Description:    "Prints formatted JSON response to stdout and via HTTP response",
 		Pattern:        apiV1EchoJSONEndpointPattern,
 		AllowedMethods: []string{http.MethodPost},
-		HandlerFunc:    echoHandler,
+		HandlerFunc:    echoHandler(echoHandlerTemplate),
 	})
 
 	mux := http.NewServeMux()

@@ -7,7 +7,7 @@
 
 package main
 
-const htmlTemplate string = `
+const handleIndexTemplate string = `
 <!doctype html>
 
 <html lang="en">
@@ -121,15 +121,15 @@ const htmlTemplate string = `
 
 const echoHandlerTemplate string = `
 
-Request received: {{ .Datestamp }}
-Endpoint path requested by client: {{ .EndPointPath }}
-HTTP Method used by client: {{ .HTTPMethod }}
-Client IP Address: {{ .ClientIPAddress }}
+Request received: {{if .Datestamp }}{{ .Datestamp }}{{end}}
+Endpoint path requested by client: {{if .EndpointPath }}{{ .EndpointPath }}{{end}}
+HTTP Method used by client: {{if .HTTPMethod }}{{ .HTTPMethod }}{{end}}
+Client IP Address: {{if .ClientIPAddress }}{{ .ClientIPAddress }}{{end}}
 
 Headers:
 
-{{ range .Headers }}
-  * {{ . }}
+{{ range $key, $value := .Headers }}
+  * {{ $key }}: {{ $value }}
 {{- else}}
   * None
 {{- end}}
@@ -153,10 +153,9 @@ Unformatted Body:
 {{- .ContentTypeError }}
 {{- end}}
 
-if {{ .FormattedBody }}
+{{if .FormattedBody }}
 Formatted Body:
-
-{{ .FormattedBody }}
+{{- .FormattedBody }}
 {{- end}}
 
 
