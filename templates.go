@@ -118,3 +118,46 @@ const htmlTemplate string = `
 </body>
 </html>
 `
+
+const echoHandlerTemplate string = `
+
+Request received: {{ .Datestamp }}
+Endpoint path requested by client: {{ .EndPointPath }}
+HTTP Method used by client: {{ .HTTPMethod }}
+Client IP Address: {{ .ClientIPAddress }}
+
+Headers:
+
+{{ range .Headers }}
+  * {{ . }}
+{{- else}}
+  * None
+{{- end}}
+
+
+Unformatted Body:
+
+{{if .RequestError}}
+{{- .RequestError }}
+{{- end}}
+
+{{if .Body}}
+{{- .Body }}
+{{- end}}
+
+{{if .BodyError}}
+{{- .BodyError }}
+{{- end}}
+
+{{if .ContentTypeError}}
+{{- .ContentTypeError }}
+{{- end}}
+
+if {{ .FormattedBody }}
+Formatted Body:
+
+{{ .FormattedBody }}
+{{- end}}
+
+
+`

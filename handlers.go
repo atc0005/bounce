@@ -82,65 +82,87 @@ func handleIndex(htmlTemplateText string, rs *routes.Routes) http.HandlerFunc {
 			log.Println("DEBUG: route:", route)
 		}
 
-		htmlTemplate.Execute(w, *rs)
+		w.Header().Set("Content-Type", "text/html")
+		err := htmlTemplate.Execute(w, *rs)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 
 	}
 
 }
 
-// TODO: Convert this so that it serves multiple endpoints
-//
-// /api/v1/echo
-// /api/v1/echo/json
-//
-//
-// return 404 if not one of those EXACT endpoints
-// return helpful text if /api/v1/echo/json and NOT POST method or expected content-type
+// echoHandler echos back the HTTP request received by
 func echoHandler(w http.ResponseWriter, r *http.Request) {
+
+	// For now, we generate plain text responses
+	w.Header().Set("Content-Type", "text/plain")
+
+	type echoHandlerResponse struct {
+		Datestamp          string
+		EndpointPath       string
+		HTTPMethod         string
+		ClientIPAddress    string
+		Headers            http.Header
+		Body               string
+		BodyError          string
+		FormattedBody      string
+		FormattedBodyError string
+		RequestError       string
+		ContentTypeError   string
+	}
+
+	ourResponse := echoHandlerResponse{}
+
+	mw := io.MultiWriter(w, os.Stdout)
+
+	textTemplate := template.Must(template.New("echoHandler").Parse(echoHandlerTemplate))
+
+	writeTemplate := func() {
+		err := textTemplate.Execute(mw, ourResponse)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+
+			// We force a a return here since it is unlikely that we should
+			// execute any other code after failing to generate/write out our
+			// template
+			return
+		}
+	}
 
 	switch r.URL.Path {
 
 	// Expected endpoint patterns for this handler
 	case apiV1EchoEndpointPattern, apiV1EchoJSONEndpointPattern:
 
-		mw := io.MultiWriter(w, os.Stdout)
-
-		t := time.Now()
-
-		//fmt.Fprintf(w, "echoHandler endpoint hit")
 		fmt.Fprintf(mw, "DEBUG: echoHandler endpoint hit\n\n")
-		fmt.Fprintf(mw, "Request received: %v\n", t.Format(time.RFC3339))
 
-		fmt.Fprintf(mw, "Endpoint path requested by client: %s\n", r.URL.Path)
-		fmt.Fprintf(mw, "HTTP Method used by client: %s\n", r.Method)
-		fmt.Fprintf(mw, "Client IP Address: %s\n", GetIP(r))
-
-		fmt.Fprintf(mw, "\nHeaders:\n\n")
-
-		for name, headers := range r.Header {
-			for _, h := range headers {
-				fmt.Fprintf(mw, "  * %v: %v\n", name, h)
-			}
-		}
-
-		fmt.Fprintf(mw, "\nUnformatted Body:\n\n")
+		ourResponse.Datestamp = time.Now().Format((time.RFC3339))
+		ourResponse.EndpointPath = r.URL.Path
+		ourResponse.HTTPMethod = r.Method
+		ourResponse.ClientIPAddress = GetIP(r)
+		ourResponse.Headers = r.Header
 
 		switch r.Method {
 
 		case http.MethodGet:
-			fmt.Fprintf(mw, "Sorry, this endpoint only accepts JSON data via %s requests.\n", http.MethodPost)
-			fmt.Fprintf(mw, "Please see the README for examples and then try again.\n")
+			// TODO: Collect this for use with our template
+			errorMsg := fmt.Sprintf(
+				"Sorry, this endpoint only accepts JSON data via %s requests.\n"+
+					"Please see the README for examples and then try again.\n",
+				http.MethodPost,
+			)
+			ourResponse.RequestError = errorMsg
+			writeTemplate()
+
+			// TODO: Do we need to issue this status code if we want the rest
+			// of the content to display normally in the client?
+			http.Error(w, errorMsg, http.StatusMethodNotAllowed)
+			return
 
 		case http.MethodPost:
 
 			var err error
-
-			// /api/v1/echo
-			// /api/v1/echo/json
-			//
-			//
-			// return 404 if not one of those EXACT endpoints
-			// return helpful text if /api/v1/echo/json and NOT POST method or expected content-type
 
 			// Copy body to a buffer since we'll use it in multiple places and
 			// (I think?) you can only read from r.Body once
@@ -150,23 +172,18 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 			requestBody, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				errorMsg := fmt.Sprintf("Error reading request body: %s", err)
-				fmt.Fprintf(mw, errorMsg)
+
+				ourResponse.BodyError = errorMsg
+				writeTemplate()
+
 				http.Error(w, errorMsg, http.StatusBadRequest)
 				return
 			}
-			requestBodyBuffer := bytes.NewBuffer(requestBody)
+			//requestBodyBuffer := bytes.NewBuffer(requestBody)
 			// TODO: Do we really need an io.ReadCloser here?
-			requestBodyReader := ioutil.NopCloser(requestBodyBuffer)
+			//requestBodyReader := ioutil.NopCloser(requestBodyBuffer)
 
-			// write out request body in raw format
-			_, err = io.Copy(mw, requestBodyReader)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-
-			// Add some whitespace to separate previous/upcoming contents
-			fmt.Fprintf(mw, "\n\n")
+			ourResponse.Body = string(requestBody)
 
 			// Only attempt to parse the request body as JSON if the
 			// JSON-specific endpoint was used
@@ -183,14 +200,15 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 				if contentTypeHeader != "" {
 					value, _ := header.ParseValueAndParams(r.Header, "Content-Type")
 					if value != "application/json" {
-						msg := fmt.Sprintf("Submitted request %q does not contain the expected application/json Content-Type header.", contentTypeHeader)
-						fmt.Fprintf(os.Stdout, msg)
-						http.Error(w, msg, http.StatusUnsupportedMediaType)
+						errorMsg := fmt.Sprintf("Submitted request %q does not contain the expected application/json Content-Type header.", contentTypeHeader)
+
+						ourResponse.ContentTypeError = errorMsg
+						writeTemplate()
+
+						http.Error(w, errorMsg, http.StatusUnsupportedMediaType)
 						return
 					}
 				}
-
-				fmt.Fprintf(mw, "Formatted Body:\n")
 
 				// https://golang.org/pkg/encoding/json/#Indent
 				var prettyJSON bytes.Buffer
@@ -199,11 +217,14 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 				err = json.Indent(&prettyJSON, requestBody, "", "\t")
 				if err != nil {
 					errorMsg := fmt.Sprintf("JSON parse error: %s", err)
-					fmt.Fprintf(os.Stdout, errorMsg)
+
+					ourResponse.FormattedBodyError = errorMsg
+					writeTemplate()
+
 					http.Error(w, errorMsg, http.StatusBadRequest)
 					return
 				}
-				fmt.Fprintf(mw, prettyJSON.String())
+				ourResponse.FormattedBody = prettyJSON.String()
 
 				// https://golang.org/pkg/encoding/json/#MarshalIndent
 				// prettyJSON, err := json.MarshalIndent(&buffer, "", "\t")
@@ -217,15 +238,24 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 
 			}
 
-			// Add some whitespace to separate previous/upcoming contents
-			fmt.Fprintf(mw, "\n\n\n")
+			// If we made it this far, then presumably our template data
+			// structure "ourResponse" is fully populated and we can execute
+			// the template against it
+			writeTemplate()
 
 		default:
-			fmt.Fprintf(mw, "ERROR: Unsupported method %q received; please try again using %s method\n", r.Method, http.MethodPost)
+			errorMsg := fmt.Sprintf("ERROR: Unsupported method %q received; please try again using %s method\n", r.Method, http.MethodPost)
 
+			ourResponse.RequestError = errorMsg
+			writeTemplate()
+
+			http.Error(w, errorMsg, http.StatusMethodNotAllowed)
+			return
 		}
 
 	default:
+		// Template is not used for this code block, so no need to account for
+		// the output in the template
 		log.Printf("DEBUG: Rejecting request %q; not explicitly handled by a route.\n", r.URL.Path)
 		http.NotFound(w, r)
 		return
