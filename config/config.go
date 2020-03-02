@@ -16,9 +16,10 @@ import (
 	"os"
 )
 
-// Updated via Makefile builds. Setting placeholder value here so that
-// something resembling a version string will be provided for non-Makefile
-// builds.
+// version is updated via Makefile builds by referencing the fully-qualified
+// path to this variable, including the package. We set a placeholder value so
+// that something resembling a version string will be provided for
+// non-Makefile builds.
 var version string = "x.y.z"
 
 const myAppName string = "bounce"
