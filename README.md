@@ -113,6 +113,7 @@ Tested using:
 
 1. [Download](https://golang.org/dl/) Go
 1. [Install](https://golang.org/doc/install) Go
+   - NOTE: Pay special attention to the remarks about `$HOME/.profile`
 1. Clone the repo
    1. `cd /tmp` (or equivalent)
    1. `git clone https://github.com/atc0005/bounce`
