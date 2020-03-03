@@ -13,3 +13,6 @@
 
 # Local Visual Studio Code editor settings (e.g., ignored words for Spelling extension)
 /.vscode
+
+# Generated binaries, checksums
+/release_assets
