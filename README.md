@@ -26,7 +26,7 @@ Small utility to assist with building HTTP endpoints
     - [Examples](#examples)
       - [Local: View headers submitted by `GET` request using your browser](#local-view-headers-submitted-by-get-request-using-your-browser)
       - [Local: Submit JSON payload using `curl`, receive unformatted response](#local-submit-json-payload-using-curl-receive-unformatted-response)
-      - [Local: Submit JSON payload to JSON-specific endpoint, get formatted response](#local-submit-json-payload-to-json-specific-endpoint-get-formatted-response)
+      - [Local: Submit JSON payload using `curl` to JSON-specific endpoint, get formatted response](#local-submit-json-payload-using-curl-to-json-specific-endpoint-get-formatted-response)
   - [References](#references)
     - [Dependencies](#dependencies)
     - [Instruction / Examples](#instruction--examples)
@@ -294,7 +294,7 @@ Items to note:
   - see "Splunk Enterprise > Alerting Manual > Use a webhook alert action"
 - Non-plaintext submissions are *not* "pretty-printed" or formatted in any way
 
-#### Local: Submit JSON payload to JSON-specific endpoint, get formatted response
+#### Local: Submit JSON payload using `curl` to JSON-specific endpoint, get formatted response
 
 ```ShellSession
 $ $ curl --silent -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload-unformatted.json http://localhost:8000/api/v1/echo/json
