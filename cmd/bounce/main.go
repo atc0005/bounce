@@ -19,11 +19,6 @@ import (
 	"github.com/atc0005/bounce/routes"
 )
 
-const (
-	readme    string = "README.md"
-	changelog string = "CHANGELOG.md"
-)
-
 // see templates.go for the hard-coded HTML/CSS template used for the index
 // page
 
