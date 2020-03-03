@@ -165,8 +165,6 @@ func echoHandler(templateText string) http.HandlerFunc {
 
 			case http.MethodPost:
 
-				var err error
-
 				requestBody, err := ioutil.ReadAll(r.Body)
 				if err != nil {
 					errorMsg := fmt.Sprintf("Error reading request body: %s", err)
@@ -217,13 +215,6 @@ func echoHandler(templateText string) http.HandlerFunc {
 
 			case http.MethodPost:
 
-				var err error
-
-				// Copy body to a buffer since we'll use it in multiple places and
-				// (I think?) you can only read from r.Body once
-				// buffer := bytes.Buffer{}
-				// _, err = io.Copy(&buffer, r.Body)
-				// requestBodyReader := bytes.NewReader(buffer.Bytes())
 				requestBody, err := ioutil.ReadAll(r.Body)
 				if err != nil {
 					errorMsg := fmt.Sprintf("Error reading request body: %s", err)
@@ -233,10 +224,6 @@ func echoHandler(templateText string) http.HandlerFunc {
 					writeTemplate()
 					return
 				}
-				//requestBodyBuffer := bytes.NewBuffer(requestBody)
-				// TODO: Do we really need an io.ReadCloser here?
-				//requestBodyReader := ioutil.NopCloser(requestBodyBuffer)
-
 				ourResponse.Body = string(requestBody)
 
 				// Only attempt to parse the request body as JSON if the
@@ -277,16 +264,6 @@ func echoHandler(templateText string) http.HandlerFunc {
 						return
 					}
 					ourResponse.FormattedBody = prettyJSON.String()
-
-					// https://golang.org/pkg/encoding/json/#MarshalIndent
-					// prettyJSON, err := json.MarshalIndent(&buffer, "", "\t")
-					// if err != nil {
-					// 	errorMsg := fmt.Sprintf("JSON parse error: %s", err)
-					// 	fmt.Fprintf(mw, errorMsg)
-					// 	http.Error(w, errorMsg, http.StatusBadRequest)
-					// 	return
-					// }
-					// fmt.Fprintf(mw, string(prettyJSON))
 
 				}
 
