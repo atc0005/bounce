@@ -43,8 +43,6 @@ func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 
 	htmlTemplate := htmlTemplate.Must(htmlTemplate.New("indexPage").Parse(templateText))
 
-	// FIXME: Guard against POST requests to this endpoint?
-
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("DEBUG: handleIndex endpoint hit for path: %q\n", r.URL.Path)
@@ -53,7 +51,7 @@ func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 
 			log.Println("DEBUG: non-GET request received on GET-only endpoint")
 			errorMsg := fmt.Sprintf(
-				"Sorry, this endpoint only accepts %s requests.\n"+
+				"\nSorry, this endpoint only accepts %s requests.\n"+
 					"Please see the README for examples and then try again.",
 				http.MethodGet,
 			)
