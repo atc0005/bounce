@@ -50,9 +50,9 @@ in testing other tools that submit data via HTTP requests.
 - single binary, no outside dependencies
 
 - minimal configuration
-  - User configurable TCP port to listen on for incoming HTTP requests
+  - user configurable TCP port to listen on for incoming HTTP requests
     (default: `8000`)
-  - User configurable IP Address to listen on for incoming HTTP requests
+  - user configurable IP Address to listen on for incoming HTTP requests
     (default: `localhost`)
   - index page automatically generates list of currently supported routes with
     detailed descriptions and supported request methods
