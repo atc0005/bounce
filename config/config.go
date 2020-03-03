@@ -37,13 +37,13 @@ const (
 // Ports (0-1023), User Ports (1024-49151), and the Dynamic and/or Private
 // Ports (49152-65535)
 const (
-	tcpReservedPort            int = 0
-	tcpSystemPortStart         int = 1
-	tcpSystemPortEnd           int = 1023
-	tcpUserPortStart           int = 1024
-	tcpUserPortEnd             int = 49151
-	tcpDynamicPrivatePortStart int = 49152
-	tcpDynamicPrivatePortEnd   int = 65535
+	TCPReservedPort            int = 0
+	TCPSystemPortStart         int = 1
+	TCPSystemPortEnd           int = 1023
+	TCPUserPortStart           int = 1024
+	TCPUserPortEnd             int = 49151
+	TCPDynamicPrivatePortStart int = 49152
+	TCPDynamicPrivatePortEnd   int = 65535
 )
 
 // Branding is responsible for emitting application name, version and origin
@@ -136,41 +136,41 @@ func validate(c Config) error {
 	switch {
 
 	// WARNING: User opted to use a privileged system port
-	case (c.LocalTCPPort >= tcpSystemPortStart) && (c.LocalTCPPort <= tcpSystemPortEnd):
+	case (c.LocalTCPPort >= TCPSystemPortStart) && (c.LocalTCPPort <= TCPSystemPortEnd):
 
 		// DEBUG
 		log.Printf(
 			"DEBUG: unprivileged system port %d chosen. ports between %d and %d require elevated privileges",
 			c.LocalTCPPort,
-			tcpSystemPortStart,
-			tcpSystemPortEnd,
+			TCPSystemPortStart,
+			TCPSystemPortEnd,
 		)
 
 		// log at WARNING level
 		log.Printf(
 			"WARNING: Binding to a port < %d requires elevated permissions. If you encounter errors with this application, please re-run this application and specify a port number between %d and %d",
-			tcpUserPortStart,
-			tcpUserPortStart,
-			tcpUserPortEnd,
+			TCPUserPortStart,
+			TCPUserPortStart,
+			TCPUserPortEnd,
 		)
 
 	// OK: User opted to use a valid and non-privileged port number
-	case (c.LocalTCPPort >= tcpUserPortStart) && (c.LocalTCPPort <= tcpUserPortEnd):
+	case (c.LocalTCPPort >= TCPUserPortStart) && (c.LocalTCPPort <= TCPUserPortEnd):
 		log.Printf(
 			"DEBUG: Valid, non-privileged user port between %d and %d configured: %d",
-			tcpUserPortStart,
-			tcpUserPortEnd,
+			TCPUserPortStart,
+			TCPUserPortEnd,
 			c.LocalTCPPort,
 		)
 
 	// WARNING: User opted to use a dynamic or private TCP port
-	case (c.LocalTCPPort >= tcpDynamicPrivatePortStart) && (c.LocalTCPPort <= tcpDynamicPrivatePortEnd):
+	case (c.LocalTCPPort >= TCPDynamicPrivatePortStart) && (c.LocalTCPPort <= TCPDynamicPrivatePortEnd):
 		log.Printf(
 			"WARNING: Valid, non-privileged, but dynamic/private port between %d and %d configured. This range is reserved for dynamic (usually outgoing) connections. If you encounter errors with this application, please re-run this application and specify a port number between %d and %d",
-			tcpUserPortStart,
-			tcpUserPortEnd,
-			tcpDynamicPrivatePortStart,
-			tcpDynamicPrivatePortEnd,
+			TCPUserPortStart,
+			TCPUserPortEnd,
+			TCPDynamicPrivatePortStart,
+			TCPDynamicPrivatePortEnd,
 		)
 
 	default:
