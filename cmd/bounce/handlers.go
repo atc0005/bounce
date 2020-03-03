@@ -60,25 +60,8 @@ func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 			return
 		}
 
-		// TODO: Stub out handling of non "/" requests (e.g., /favicon.ico)
-		//
 		// https://github.com/golang/go/issues/4799
 		// https://github.com/golang/go/commit/1a819be59053fa1d6b76cb9549c9a117758090ee
-		//
-		// if req.URL.Path != "/" {
-		// 	http.NotFound(w, req)
-		// 	return
-		// }
-
-		// TODO
-		// Build some kind of "banned" list?
-		// Probably better to whitelist instead.
-		// if r.URL.Path == "/favicon.ico" {
-		// 	log.Printf("DEBUG: rejecting request for %q\n", r.URL.Path)
-		// 	http.NotFound(w, r)
-		// 	return
-		// }
-
 		if r.URL.Path != "/" {
 			log.Printf("DEBUG: Rejecting request %q; not explicitly handled by a route.\n", r.URL.Path)
 			http.NotFound(w, r)
