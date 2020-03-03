@@ -15,18 +15,23 @@
 # Note: These commands are meant to be run from WITHIN the contrib subdirectory
 
 
-### View | Front page
+### GET | Front page (SUCCESS)
 
 GET http://localhost:8000/ HTTP/1.1
 
-### POST | Front page
-
-# This should fail
+### POST | Front page (FAIL)
 
 POST http://localhost:8000/ HTTP/1.1
 
 
-### Test | Echo endpoint
+### Test | Echo endpoint | Unformatted JSON
+
+POST http://localhost:8000/api/v1/echo HTTP/1.1
+content-type: application/json
+
+< ./splunk-test-payload-unformatted.json
+
+### Test | Echo endpoint | Preformatted JSON
 
 POST http://localhost:8000/api/v1/echo HTTP/1.1
 content-type: application/json
@@ -35,16 +40,19 @@ content-type: application/json
 
 ### Test | Echo endpoint via curl call
 
-curl -X POST -H "Content-Type: application/json" -d @splunk-test-payload-formatted.json http://localhost:8000/api/v1/echo
+curl -X POST -H "Content-Type: application/json" -d @splunk-test-payload-unformatted.json http://localhost:8000/api/v1/echo
 
-### Test | Echo | JSON endpoint
+### Test | Echo | JSON endpoint | Unformatted JSON
+
+POST http://localhost:8000/api/v1/echo/json HTTP/1.1
+content-type: application/json
+
+< ./splunk-test-payload-unformatted.json
+
+### Test | Echo | JSON endpoint | Preformatted JSON
 
 POST http://localhost:8000/api/v1/echo/json HTTP/1.1
 content-type: application/json
 
 < ./splunk-test-payload-formatted.json
 
-
-### Test | Echo | JSON endpoint via curl call
-
-curl -X POST -H "Content-Type: application/json" -d @splunk-test-payload-formatted.json http://localhost:8000/api/v1/echo/json
