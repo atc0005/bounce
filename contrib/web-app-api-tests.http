@@ -15,6 +15,17 @@
 # Note: These commands are meant to be run from WITHIN the contrib subdirectory
 
 
+### View | Front page
+
+GET http://localhost:8000/ HTTP/1.1
+
+### POST | Front page
+
+# This should fail
+
+POST http://localhost:8000/ HTTP/1.1
+
+
 ### Test | Echo endpoint
 
 POST http://localhost:8000/api/v1/echo HTTP/1.1
@@ -22,10 +33,18 @@ content-type: application/json
 
 < ./splunk-test-payload.json
 
-### View | Front page
-
-GET http://localhost:8000/ HTTP/1.1
-
 ### Test | Echo endpoint via curl call
 
 curl -X POST -H "Content-Type: application/json" -d @splunk-test-payload.json http://localhost:8000/api/v1/echo
+
+### Test | Echo | JSON endpoint
+
+POST http://localhost:8000/api/v1/echo/json HTTP/1.1
+content-type: application/json
+
+< ./splunk-test-payload.json
+
+
+### Test | Echo | JSON endpoint via curl call
+
+curl -X POST -H "Content-Type: application/json" -d @splunk-test-payload.json http://localhost:8000/api/v1/echo/json
