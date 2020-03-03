@@ -47,9 +47,20 @@ func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		msgReply := fmt.Sprintf("DEBUG: handleIndex endpoint hit for path: %q\n", r.URL.Path)
-		log.Printf(msgReply)
-		//fmt.Fprintf(w, msgReply)
+		log.Printf("DEBUG: handleIndex endpoint hit for path: %q\n", r.URL.Path)
+
+		if r.Method != http.MethodGet {
+
+			log.Println("DEBUG: non-GET request received on GET-only endpoint")
+			errorMsg := fmt.Sprintf(
+				"Sorry, this endpoint only accepts %s requests.\n"+
+					"Please see the README for examples and then try again.",
+				http.MethodGet,
+			)
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			fmt.Fprint(w, errorMsg)
+			return
+		}
 
 		// TODO: Stub out handling of non "/" requests (e.g., /favicon.ico)
 		//
