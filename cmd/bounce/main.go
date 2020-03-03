@@ -39,16 +39,6 @@ func main() {
 	// SETUP ROUTES
 	// See handlers.go for handler definitions
 
-	// TODO: replace use of http.DefaultServeMux with a custom mux to meet
-	// recommended best practices
-
-	// TODO: Use (work-in-progress) routes package to register these routes
-	// for later use *and* display on the index page
-
-	// NOTE: The entry below needs further work.
-	// I need to replace renderDefaultIndexPage() (or at least update it)
-	// as it currently requires arguments that don't make sense yet
-
 	var ourRoutes routes.Routes
 	ourRoutes.Add(routes.Route{
 		Name:           "index",
