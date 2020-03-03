@@ -179,8 +179,8 @@ Tested using:
 
 1. Build or obtain a pre-compiled copy of the executable appropriate for your
    operating system
-   - NOTE: As of this writing, CI-enabled automatic builds for new releases is
-     not yet available. We hope to add this in the near future.
+   - NOTE: As of this writing, CI-enabled automatic builds for new releases
+     are not yet available. We hope to add this in the near future.
 1. Pick a TCP port where you will have the application listen
    - e.g., `8000`
 1. Decide what IP Address that you wish to have this application "bind" or
