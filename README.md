@@ -291,11 +291,11 @@ Items to note:
 
 - Output is from a `pre-v0.1.0` release and is subject to change
 - Output shown above is not wrapped
+- We used a "minified" version of the sample Splunk Webhook request JSON
+  payload found in the official docs which is *not* wrapped or formatted
+  - see "Splunk Enterprise > Alerting Manual > Use a webhook alert action"
 - `curl` was executed from within a `Git Bash` shell session
 - The current working directory was the root of the cloned repo
-- We used a "minified" version of the sample Splunk Webhook request JSON
-  payload found in the official docs
-  - see "Splunk Enterprise > Alerting Manual > Use a webhook alert action"
 - Non-plaintext submissions are *not* "pretty-printed" or formatted in any way
 
 #### Local: Submit JSON payload using `curl` to JSON-specific endpoint, get formatted response
