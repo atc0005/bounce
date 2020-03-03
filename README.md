@@ -185,7 +185,7 @@ Tested using:
    - e.g., `8000`
 1. Decide what IP Address that you wish to have this application "bind" or
    "listen" on
-   - e.g., `localhost` or `192.168.1.100` (arbitrary number shown here)
+   - e.g., `localhost` or `192.168.1.100` (*arbitrary number shown here*)
 1. Update your host firewall on the system where this application will run to
    permit connections to your chosen IP Address and TCP port
    - if possible, limit access to just the remote system submitting HTTP
