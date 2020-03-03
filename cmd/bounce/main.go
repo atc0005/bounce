@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/atc0005/bounce/config"
 	"github.com/atc0005/bounce/routes"
@@ -67,10 +68,20 @@ func main() {
 	mux := http.NewServeMux()
 	ourRoutes.RegisterWithServeMux(mux)
 
+	// Apply "default" timeout settings provided by Simon Frey; override the
+	// default "wait forever" configuration.
+	// FIXME: Refine these settings to apply values more appropriate for a
+	// small-to-medium on-premise API (e.g., not over a public Internet link
+	// where clients are expected to be slow)
+	httpServer := &http.Server{
+		ReadHeaderTimeout: 20 * time.Second,
+		Handler:           mux,
+		Addr:              fmt.Sprintf("%s:%d", appConfig.LocalIPAddress, appConfig.LocalTCPPort),
+	}
+
 	// listen on specified port on ALL IP Addresses, block until app is terminated
 	log.Printf("Listening on %s port %d ",
 		appConfig.LocalIPAddress, appConfig.LocalTCPPort)
-	listenAddress := fmt.Sprintf("%s:%d",
-		appConfig.LocalIPAddress, appConfig.LocalTCPPort)
-	log.Fatal(http.ListenAndServe(listenAddress, mux))
+
+	log.Fatal(httpServer.ListenAndServe())
 }

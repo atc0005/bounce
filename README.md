@@ -363,6 +363,8 @@ Note:
   - <https://stackoverflow.com/questions/19038598/how-can-i-pretty-print-json-using-go/42426889>
   - <https://stackoverflow.com/questions/43021058/golang-read-request-body/43021236#43021236>
   - <https://www.alexedwards.net/blog/how-to-properly-parse-a-json-request-body>
+  - <https://blog.simon-frey.eu/go-as-in-golang-standard-net-http-config-will-break-your-production/>
+  - <https://medium.com/@nate510/don-t-use-go-s-default-http-client-4804cb19f779>
 
 - Splunk / JSON payload
   - [Splunk Enterprise (v8.0.1) > Alerting Manual > Use a webhook alert action](https://docs.splunk.com/Documentation/Splunk/8.0.1/Alert/Webhooks)
