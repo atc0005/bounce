@@ -155,9 +155,48 @@ func echoHandler(templateText string) http.HandlerFunc {
 		// Expected endpoint patterns for this handler
 		case apiV1EchoEndpointPattern:
 
-			// Write out what we have. Nothing further to do for this endpoint
-			writeTemplate()
-			return
+			switch r.Method {
+
+			case http.MethodGet:
+
+				// Write out what we have. Nothing further to do for this endpoint
+				writeTemplate()
+				return
+
+			case http.MethodPost:
+
+				var err error
+
+				requestBody, err := ioutil.ReadAll(r.Body)
+				if err != nil {
+					errorMsg := fmt.Sprintf("Error reading request body: %s", err)
+					ourResponse.BodyError = errorMsg
+
+					http.Error(w, errorMsg, http.StatusBadRequest)
+					writeTemplate()
+					return
+				}
+
+				ourResponse.Body = string(requestBody)
+				ourResponse.FormattedBodyError = fmt.Sprintf(
+					"This endpoint does not apply JSON formatting to the request body.\n"+
+						"Use the %q endpoint for JSON payload testing.",
+					apiV1EchoJSONEndpointPattern,
+				)
+
+				// If we made it this far, then presumably our template data
+				// structure "ourResponse" is fully populated and we can execute
+				// the template against it
+				writeTemplate()
+
+			default:
+				errorMsg := fmt.Sprintf("ERROR: Unsupported method %q received; please try again using %s method", r.Method, http.MethodPost)
+				ourResponse.RequestError = errorMsg
+
+				http.Error(w, errorMsg, http.StatusMethodNotAllowed)
+				writeTemplate()
+				return
+			}
 
 		case apiV1EchoJSONEndpointPattern:
 
