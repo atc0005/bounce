@@ -79,11 +79,11 @@ dynamic listing of the available endpoints. Please [open an
 issue](https://github.com/atc0005/bounce/issues) if you find that there is a
 mismatch between these entries and those listed on the application `index`.
 
-| Name        | Pattern             | Description                                                                                          | Allowed Methods                | Supported Request content types  | Expected Response content type |
-| ----------- | ------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------ | -------------------------------- | ------------------------------ |
-| `index`     | `/`                 | Main page, fallback for unspecified routes.                                                          | `GET`                          | `text/plain`                     | `text/html`                    |
-| `echo`      | `/api/v1/echo`      | Prints received values to stdout and returns them (as-is, no "pretty" formatting) via HTTP response. | `GET`, `POST`                  | `text/plain`, `application/json` | `text/plain`                   |
-| `echo-json` | `/api/v1/echo/json` | Prints "pretty printed" JSON request body to stdout and returns via HTTP response.                   | `GET` (limited), `POST` (JSON) | `text/plain`, `application/json` | `text/plain`                   |
+| Name        | Pattern             | Description                                                                                   | Allowed Methods                | Supported Request content types  | Expected Response content type |
+| ----------- | ------------------- | --------------------------------------------------------------------------------------------- | ------------------------------ | -------------------------------- | ------------------------------ |
+| `index`     | `/`                 | Main page, fallback for unspecified routes.                                                   | `GET`                          | `text/plain`                     | `text/html`                    |
+| `echo`      | `/api/v1/echo`      | Prints received values to stdout and returns them via HTTP response as-is without formatting. | `GET`, `POST`                  | `text/plain`, `application/json` | `text/plain`                   |
+| `echo-json` | `/api/v1/echo/json` | Prints "pretty printed" JSON request body to stdout and returns via HTTP response.            | `GET` (limited), `POST` (JSON) | `text/plain`, `application/json` | `text/plain`                   |
 
 ## Changelog
 
