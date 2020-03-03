@@ -32,19 +32,19 @@ The following types of changes will be recorded in this file:
 
 Features of the initial prototype:
 
-- single binary, no outside dependencies
+- Single binary, no outside dependencies
 
-- minimal configuration
+- Minimal configuration
   - User configurable TCP port to listen on for incoming HTTP requests
     (default: `8000`)
   - User configurable IP Address to listen on for incoming HTTP requests
     (default: `localhost`)
-  - index page automatically generates list of currently supported routes with
+  - Index page automatically generates list of currently supported routes with
     detailed descriptions and supported request methods
 
-- request body and associated metadata is echoed to stdout and back to client
-  - unformatted request body
-  - automatic formatting of JSON payloads when sent to the /api/v1/echo/json
+- Request body and associated metadata is echoed to stdout and back to client
+  - Unformatted request body
+  - Automatic formatting of JSON payloads when sent to the /api/v1/echo/json
     endpoint
 
 Worth noting (in no particular order):
