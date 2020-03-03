@@ -51,7 +51,7 @@ func (rs *Routes) RegisterWithServeMux(mux *http.ServeMux) {
 // ListNames provides a list of all recorded route names in Routes
 func (rs Routes) ListNames() []string {
 
-	var list []string
+	list := make([]string, 0, 5)
 	for _, route := range rs {
 		list = append(list, route.Name)
 
@@ -63,7 +63,7 @@ func (rs Routes) ListNames() []string {
 // ListURIs provides a list of all recorded route patterns in Routes
 func (rs Routes) ListURIs() []string {
 
-	var list []string
+	list := make([]string, 0, 5)
 	for _, route := range rs {
 		list = append(list, route.Pattern)
 
