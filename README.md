@@ -251,7 +251,7 @@ Items to note:
 - Port `8000` is the default, we're just being explicit here.
 - I ran the application on Windows 10 Version 1903
 - I visited the `/echo` endpoint (`http://localhost:8000/echo`) from Google Chrome Canary
-- The same headers shown here are also shown in the browser
+- The same non-logging output shown here is also shown in the browser
 
 #### Local: Submit JSON payload using `curl`, receive unformatted response
 
