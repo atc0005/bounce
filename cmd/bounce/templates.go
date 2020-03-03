@@ -137,7 +137,7 @@ Headers:
 Request error:
 
 {{.RequestError }}
-{{end}}
+{{- end}}
 {{if .Body}}
 Unformatted request body:
 
@@ -149,17 +149,21 @@ No request body was provided by client.
 Error processing request body:
 
 {{ .BodyError }}
-{{end}}
+{{- end}}
 {{if .ContentTypeError}}
 Error processing Content-Type header:
 
 {{ .ContentTypeError }}
-{{end}}
+{{- end}}
 {{if .FormattedBody }}
 Formatted Body:
 
 {{ .FormattedBody }}
 {{- end}}
+{{if .FormattedBodyError}}
+Error formatting request body:
 
+{{ .FormattedBodyError }}
+{{- end}}
 
 `
