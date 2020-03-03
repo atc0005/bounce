@@ -247,6 +247,7 @@ No request body was provided by client.
 
 Items to note:
 
+- Output is from a `pre-v0.1.0` release and is subject to change
 - Port `8000` is the default, we're just being explicit here.
 - I ran the application on Windows 10 Version 1903
 - I visited the `/echo` endpoint (`http://localhost:8000/echo`) from Google Chrome Canary
@@ -288,6 +289,7 @@ Use the "/api/v1/echo/json" endpoint for JSON payload testing.
 
 Items to note:
 
+- Output is from a `pre-v0.1.0` release and is subject to change
 - Output shown above is not wrapped
 - `curl` was executed from within a `Git Bash` shell session
 - The current working directory was the root of the cloned repo
@@ -339,6 +341,7 @@ Formatted Body:
 
 Note:
 
+- Output is from a `pre-v0.1.0` release and is subject to change
 - Output was not modified, but copied as-is from the terminal session
 - Output was "pretty-printed" by the application
 - `curl` was executed from within a `Git Bash` shell session
