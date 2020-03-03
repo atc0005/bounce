@@ -30,17 +30,30 @@ The following types of changes will be recorded in this file:
 
 ### Added
 
-This initial prototype supports/provides:
+Features of the initial prototype:
 
-- User configurable port to listen on for incoming HTTP requests
-- TODO: List routes here along with brief summary of behavior expected for each
+- single binary, no outside dependencies
+
+- minimal configuration
+  - User configurable TCP port to listen on for incoming HTTP requests
+    (default: `8000`)
+  - User configurable IP Address to listen on for incoming HTTP requests
+    (default: `localhost`)
+  - index page automatically generates list of currently supported routes with
+    detailed descriptions and supported request methods
+
+- request body and associated metadata is echoed to stdout and back to client
+  - unformatted request body
+  - automatic formatting of JSON payloads when sent to the /api/v1/echo/json
+    endpoint
 
 Worth noting (in no particular order):
 
 - Command-line flags support via `flag` standard library package
 - Go modules (vs classic `GOPATH` setup)
-- GitHub Actions linting and build checks
-- Makefile for general use cases
+- GitHub Actions Workflows which apply linting and build checks
+- Makefile for general use cases (including local linting)
+  - Note: See README for available options if building on Windows
 
 [Unreleased]: https://github.com/atc0005/bounce/compare/v0.1.0...HEAD
 [v0.1.0]: https://github.com/atc0005/bounce/releases/tag/v0.1.0

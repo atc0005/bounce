@@ -10,8 +10,9 @@ Small utility to assist with building HTTP endpoints
 - [bounce](#bounce)
   - [Project home](#project-home)
   - [Overview](#overview)
-  - [Status](#status)
   - [Features](#features)
+    - [Current](#current)
+    - [Under consideration](#under-consideration)
   - [Available Endpoints](#available-endpoints)
   - [Changelog](#changelog)
   - [Requirements](#requirements)
@@ -42,16 +43,33 @@ This application is primarily intended to be used as a HTTP endpoint for
 testing webhook payloads. Over time, it may grow other related features to aid
 in testing other tools that submit data via HTTP requests.
 
-## Status
-
-**Under development.**
-
-- Available endpoints/routes are limited
-- Defined behavior for this application is subject to change
-
 ## Features
 
-- User configurable port to listen on for incoming HTTP requests
+### Current
+
+- single binary, no outside dependencies
+
+- minimal configuration
+  - User configurable TCP port to listen on for incoming HTTP requests
+    (default: `8000`)
+  - User configurable IP Address to listen on for incoming HTTP requests
+    (default: `localhost`)
+  - index page automatically generates list of currently supported routes with
+    detailed descriptions and supported request methods
+
+- request body and associated metadata is echoed to stdout and back to client
+  - unformatted request body
+  - automatic formatting of JSON payloads when sent to the /api/v1/echo/json
+    endpoint
+
+### Under consideration
+
+| Priority | Description                                                |
+| -------- | ---------------------------------------------------------- |
+| Medium   | Colorized JSON output                                      |
+| High     | Colorized, leveled logging                                 |
+| Low      | Batch email endpoint requests                              |
+| Medium   | Sending endpoint request data to a Microsoft Teams channel |
 
 ## Available Endpoints
 
@@ -105,17 +123,22 @@ Tested using:
    - for CentOS Linux
      - `sudo yum install make gcc`
    - for Windows
-     - Easiest options
+     - Emulated environments (*easier*)
        - Skip all of this and build using the default `go build` command in
          Windows
-       - build using WSL Ubuntu environment and just copy out the Windows
-         binaries from that environment
-     - see the StackOverflow Question `32127524` link in the
-       [References](#references) section for potential options for installing
-       `make` on Windows
-     - see the mingw-w64 project homepage link in the
-       [References](#references) section for options for installing `gcc` and
-       related packages on Windows
+       - build using Windows Subsystem for Linux Ubuntu environment and just
+         copy out the Windows binaries from that environment
+       - If already running a Docker environment, use a container with the Go
+         tool-chain already installed
+       - If already familiar with LXD, create a container and follow the
+         installation steps given previously to install required dependencies
+     - Native tooling (*harder*)
+       - see the StackOverflow Question `32127524` link in the
+         [References](#references) section for potential options for
+         installing `make` on Windows
+       - see the mingw-w64 project homepage link in the
+         [References](#references) section for options for installing `gcc`
+         and related packages on Windows
 1. Build an executable ...
    - for the current operating system (with default `go` build options)
      - `go build`
@@ -159,8 +182,10 @@ Tested using:
      not yet available. We hope to add this in the near future.
 1. Pick a TCP port where you will have the application listen
    - e.g., `8000`
-1. Open your chosen TCP port in the firewall on the system where this
-   application will run
+1. Decide what IP Address that you wish to have this application "bind" or
+   "listen" on
+1. Update your host firewal on the system where this application will run to
+   permit connections to your chosen IP Address and TCP port
    - if possible, limit access to just the remote system submitting HTTP
      requests
    - skip this step if you plan to only submit HTTP requests from your own
@@ -176,32 +201,45 @@ Tested using:
 #### Local: View headers submitted by `GET` request using your browser
 
 ```ShellSession
-./bounce.exe -port 8000
-2020/03/01 04:58:37 DEBUG: Initializing application
-2020/03/01 04:58:37 DEBUG: Valid, non-privileged user port between 1024 and 49151 configured: 8000
-2020/03/01 04:58:37 DEBUG: LocalTCPPort: 8000
-2020/03/01 04:58:37 DEBUG: Add index to routes ...
-2020/03/01 04:58:37 DEBUG: Add echo to routes ...
-2020/03/01 04:58:37 DEBUG: Register index with ServeMux ...
-2020/03/01 04:58:37 DEBUG: Register echo with ServeMux ...
-2020/03/01 04:58:37 Listening on port 8000
+$ ./bounce.exe
+
+2020/03/03 06:28:58 DEBUG: Initializing application
+2020/03/03 06:28:58 DEBUG: Valid, non-privileged user port between 1024 and 49151 configured: 8000
+2020/03/03 06:28:58 DEBUG: LocalTCPPort: 8000, LocalIPAddress: localhost
+2020/03/03 06:28:58 DEBUG: Add index to routes ...
+2020/03/03 06:28:58 DEBUG: Add echo to routes ...
+2020/03/03 06:28:58 DEBUG: Add echo-json to routes ...
+2020/03/03 06:28:58 DEBUG: Register index with ServeMux ...
+2020/03/03 06:28:58 DEBUG: Register echo with ServeMux ...
+2020/03/03 06:28:58 DEBUG: Register echo-json with ServeMux ...
+2020/03/03 06:28:58 Listening on localhost port 8000
+
 DEBUG: echoHandler endpoint hit
 
+
+Request received: 2020-03-03T06:33:07-06:00
+Endpoint path requested by client: /api/v1/echo
 HTTP Method used by client: GET
-Client IP Address: [::1]:52555
+Client IP Address: 127.0.0.1:54719
 
 Headers:
 
-  * User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/82.0.4074.0 Safari/537.36
-  * Sec-Fetch-Site: none
-  * Sec-Fetch-Mode: navigate
-  * Sec-Fetch-User: ?1
-  * Sec-Fetch-Dest: document
-  * Connection: keep-alive
-  * Upgrade-Insecure-Requests: 1
+
   * Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
   * Accept-Encoding: gzip, deflate, br
   * Accept-Language: en-US,en;q=0.9
+  * Connection: keep-alive
+  * Referer: http://localhost:8000/
+  * Sec-Fetch-Dest: document
+  * Sec-Fetch-Mode: navigate
+  * Sec-Fetch-Site: same-origin
+  * Sec-Fetch-User: ?1
+  * Upgrade-Insecure-Requests: 1
+  * User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/82.0.4075.0 Safari/537.36
+
+
+
+No request body was provided by client.
 
 ```
 
@@ -215,21 +253,35 @@ Items to note:
 #### Local: Submit JSON payload using `curl`, receive unformatted response
 
 ```ShellSession
-$ curl -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload.json http://localhost:8000/api/v1/echo
-DEBUG: echoHandler endpoint hit
+$ curl --silent -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload-unformatted.json http://localhost:8000/api/v1/echo
 
+Request received: 2020-03-03T06:35:29-06:00
+Endpoint path requested by client: /api/v1/echo
 HTTP Method used by client: POST
-Client IP Address: 127.0.0.1:53098
+Client IP Address: 127.0.0.1:54756
 
 Headers:
 
-  * User-Agent: curl/7.68.0
+
   * Accept: */*
+  * Content-Length: 254
   * Content-Type: application/json
-  * Content-Length: 306
-POST request received; reading Body value ...
-Body:
-{    "result": {        "sourcetype": "mongod",        "count": "8"    },    "sid": "scheduler_admin_search_W2_at_14232356_132",    "results_link": "http://web.example.local:8000/app/search/@go?sid=scheduler_admin_search_W2_at_14232356_132",    "search_name": null,    "owner": "admin",    "app": "search"}
+  * User-Agent: curl/7.68.0
+
+
+
+Unformatted request body:
+
+{"result":{"sourcetype":"mongod","count":"8"},"sid":"scheduler_admin_search_W2_at_14232356_132","results_link":"http://web.example.local:8000/app/search/@go?sid=scheduler_admin_search_W2_at_14232356_132","search_name":null,"owner":"admin","app":"search"}
+
+
+
+
+Error formatting request body:
+
+This endpoint does not apply JSON formatting to the request body.
+Use the "/api/v1/echo/json" endpoint for JSON payload testing.
+
 ```
 
 Items to note:
@@ -237,16 +289,50 @@ Items to note:
 - Output shown above is not wrapped
 - `curl` was executed from within a `Git Bash` shell session
 - The current working directory was the root of the cloned repo
-- We used a sample Splunk Webhook request JSON payload provided in the official docs
+- We used a "minified" version of the sample Splunk Webhook request JSON
+  payload found in the official docs
   - see "Splunk Enterprise > Alerting Manual > Use a webhook alert action"
 - Non-plaintext submissions are *not* "pretty-printed" or formatted in any way
 
 #### Local: Submit JSON payload to JSON-specific endpoint, get formatted response
 
 ```ShellSession
-$ curl -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload.json http://localhost:8000/api/v1/echo/json
+$ $ curl --silent -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload-unformatted.json http://localhost:8000/api/v1/echo/json
 
-TODO
+Request received: 2020-03-03T06:36:02-06:00
+Endpoint path requested by client: /api/v1/echo/json
+HTTP Method used by client: POST
+Client IP Address: 127.0.0.1:54761
+
+Headers:
+
+
+  * Accept: */*
+  * Content-Length: 254
+  * Content-Type: application/json
+  * User-Agent: curl/7.68.0
+
+
+
+Unformatted request body:
+
+{"result":{"sourcetype":"mongod","count":"8"},"sid":"scheduler_admin_search_W2_at_14232356_132","results_link":"http://web.example.local:8000/app/search/@go?sid=scheduler_admin_search_W2_at_14232356_132","search_name":null,"owner":"admin","app":"search"}
+
+
+
+Formatted Body:
+
+{
+        "result": {
+                "sourcetype": "mongod",
+                "count": "8"
+        },
+        "sid": "scheduler_admin_search_W2_at_14232356_132",
+        "results_link": "http://web.example.local:8000/app/search/@go?sid=scheduler_admin_search_W2_at_14232356_132",
+        "search_name": null,
+        "owner": "admin",
+        "app": "search"
+}
 ```
 
 Note:
