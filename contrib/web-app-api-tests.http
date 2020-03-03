@@ -31,20 +31,20 @@ POST http://localhost:8000/ HTTP/1.1
 POST http://localhost:8000/api/v1/echo HTTP/1.1
 content-type: application/json
 
-< ./splunk-test-payload.json
+< ./splunk-test-payload-formatted.json
 
 ### Test | Echo endpoint via curl call
 
-curl -X POST -H "Content-Type: application/json" -d @splunk-test-payload.json http://localhost:8000/api/v1/echo
+curl -X POST -H "Content-Type: application/json" -d @splunk-test-payload-formatted.json http://localhost:8000/api/v1/echo
 
 ### Test | Echo | JSON endpoint
 
 POST http://localhost:8000/api/v1/echo/json HTTP/1.1
 content-type: application/json
 
-< ./splunk-test-payload.json
+< ./splunk-test-payload-formatted.json
 
 
 ### Test | Echo | JSON endpoint via curl call
 
-curl -X POST -H "Content-Type: application/json" -d @splunk-test-payload.json http://localhost:8000/api/v1/echo/json
+curl -X POST -H "Content-Type: application/json" -d @splunk-test-payload-formatted.json http://localhost:8000/api/v1/echo/json
