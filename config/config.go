@@ -226,7 +226,7 @@ func NewConfig() (*Config, error) {
 
 	mainFlagSet.StringVar(
 		&config.LogLevel,
-		"log-level",
+		"log-lvl",
 		defaultLogLevel,
 		"Log message priority filter. Log messages with a lower level are ignored.",
 	)
@@ -240,7 +240,7 @@ func NewConfig() (*Config, error) {
 
 	mainFlagSet.StringVar(
 		&config.LogFormat,
-		"log-format",
+		"log-fmt",
 		defaultLogFormat,
 		"Log messages are written in this format",
 	)
@@ -341,6 +341,7 @@ func validate(c Config) error {
 	switch c.LogOutput {
 	case LogOutputStderr:
 	case LogOutputStdout:
+	default:
 		return fmt.Errorf("invalid option %q provided for log output",
 			c.LogOutput)
 	}
@@ -351,6 +352,7 @@ func validate(c Config) error {
 	case LogFormatLogFmt:
 	case LogFormatText:
 	case LogFormatDiscard:
+	default:
 		return fmt.Errorf("invalid option %q provided for log format",
 			c.LogFormat)
 	}
