@@ -26,7 +26,14 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
-## [v0.1.0] - 2020-03-xx
+## [v0.1.1] - 2020-03-03
+
+### Fixed
+
+- Missing date in v0.1.0 release entry for this CHANGELOG file
+- (GH-7) GoDoc formatting: collapse unsupported sub-bullets
+
+## [v0.1.0] - 2020-03-03
 
 ### Added
 
@@ -55,5 +62,6 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.1.1...HEAD
+[v0.1.1]: https://github.com/atc0005/bounce/releases/tag/v0.1.1
 [v0.1.0]: https://github.com/atc0005/bounce/releases/tag/v0.1.0
