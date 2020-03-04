@@ -40,7 +40,7 @@ func main() {
 	// This will use default logging settings (level filter, destination)
 	// as the application hasn't "booted up" far enough to apply custom
 	// choices yet.
-	log.Info("Initializing application")
+	log.Debug("Initializing application")
 
 	appConfig, err := config.NewConfig()
 	if err != nil {
