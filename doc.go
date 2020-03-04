@@ -27,6 +27,8 @@ FEATURES
   as unformatted request body and automatic formatting of JSON payloads when
   sent to the /api/v1/echo/json endpoint
 
+• Optional, colorization and custom ident control for formatted JSON output
+
 • User configurable TCP port to listen on for incoming HTTP requests
 
 • User configurable IP Address to listen on for incoming HTTP requests

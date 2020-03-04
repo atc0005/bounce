@@ -27,6 +27,7 @@ Small utility to assist with building HTTP endpoints
       - [Local: View headers submitted by `GET` request using your browser](#local-view-headers-submitted-by-get-request-using-your-browser)
       - [Local: Submit JSON payload using `curl`, receive unformatted response](#local-submit-json-payload-using-curl-receive-unformatted-response)
       - [Local: Submit JSON payload using `curl` to JSON-specific endpoint, get formatted response](#local-submit-json-payload-using-curl-to-json-specific-endpoint-get-formatted-response)
+      - [Local: Submit JSON payload using `curl` to JSON-specific endpoint, get colorized, formatted response](#local-submit-json-payload-using-curl-to-json-specific-endpoint-get-colorized-formatted-response)
   - [References](#references)
     - [Dependencies](#dependencies)
     - [Instruction / Examples](#instruction--examples)
@@ -61,12 +62,12 @@ in testing other tools that submit data via HTTP requests.
   - Unformatted request body
   - Automatic formatting of JSON payloads when sent to the /api/v1/echo/json
     endpoint
+  - Optional, colorization and custom ident control for formatted JSON output
 
 ### Under consideration
 
 | Priority | Description                                                |
 | -------- | ---------------------------------------------------------- |
-| Medium   | Colorized JSON output                                      |
 | High     | Colorized, leveled logging                                 |
 | Low      | Batch email endpoint requests                              |
 | Medium   | Sending endpoint request data to a Microsoft Teams channel |
@@ -162,11 +163,13 @@ Tested using:
 
 ### Command-line Arguments
 
-| Option      | Required | Default     | Repeat | Possible                               | Description                                                                         |
-| ----------- | -------- | ----------- | ------ | -------------------------------------- | ----------------------------------------------------------------------------------- |
-| `h`, `help` | No       | `false`     | No     | `h`, `help`                            | Show Help text along with the list of supported flags.                              |
-| `port`      | No       | `8000`      | No     | *valid whole numbers*                  | TCP port that this application should listen on for incoming HTTP requests.         |
-| `ipaddr`    | No       | `localhost` | No     | *valid fqdn, local name or IP Address* | Local IP Address that this application should listen on for incoming HTTP requests. |
+| Option       | Required | Default     | Repeat | Possible                               | Description                                                                                                        |
+| ------------ | -------- | ----------- | ------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `h`, `help`  | No       | `false`     | No     | `h`, `help`                            | Show Help text along with the list of supported flags.                                                             |
+| `port`       | No       | `8000`      | No     | *valid whole numbers*                  | TCP port that this application should listen on for incoming HTTP requests.                                        |
+| `ipaddr`     | No       | `localhost` | No     | *valid fqdn, local name or IP Address* | Local IP Address that this application should listen on for incoming HTTP requests.                                |
+| `color`      | No       | `false`     | No     | `true`, `false`                        | Whether JSON output should be colorized.                                                                           |
+| `indent-lvl` | No       | `2`         | No     | *1+; positive whole numbers*           | Number of spaces to use when indenting colorized JSON output. Has no effect unless colorized JSON mode is enabled. |
 
 ### Worth noting
 
@@ -347,6 +350,20 @@ Note:
 - `curl` was executed from within a `Git Bash` shell session
 - The current working directory was the root of the cloned repo
 
+#### Local: Submit JSON payload using `curl` to JSON-specific endpoint, get colorized, formatted response
+
+Same as our other JSON-specific endpoint example, but with colorized output enabled.
+
+Here is what you get without color:
+
+<!-- Attempt to use image reference and inherit the alt-text already set -->
+![Uncolored JSON output example screenshot][screenshot-uncolored-json-output]
+
+and with colorized JSON output enabled:
+
+<!-- Attempt to use image reference and inherit the alt-text already set -->
+![Colored JSON output example screenshot for v0.2.0 release][screenshot-colored-json-output-v0.2.0]
+
 ## References
 
 ### Dependencies
@@ -371,5 +388,13 @@ Note:
   - <https://blog.simon-frey.eu/go-as-in-golang-standard-net-http-config-will-break-your-production/>
   - <https://medium.com/@nate510/don-t-use-go-s-default-http-client-4804cb19f779>
 
+- Colored JSON
+  - <https://stackoverflow.com/a/50549770/903870>
+  - <https://github.com/TylerBrock/colorjson>
+
 - Splunk / JSON payload
   - [Splunk Enterprise (v8.0.1) > Alerting Manual > Use a webhook alert action](https://docs.splunk.com/Documentation/Splunk/8.0.1/Alert/Webhooks)
+
+<!-- Screenshot references for use within example section  -->
+[screenshot-uncolored-json-output]: media/v0.2.0/bounce-json-uncolored-output-2020-03-04.png "Uncolored JSON output example screenshot"
+[screenshot-colored-json-output-v0.2.0]: media/v0.2.0/bounce-json-colorizer-output-2020-03-04.png "Colored JSON output example screenshot for v0.2.0 release"

@@ -1,0 +1,1 @@
+Screenshots and other images for use with documentation (e.g., README).

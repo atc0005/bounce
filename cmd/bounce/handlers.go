@@ -22,6 +22,7 @@ import (
 
 	"github.com/atc0005/bounce/routes"
 
+	"github.com/TylerBrock/colorjson"
 	"github.com/golang/gddo/httputil/header"
 )
 
@@ -86,7 +87,7 @@ func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 }
 
 // echoHandler echos back the HTTP request received by
-func echoHandler(templateText string) http.HandlerFunc {
+func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -233,20 +234,44 @@ func echoHandler(templateText string) http.HandlerFunc {
 						}
 					}
 
-					// https://golang.org/pkg/encoding/json/#Indent
-					var prettyJSON bytes.Buffer
-					// FIXME: Is it safe now to access requestBody (byte slice)
-					// directly with all of the additional "wrappers" applied to it?
-					err = json.Indent(&prettyJSON, requestBody, "", "\t")
-					if err != nil {
-						errorMsg := fmt.Sprintf("JSON parse error: %s", err)
-						ourResponse.FormattedBodyError = errorMsg
+					handleJSONParseError := func(w http.ResponseWriter, err error) {
+						if err != nil {
+							errorMsg := fmt.Sprintf("JSON parse error: %s", err)
+							ourResponse.FormattedBodyError = errorMsg
 
-						http.Error(w, errorMsg, http.StatusBadRequest)
-						writeTemplate()
-						return
+							http.Error(w, errorMsg, http.StatusBadRequest)
+							writeTemplate()
+							return
+						}
 					}
-					ourResponse.FormattedBody = prettyJSON.String()
+
+					switch coloredJSON {
+					case true:
+						var obj map[string]interface{}
+						// FIXME: Is it safe now to access requestBody (byte slice)
+						// directly with all of the additional "wrappers" applied to it?
+						err = json.Unmarshal(requestBody, &obj)
+
+						handleJSONParseError(w, err)
+
+						// Make a custom formatter with indent set
+						colorJSONFormatter := colorjson.NewFormatter()
+						colorJSONFormatter.Indent = coloredJSONIndent
+
+						// Marshall the Colorized JSON
+						jsonBytes, err := colorJSONFormatter.Marshal(obj)
+						handleJSONParseError(w, err)
+						ourResponse.FormattedBody = string(jsonBytes)
+
+					case false:
+						// https://golang.org/pkg/encoding/json/#Indent
+						var prettyJSON bytes.Buffer
+						// FIXME: Is it safe now to access requestBody (byte slice)
+						// directly with all of the additional "wrappers" applied to it?
+						err = json.Indent(&prettyJSON, requestBody, "", "\t")
+						handleJSONParseError(w, err)
+						ourResponse.FormattedBody = prettyJSON.String()
+					}
 
 				}
 
