@@ -8,7 +8,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	htmlTemplate "html/template"
@@ -22,6 +21,7 @@ import (
 
 	"github.com/atc0005/bounce/routes"
 
+	"github.com/TylerBrock/colorjson"
 	"github.com/golang/gddo/httputil/header"
 )
 
@@ -234,19 +234,37 @@ func echoHandler(templateText string) http.HandlerFunc {
 					}
 
 					// https://golang.org/pkg/encoding/json/#Indent
-					var prettyJSON bytes.Buffer
+					//var prettyJSON bytes.Buffer
 					// FIXME: Is it safe now to access requestBody (byte slice)
 					// directly with all of the additional "wrappers" applied to it?
-					err = json.Indent(&prettyJSON, requestBody, "", "\t")
-					if err != nil {
-						errorMsg := fmt.Sprintf("JSON parse error: %s", err)
-						ourResponse.FormattedBodyError = errorMsg
+					//err = json.Indent(&prettyJSON, requestBody, "", "\t")
 
-						http.Error(w, errorMsg, http.StatusBadRequest)
-						writeTemplate()
-						return
+					// https://stackoverflow.com/a/50549770/903870
+					var obj map[string]interface{}
+					err = json.Unmarshal(requestBody, &obj)
+
+					handleJSONParseError := func(w http.ResponseWriter, err error) {
+						if err != nil {
+							errorMsg := fmt.Sprintf("JSON parse error: %s", err)
+							ourResponse.FormattedBodyError = errorMsg
+
+							http.Error(w, errorMsg, http.StatusBadRequest)
+							writeTemplate()
+							return
+						}
 					}
-					ourResponse.FormattedBody = prettyJSON.String()
+					handleJSONParseError(w, err)
+
+					// Make a custom formatter with indent set
+					colorJSONFormatter := colorjson.NewFormatter()
+					colorJSONFormatter.Indent = 4
+
+					// Marshall the Colorized JSON
+					jsonBytes, err := colorJSONFormatter.Marshal(obj)
+					handleJSONParseError(w, err)
+					ourResponse.FormattedBody = string(jsonBytes)
+
+					//ourResponse.FormattedBody = prettyJSON.String()
 
 				}
 
