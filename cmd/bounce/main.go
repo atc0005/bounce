@@ -11,19 +11,32 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
+
+	//"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/atc0005/bounce/config"
 	"github.com/atc0005/bounce/routes"
+
+	"github.com/apex/log"
+	"github.com/apex/log/handlers/logfmt"
 )
 
 // see templates.go for the hard-coded HTML/CSS template used for the index
 // page
 
 func main() {
+	log.SetHandler(logfmt.New(os.Stderr))
+
+	ctx := log.WithFields(log.Fields{
+		"file": "something.png",
+		"type": "image/png",
+		"user": "tobi",
+	})
+
+	log.Printf("hello")
 
 	log.Println("DEBUG: Initializing application")
 
