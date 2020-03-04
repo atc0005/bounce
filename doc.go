@@ -33,20 +33,35 @@ FEATURES
 
 • User configurable IP Address to listen on for incoming HTTP requests
 
+• User configurable logging levels
+
+• User configurable logging format
+
+• User configurable logging output (stdout or stderr)
+
+
 USAGE
 
 Help output is below. See the README for examples.
 
 $ ./bounce.exe -h
 
-	2020/03/03 06:28:11 DEBUG: Initializing application
-
 	bounce x.y.z
 	https://github.com/atc0005/bounce
 
 	Usage of "T:\github\bounce\bounce.exe":
+	-color
+			Whether JSON output should be colorized.
+	-indent-lvl int
+			Number of spaces to use when indenting colorized JSON output. Has no effect unless colorized JSON mode is enabled. (default 2)
 	-ipaddr string
 			Local IP Address that this application should listen on for incoming HTTP requests. (default "localhost")
+	-log-fmt string
+			Log messages are written in this format (default "text")
+	-log-lvl string
+			Log message priority filter. Log messages with a lower level are ignored. (default "info")
+	-log-out string
+			Log messages are written to this output target (default "stdout")
 	-port int
 			TCP port that this application should listen on for incoming HTTP requests. (default 8000)
 

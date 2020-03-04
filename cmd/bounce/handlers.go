@@ -14,7 +14,6 @@ import (
 	htmlTemplate "html/template"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	textTemplate "text/template"
@@ -23,6 +22,7 @@ import (
 	"github.com/atc0005/bounce/routes"
 
 	"github.com/TylerBrock/colorjson"
+	"github.com/apex/log"
 	"github.com/golang/gddo/httputil/header"
 )
 
@@ -46,16 +46,24 @@ func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		log.Printf("DEBUG: handleIndex endpoint hit for path: %q\n", r.URL.Path)
+		ctxLog := log.WithFields(log.Fields{
+			"url_path":   r.URL.Path,
+			"num_routes": len(*rs),
+		})
+
+		ctxLog.Debug("handleIndex endpoint hit")
 
 		if r.Method != http.MethodGet {
 
-			log.Println("DEBUG: non-GET request received on GET-only endpoint")
+			ctxLog.WithFields(log.Fields{
+				"http_method": r.Method,
+			}).Debug("non-GET request received on GET-only endpoint")
 			errorMsg := fmt.Sprintf(
 				"\nSorry, this endpoint only accepts %s requests.\n"+
 					"Please see the README for examples and then try again.",
 				http.MethodGet,
 			)
+			// TODO: Can apex/log hook into this and handle output?
 			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 			fmt.Fprint(w, errorMsg)
 			return
@@ -64,16 +72,13 @@ func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 		// https://github.com/golang/go/issues/4799
 		// https://github.com/golang/go/commit/1a819be59053fa1d6b76cb9549c9a117758090ee
 		if r.URL.Path != "/" {
-			log.Printf("DEBUG: Rejecting request %q; not explicitly handled by a route.\n", r.URL.Path)
+			ctxLog.Debug("Rejecting request not explicitly handled by a route")
 			http.NotFound(w, r)
 			return
 		}
 
-		log.Println("DEBUG: length of routes:", len(*rs))
-		log.Printf("DEBUG: Type of *rs is %T. Fields: %v+", *rs, *rs)
-
 		for _, route := range *rs {
-			log.Println("DEBUG: route:", route)
+			log.Debugf("route: %+v", route)
 		}
 
 		w.Header().Set("Content-Type", "text/html")
@@ -126,7 +131,7 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 			}
 		}
 
-		fmt.Fprintf(os.Stdout, "DEBUG: echoHandler endpoint hit\n\n")
+		log.Debug("echoHandler endpoint hit")
 
 		ourResponse.Datestamp = time.Now().Format((time.RFC3339))
 		ourResponse.EndpointPath = r.URL.Path
@@ -292,7 +297,7 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 		default:
 			// Template is not used for this code block, so no need to account for
 			// the output in the template
-			log.Printf("DEBUG: Rejecting request %q; not explicitly handled by a route.\n", r.URL.Path)
+			log.Debugf("Rejecting request %q; not explicitly handled by a route.", r.URL.Path)
 			http.NotFound(w, r)
 			return
 		}

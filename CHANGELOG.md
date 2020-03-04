@@ -26,6 +26,39 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.3.0] - 2020-03-04
+
+### Added
+
+- (GH-2) Initial implementation of leveled logging using the `apex/log`
+  package
+  - logging format flag enables matching handler
+    - `discard`
+    - `text`
+    - `cli`
+    - `json`
+    - `logfmt`
+  - logging output flag allows selection between `stdout` and `stderr`
+  - logging level flag allows filtering out log messages lower in priority
+    than the chosen value
+    - `fatal`
+    - `error`
+    - `warn`
+    - `info`
+    - `debug`
+
+### Fixed
+
+- (GH-13) Add missing default values for `ReadTimeout` and `WriteTimeout`
+  `http.Server` settings
+
+## [v0.2.1] - 2020-03-04
+
+### Fixed
+
+- (GH-11) Prune invalid Go module entries accidentally introduced in prior
+  release
+
 ## [v0.2.0] - 2020-03-04
 
 ### Added
@@ -68,7 +101,9 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.2.0...HEAD
-[v0.2.0]: https://github.com/atc0005/bounce/releases/tag/v0.1.1
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.3.0...HEAD
+[v0.3.0]: https://github.com/atc0005/bounce/releases/tag/v0.3.0
+[v0.2.1]: https://github.com/atc0005/bounce/releases/tag/v0.2.1
+[v0.2.0]: https://github.com/atc0005/bounce/releases/tag/v0.2.0
 [v0.1.1]: https://github.com/atc0005/bounce/releases/tag/v0.1.1
 [v0.1.0]: https://github.com/atc0005/bounce/releases/tag/v0.1.0
