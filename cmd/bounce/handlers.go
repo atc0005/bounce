@@ -299,7 +299,7 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 		default:
 			// Template is not used for this code block, so no need to account for
 			// the output in the template
-			log.Debugf("Rejecting request %q; not explicitly handled by a route.\n", r.URL.Path)
+			log.Debugf("Rejecting request %q; not explicitly handled by a route.", r.URL.Path)
 			http.NotFound(w, r)
 			return
 		}

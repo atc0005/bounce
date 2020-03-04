@@ -32,7 +32,7 @@ type Routes []Route
 func (rs *Routes) Add(r ...Route) {
 
 	for _, newRoute := range r {
-		log.Debugf("Add %s to routes ...\n", newRoute.Name)
+		log.Debugf("Add %s to routes ...", newRoute.Name)
 		*rs = append(*rs, newRoute)
 	}
 }
@@ -44,7 +44,7 @@ func (rs *Routes) RegisterWithServeMux(mux *http.ServeMux) {
 	// TODO: How would we check for errors registering our route?
 
 	for _, route := range *rs {
-		log.Debugf("Register %s with ServeMux ...\n", route.Name)
+		log.Debugf("Register %s with ServeMux ...", route.Name)
 		mux.HandleFunc(route.Pattern, route.HandlerFunc)
 	}
 
