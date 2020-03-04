@@ -12,8 +12,11 @@ package config
 import (
 	"flag"
 	"fmt"
-	"log"
+
+	//"log"
 	"os"
+
+	"github.com/apex/log"
 )
 
 // version is updated via Makefile builds by referencing the fully-qualified
@@ -166,17 +169,16 @@ func validate(c Config) error {
 	// WARNING: User opted to use a privileged system port
 	case (c.LocalTCPPort >= TCPSystemPortStart) && (c.LocalTCPPort <= TCPSystemPortEnd):
 
-		// DEBUG
-		log.Printf(
-			"DEBUG: unprivileged system port %d chosen. ports between %d and %d require elevated privileges",
+		log.Debugf(
+			"unprivileged system port %d chosen. ports between %d and %d require elevated privileges",
 			c.LocalTCPPort,
 			TCPSystemPortStart,
 			TCPSystemPortEnd,
 		)
 
 		// log at WARNING level
-		log.Printf(
-			"WARNING: Binding to a port < %d requires elevated permissions. If you encounter errors with this application, please re-run this application and specify a port number between %d and %d",
+		log.Warnf(
+			"Binding to a port < %d requires elevated permissions. If you encounter errors with this application, please re-run this application and specify a port number between %d and %d",
 			TCPUserPortStart,
 			TCPUserPortStart,
 			TCPUserPortEnd,
@@ -184,7 +186,7 @@ func validate(c Config) error {
 
 	// OK: User opted to use a valid and non-privileged port number
 	case (c.LocalTCPPort >= TCPUserPortStart) && (c.LocalTCPPort <= TCPUserPortEnd):
-		log.Printf(
+		log.Infof(
 			"DEBUG: Valid, non-privileged user port between %d and %d configured: %d",
 			TCPUserPortStart,
 			TCPUserPortEnd,
@@ -193,7 +195,7 @@ func validate(c Config) error {
 
 	// WARNING: User opted to use a dynamic or private TCP port
 	case (c.LocalTCPPort >= TCPDynamicPrivatePortStart) && (c.LocalTCPPort <= TCPDynamicPrivatePortEnd):
-		log.Printf(
+		log.Warnf(
 			"WARNING: Valid, non-privileged, but dynamic/private port between %d and %d configured. This range is reserved for dynamic (usually outgoing) connections. If you encounter errors with this application, please re-run this application and specify a port number between %d and %d",
 			TCPUserPortStart,
 			TCPUserPortEnd,
@@ -202,7 +204,7 @@ func validate(c Config) error {
 		)
 
 	default:
-		log.Printf("invalid port %d specified", c.LocalTCPPort)
+		log.Debugf("invalid port %d specified", c.LocalTCPPort)
 		return fmt.Errorf(
 			"port %d is not a valid TCP port for this application",
 			c.LocalTCPPort,

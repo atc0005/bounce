@@ -14,12 +14,17 @@ package main
 
 import (
 	"net/http"
+
+	"github.com/apex/log"
 )
 
 // GetIP gets a requests IP address by reading off the forwarded-for
 // header (for proxies) and falls back to use the remote address.
 func GetIP(r *http.Request) string {
 	forwarded := r.Header.Get("X-FORWARDED-FOR")
+	log.WithFields(log.Fields{
+		"forwarded_header": forwarded,
+	}).Debug("logging X-FORWARDED-FOR header")
 	if forwarded != "" {
 		return forwarded
 	}

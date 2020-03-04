@@ -21,24 +21,60 @@ import (
 	"github.com/atc0005/bounce/routes"
 
 	"github.com/apex/log"
+	"github.com/apex/log/handlers/cli"
 	"github.com/apex/log/handlers/logfmt"
+	"github.com/apex/log/handlers/multi"
 )
 
 // see templates.go for the hard-coded HTML/CSS template used for the index
 // page
 
 func main() {
-	log.SetHandler(logfmt.New(os.Stderr))
 
-	ctx := log.WithFields(log.Fields{
-		"file": "something.png",
-		"type": "image/png",
-		"user": "tobi",
-	})
+	// 	apex/log Handlers
+	// ---------------------------------------------------------
+	// cli - human-friendly CLI output
+	// discard - discards all logs
+	// es - Elasticsearch handler
+	// graylog - Graylog handler
+	// json - JSON output handler
+	// kinesis - AWS Kinesis handler
+	// level - level filter handler
+	// logfmt - logfmt plain-text formatter
+	// memory - in-memory handler for tests
+	// multi - fan-out to multiple handlers
+	// papertrail - Papertrail handler
+	// text - human-friendly colored output
+	// delta - outputs the delta between log calls and spinner
 
-	log.Printf("hello")
+	// create error logger that directs messages to stderr
+	// create stdout logger specifically for providing status updates (pretty)
+	// create logfmt stdout logger for systemd consumption if `-daemon` flag is used
 
-	log.Println("DEBUG: Initializing application")
+	// seems apex/log is different. We don't seem to be able to create
+	// multiple logger objects, each to a different output target?
+	log.SetHandler(multi.New(
+		logfmt.New(os.Stderr),
+		cli.New(os.Stdout),
+	))
+	log.SetLevel(log.DebugLevel)
+	// log.SetHandler(logfmt.New(os.Stderr))
+
+	//log.NewEntry(logfmt.New(os.Stdout))
+
+	// stderrLogger := &log.Logger{}
+
+	// stderrLogger.SetHandler()
+
+	// ctx := log.WithFields(log.Fields{
+	// 	"file": "something.png",
+	// 	"type": "image/png",
+	// 	"user": "tobi",
+	// })
+
+	// ctx.Info("Hello")
+
+	log.Debug("Initializing application")
 
 	appConfig, err := config.NewConfig()
 	if err != nil {
@@ -48,7 +84,7 @@ func main() {
 		log.Fatalf("Failed to initialize application: %s", err)
 	}
 
-	log.Printf("DEBUG: %+v\n", appConfig)
+	log.Debugf("AppConfig: %+v\n", appConfig)
 
 	// SETUP ROUTES
 	// See handlers.go for handler definitions
@@ -93,8 +129,11 @@ func main() {
 	}
 
 	// listen on specified port on ALL IP Addresses, block until app is terminated
-	log.Printf("Listening on %s port %d ",
+	log.Infof("Listening on %s port %d ",
 		appConfig.LocalIPAddress, appConfig.LocalTCPPort)
 
-	log.Fatal(httpServer.ListenAndServe())
+	// TODO: This can be handled in a cleaner fashion?
+	if err := httpServer.ListenAndServe(); err != nil {
+		log.Fatal(err.Error())
+	}
 }
