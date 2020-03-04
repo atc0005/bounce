@@ -27,8 +27,10 @@ const myAppURL string = "https://github.com/atc0005/bounce"
 
 // Default flag settings if not overridden by user input
 const (
-	defaultLocalTCPPort int    = 8000
-	defaultLocalIP      string = "localhost"
+	defaultLocalTCPPort        int    = 8000
+	defaultLocalIP             string = "localhost"
+	defaultColorizedJSON       bool   = false
+	defaultColorizedJSONIntent int    = 2
 )
 
 // TCP port ranges
@@ -79,13 +81,25 @@ type Config struct {
 	// LocalIPAddress is the IP Address that this application should listen on
 	// for incoming requests
 	LocalIPAddress string
+
+	// ColorizedJSON indicates whether JSON output should be colorized.
+	// Coloring the output could aid in in quick visual evaluation of incoming
+	// payloads
+	ColorizedJSON bool
+
+	// ColorizedJSONIndent controls how many spaces are used when indenting
+	// colorized JSON output. If ColorizedJSON is not enabled, this setting
+	// has no effect.
+	ColorizedJSONIndent int
 }
 
 func (c *Config) String() string {
 	return fmt.Sprintf(
-		"LocalTCPPort: %d, LocalIPAddress: %s",
+		"LocalTCPPort: %d, LocalIPAddress: %s, ColorizedJSON: %t, ColorizedJSONIndent: %d",
 		c.LocalTCPPort,
 		c.LocalIPAddress,
+		c.ColorizedJSON,
+		c.ColorizedJSONIndent,
 	)
 }
 
@@ -109,6 +123,20 @@ func NewConfig() (*Config, error) {
 		"ipaddr",
 		defaultLocalIP,
 		"Local IP Address that this application should listen on for incoming HTTP requests.",
+	)
+
+	mainFlagSet.BoolVar(
+		&config.ColorizedJSON,
+		"color",
+		defaultColorizedJSON,
+		"Whether JSON output should be colorized.",
+	)
+
+	mainFlagSet.IntVar(
+		&config.ColorizedJSONIndent,
+		"indent-lvl",
+		defaultColorizedJSONIntent,
+		"Number of spaces to use when indenting colorized JSON output. Has no effect unless colorized JSON mode is enabled.",
 	)
 
 	mainFlagSet.Usage = Usage(mainFlagSet)
@@ -183,6 +211,15 @@ func validate(c Config) error {
 
 	if c.LocalIPAddress == "" {
 		return fmt.Errorf("local IP Address not provided")
+	}
+
+	// TODO: Consider also throwing an error if this is set without also
+	// setting c.ColorizedJSON
+	if c.ColorizedJSONIndent <= 0 {
+		return fmt.Errorf(
+			"invalid indent level chosen for colorized output: %d",
+			c.ColorizedJSONIndent,
+		)
 	}
 
 	// if we made it this far then we signal all is well

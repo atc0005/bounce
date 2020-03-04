@@ -26,6 +26,12 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.2.0] - 2020-03-04
+
+### Added
+
+- (GH-9) Optional, formatted, colorized JSON output for JSON-specific endpoint
+
 ## [v0.1.1] - 2020-03-03
 
 ### Fixed
@@ -62,6 +68,7 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.2.0...HEAD
+[v0.2.0]: https://github.com/atc0005/bounce/releases/tag/v0.1.1
 [v0.1.1]: https://github.com/atc0005/bounce/releases/tag/v0.1.1
 [v0.1.0]: https://github.com/atc0005/bounce/releases/tag/v0.1.0

@@ -54,7 +54,7 @@ func main() {
 		Description:    "Prints received values as-is to stdout and returns them via HTTP response",
 		Pattern:        apiV1EchoEndpointPattern,
 		AllowedMethods: []string{http.MethodGet, http.MethodPost},
-		HandlerFunc:    echoHandler(echoHandlerTemplate),
+		HandlerFunc:    echoHandler(echoHandlerTemplate, appConfig.ColorizedJSON, appConfig.ColorizedJSONIndent),
 	})
 
 	ourRoutes.Add(routes.Route{
@@ -62,7 +62,7 @@ func main() {
 		Description:    "Prints formatted JSON response to stdout and via HTTP response",
 		Pattern:        apiV1EchoJSONEndpointPattern,
 		AllowedMethods: []string{http.MethodPost},
-		HandlerFunc:    echoHandler(echoHandlerTemplate),
+		HandlerFunc:    echoHandler(echoHandlerTemplate, appConfig.ColorizedJSON, appConfig.ColorizedJSONIndent),
 	})
 
 	mux := http.NewServeMux()
