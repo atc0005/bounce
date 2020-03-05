@@ -26,6 +26,21 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.3.1] - 2020-03-05
+
+### Fixed
+
+- (GH-14) Fix potential text template variable shadowing
+- (GH-15) Extend / Enhance JSON decoding error handling
+- Add `decodeJSONBody()` method and associated `malformedRequest` type provided by Alex Edwards (many thanks for sharing!)
+  - Article: <https://www.alexedwards.net/blog/how-to-properly-parse-a-json-request-body>
+  - License: MIT (same as this codebase)
+  - Book: <https://lets-go.alexedwards.net/>
+  - Twitter: <https://twitter.com/ajmedwards>
+- (GH-16) README updates to cover v0.3.0 changes
+  - add new features to summary list
+  - remove leveled logging from "TODO" features list
+
 ## [v0.3.0] - 2020-03-04
 
 ### Added
@@ -101,7 +116,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.3.1...HEAD
+[v0.3.1]: https://github.com/atc0005/bounce/releases/tag/v0.3.1
 [v0.3.0]: https://github.com/atc0005/bounce/releases/tag/v0.3.0
 [v0.2.1]: https://github.com/atc0005/bounce/releases/tag/v0.2.1
 [v0.2.0]: https://github.com/atc0005/bounce/releases/tag/v0.2.0
