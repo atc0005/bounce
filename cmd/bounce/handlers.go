@@ -10,6 +10,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	htmlTemplate "html/template"
 	"io"
@@ -23,7 +24,6 @@ import (
 
 	"github.com/TylerBrock/colorjson"
 	"github.com/apex/log"
-	"github.com/golang/gddo/httputil/header"
 )
 
 // API endpoint patterns supported by this application
@@ -33,6 +33,12 @@ const (
 	apiV1EchoEndpointPattern     string = "/api/v1/echo"
 	apiV1EchoJSONEndpointPattern string = "/api/v1/echo/json"
 )
+
+// MB is a convenience constant that represents 1 Megabyte, which so happens
+// to be the limit we're placing on request bodies (in order to help limit the
+// impact from misconfigured http clients).
+// TODO: Find a better location for this constant
+const MB int64 = 1048576
 
 // handleIndex receives our HTML template and our defined routes as a pointer.
 // Both are used to generate a dynamic index of the available routes or
@@ -154,6 +160,8 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 
 			case http.MethodPost:
 
+				// Limit request body to 1 MB
+				r.Body = http.MaxBytesReader(w, r.Body, 1*MB)
 				requestBody, err := ioutil.ReadAll(r.Body)
 				if err != nil {
 					errorMsg := fmt.Sprintf("Error reading request body: %s", err)
@@ -204,7 +212,16 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 
 			case http.MethodPost:
 
+				// Limit request body to 1 MB
+				r.Body = http.MaxBytesReader(w, r.Body, 1*MB)
+
+				// read everything from the (size-limited) request body so
+				// that we can display it in a raw format, replace the Body
+				// with a new io.ReadCloser to allow later access to r.Body
+				// for JSON-decoding purposes
 				requestBody, err := ioutil.ReadAll(r.Body)
+				r.Body = ioutil.NopCloser(bytes.NewReader(requestBody))
+
 				if err != nil {
 					errorMsg := fmt.Sprintf("Error reading request body: %s", err)
 					ourResponse.BodyError = errorMsg
@@ -215,69 +232,61 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 				}
 				ourResponse.Body = string(requestBody)
 
-				// Only attempt to parse the request body as JSON if the
-				// JSON-specific endpoint was used
-				if r.URL.Path == apiV1EchoJSONEndpointPattern {
+				handleJSONParseError := func(w http.ResponseWriter, err error) {
+					if err != nil {
 
-					// https://www.alexedwards.net/blog/how-to-properly-parse-a-json-request-body
-					//
-					// If the Content-Type header is present, check that it has the value
-					// application/json. Note that we are using the gddo/httputil/header
-					// package to parse and extract the value here, so the check works
-					// even if the client includes additional charset or boundary
-					// information in the header.
-					contentTypeHeader := r.Header.Get("Content-Type")
-					if contentTypeHeader != "" {
-						value, _ := header.ParseValueAndParams(r.Header, "Content-Type")
-						if value != "application/json" {
-							errorMsg := fmt.Sprintf("Submitted request %q does not contain the expected application/json Content-Type header.", contentTypeHeader)
-							ourResponse.ContentTypeError = errorMsg
+						var mr *malformedRequest
+						errorPrefix := "JSON parse error"
+						if errors.As(err, &mr) {
+							log.WithFields(log.Fields{
+								"msg":    mr.msg,
+								"status": mr.status,
+							}).Error(errorPrefix)
 
-							http.Error(w, errorMsg, http.StatusUnsupportedMediaType)
+							ourResponse.FormattedBodyError = fmt.Sprintf("%s: %s", errorPrefix, mr.msg)
+
+							http.Error(w, mr.msg, mr.status)
 							writeTemplate()
 							return
 						}
+
+						errorMsg := fmt.Sprintf("%s: %s", errorPrefix, err.Error())
+						ourResponse.FormattedBodyError = errorMsg
+						log.Error(errorMsg)
+						http.Error(w, errorMsg, http.StatusInternalServerError)
+						writeTemplate()
+						return
 					}
+				}
 
-					handleJSONParseError := func(w http.ResponseWriter, err error) {
-						if err != nil {
-							errorMsg := fmt.Sprintf("JSON parse error: %s", err)
-							ourResponse.FormattedBodyError = errorMsg
+				// Decode request body into JSON using helper function
+				var decodedJSON map[string]interface{}
 
-							http.Error(w, errorMsg, http.StatusBadRequest)
-							writeTemplate()
-							return
-						}
-					}
+				// At this point we're dealing with a `malformedRequest` type
+				// of error. We can reference recorded `status` and `msg`
+				// fields to provide more information. Our
+				// `handleJSONParseError()` helper function looks for this
+				// type and uses it as that type if found.
+				err = decodeJSONBody(w, r, &decodedJSON)
+				handleJSONParseError(w, err)
 
-					switch coloredJSON {
-					case true:
-						var obj map[string]interface{}
-						// FIXME: Is it safe now to access requestBody (byte slice)
-						// directly with all of the additional "wrappers" applied to it?
-						err = json.Unmarshal(requestBody, &obj)
+				switch coloredJSON {
+				case true:
+					// Make a custom formatter with indent set
+					colorJSONFormatter := colorjson.NewFormatter()
+					colorJSONFormatter.Indent = coloredJSONIndent
 
-						handleJSONParseError(w, err)
+					// Marshall into Colorized JSON
+					jsonBytes, err := colorJSONFormatter.Marshal(decodedJSON)
+					handleJSONParseError(w, err)
+					ourResponse.FormattedBody = string(jsonBytes)
 
-						// Make a custom formatter with indent set
-						colorJSONFormatter := colorjson.NewFormatter()
-						colorJSONFormatter.Indent = coloredJSONIndent
-
-						// Marshall the Colorized JSON
-						jsonBytes, err := colorJSONFormatter.Marshal(obj)
-						handleJSONParseError(w, err)
-						ourResponse.FormattedBody = string(jsonBytes)
-
-					case false:
-						// https://golang.org/pkg/encoding/json/#Indent
-						var prettyJSON bytes.Buffer
-						// FIXME: Is it safe now to access requestBody (byte slice)
-						// directly with all of the additional "wrappers" applied to it?
-						err = json.Indent(&prettyJSON, requestBody, "", "\t")
-						handleJSONParseError(w, err)
-						ourResponse.FormattedBody = prettyJSON.String()
-					}
-
+				case false:
+					// https://golang.org/pkg/encoding/json/#Indent
+					var prettyJSON bytes.Buffer
+					err = json.Indent(&prettyJSON, requestBody, "", "\t")
+					handleJSONParseError(w, err)
+					ourResponse.FormattedBody = prettyJSON.String()
 				}
 
 				// If we made it this far, then presumably our template data
