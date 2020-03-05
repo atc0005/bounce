@@ -117,10 +117,10 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 
 		mw := io.MultiWriter(w, os.Stdout)
 
-		textTemplate := textTemplate.Must(textTemplate.New("echoHandler").Parse(templateText))
+		tmpl := textTemplate.Must(textTemplate.New("echoHandler").Parse(templateText))
 
 		writeTemplate := func() {
-			err := textTemplate.Execute(mw, ourResponse)
+			err := tmpl.Execute(mw, ourResponse)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 
