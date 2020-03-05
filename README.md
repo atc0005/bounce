@@ -163,18 +163,33 @@ Tested using:
 
 ### Command-line Arguments
 
-| Option       | Required | Default     | Repeat | Possible                               | Description                                                                                                        |
-| ------------ | -------- | ----------- | ------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `h`, `help`  | No       | `false`     | No     | `h`, `help`                            | Show Help text along with the list of supported flags.                                                             |
-| `port`       | No       | `8000`      | No     | *valid whole numbers*                  | TCP port that this application should listen on for incoming HTTP requests.                                        |
-| `ipaddr`     | No       | `localhost` | No     | *valid fqdn, local name or IP Address* | Local IP Address that this application should listen on for incoming HTTP requests.                                |
-| `color`      | No       | `false`     | No     | `true`, `false`                        | Whether JSON output should be colorized.                                                                           |
-| `indent-lvl` | No       | `2`         | No     | *1+; positive whole numbers*           | Number of spaces to use when indenting colorized JSON output. Has no effect unless colorized JSON mode is enabled. |
+| Option       | Required | Default     | Repeat | Possible                                   | Description                                                                                                        |
+| ------------ | -------- | ----------- | ------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `h`, `help`  | No       | `false`     | No     | `h`, `help`                                | Show Help text along with the list of supported flags.                                                             |
+| `port`       | No       | `8000`      | No     | *valid whole numbers*                      | TCP port that this application should listen on for incoming HTTP requests.                                        |
+| `ipaddr`     | No       | `localhost` | No     | *valid fqdn, local name or IP Address*     | Local IP Address that this application should listen on for incoming HTTP requests.                                |
+| `color`      | No       | `false`     | No     | `true`, `false`                            | Whether JSON output should be colorized.                                                                           |
+| `indent-lvl` | No       | `2`         | No     | *1+; positive whole numbers*               | Number of spaces to use when indenting colorized JSON output. Has no effect unless colorized JSON mode is enabled. |
+| `log-lvl`    | No       | `info`      | No     | `fatal`, `error`, `warn`, `info`, `debug`  | Log message priority filter. Log messages with a lower level are ignored.                                          |
+| `log-out`    | No       | `stdout`    | No     | `stdout`, `stderr`                         | Log messages are written to this output target.                                                                    |
+| `log-fmt`    | No       | `text`      | No     | `cli`, `json`, `logfmt`, `text`, `discard` | Use the specified `apex/log` package "handler" to output log messages in that handler's format.                    |
 
 ### Worth noting
 
 - For best results, limit your choice of TCP port to an unprivileged user
   port between `1024` and `49151`
+
+- Log format names map directly to the Handlers provided by the `apex/log`
+  package. Their descriptions are duplicated below from the [official
+  README](https://github.com/apex/log/blob/master/Readme.md) for reference:
+
+| Log Format ("Handler") | Description                        |
+| ---------------------- | ---------------------------------- |
+| `cli`                  | human-friendly CLI output          |
+| `json`                 | provides log output in JSON format |
+| `logfmt`               | plain-text logfmt output           |
+| `text`                 | human-friendly colored output      |
+| `discard`              | discards all logs                  |
 
 ## How to use it
 
@@ -208,24 +223,12 @@ Tested using:
 ```ShellSession
 $ ./bounce.exe
 
-2020/03/03 06:28:58 DEBUG: Initializing application
-2020/03/03 06:28:58 DEBUG: Valid, non-privileged user port between 1024 and 49151 configured: 8000
-2020/03/03 06:28:58 DEBUG: LocalTCPPort: 8000, LocalIPAddress: localhost
-2020/03/03 06:28:58 DEBUG: Add index to routes ...
-2020/03/03 06:28:58 DEBUG: Add echo to routes ...
-2020/03/03 06:28:58 DEBUG: Add echo-json to routes ...
-2020/03/03 06:28:58 DEBUG: Register index with ServeMux ...
-2020/03/03 06:28:58 DEBUG: Register echo with ServeMux ...
-2020/03/03 06:28:58 DEBUG: Register echo-json with ServeMux ...
-2020/03/03 06:28:58 Listening on localhost port 8000
+  INFO[0000] Listening on localhost port 8000
 
-DEBUG: echoHandler endpoint hit
-
-
-Request received: 2020-03-03T06:33:07-06:00
+Request received: 2020-03-04T22:03:31-06:00
 Endpoint path requested by client: /api/v1/echo
 HTTP Method used by client: GET
-Client IP Address: 127.0.0.1:54719
+Client IP Address: 127.0.0.1:60465
 
 Headers:
 
@@ -240,7 +243,7 @@ Headers:
   * Sec-Fetch-Site: same-origin
   * Sec-Fetch-User: ?1
   * Upgrade-Insecure-Requests: 1
-  * User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/82.0.4075.0 Safari/537.36
+  * User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/82.0.4077.0 Safari/537.36
 
 
 
@@ -248,9 +251,9 @@ No request body was provided by client.
 
 ```
 
-Items to note:
+Note:
 
-- Output is from a `pre-v0.1.0` release and is subject to change
+- Output is from a `v0.3.0` release and is subject to change
 - Port `8000` is the default, we're just being explicit here.
 - I ran the application on Windows 10 Version 1903
 - I visited the `/echo` endpoint (`http://localhost:8000/echo`) from Google Chrome Canary
@@ -258,13 +261,25 @@ Items to note:
 
 #### Local: Submit JSON payload using `curl`, receive unformatted response
 
+Start `bounce` from one terminal:
+
+```ShellSession
+$ ./bounce.exe
+
+  INFO[0000] Listening on localhost port 8000
+```
+
+Submit a `curl` request from another to a non-JSON specific endpoint and see
+the same output from `bounce` or from the terminal where you ran the `curl`
+command:
+
 ```ShellSession
 $ curl --silent -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload-unformatted.json http://localhost:8000/api/v1/echo
 
-Request received: 2020-03-03T06:35:29-06:00
+Request received: 2020-03-04T22:06:48-06:00
 Endpoint path requested by client: /api/v1/echo
 HTTP Method used by client: POST
-Client IP Address: 127.0.0.1:54756
+Client IP Address: 127.0.0.1:60498
 
 Headers:
 
@@ -290,9 +305,9 @@ Use the "/api/v1/echo/json" endpoint for JSON payload testing.
 
 ```
 
-Items to note:
+Note:
 
-- Output is from a `pre-v0.1.0` release and is subject to change
+- Output is from a `v0.3.0` release and is subject to change
 - Output shown above is not wrapped
 - We used a "minified" version of the sample Splunk Webhook request JSON
   payload found in the official docs which is *not* wrapped or formatted
@@ -303,13 +318,25 @@ Items to note:
 
 #### Local: Submit JSON payload using `curl` to JSON-specific endpoint, get formatted response
 
-```ShellSession
-$ $ curl --silent -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload-unformatted.json http://localhost:8000/api/v1/echo/json
+Start `bounce` from one terminal:
 
-Request received: 2020-03-03T06:36:02-06:00
+```ShellSession
+$ ./bounce.exe
+
+  INFO[0000] Listening on localhost port 8000
+```
+
+Submit a `curl` request from another to a JSON-specific endpoint and see
+the same output from `bounce` or from the terminal where you ran the `curl`
+command:
+
+```ShellSession
+$ curl --silent -X POST -H "Content-Type: application/json" -d @contrib/splunk-test-payload-unformatted.json http://localhost:8000/api/v1/echo/json
+
+Request received: 2020-03-04T22:05:47-06:00
 Endpoint path requested by client: /api/v1/echo/json
 HTTP Method used by client: POST
-Client IP Address: 127.0.0.1:54761
+Client IP Address: 127.0.0.1:60497
 
 Headers:
 
@@ -340,13 +367,14 @@ Formatted Body:
         "owner": "admin",
         "app": "search"
 }
+
 ```
 
 Note:
 
-- Output is from a `pre-v0.1.0` release and is subject to change
+- Output is from a `v0.3.0` release and is subject to change
 - Output was not modified, but copied as-is from the terminal session
-- Output was "pretty-printed" by the application
+- Output was formatted or "pretty-printed" by the application
 - `curl` was executed from within a `Git Bash` shell session
 - The current working directory was the root of the cloned repo
 
@@ -387,6 +415,10 @@ and with colorized JSON output enabled:
   - <https://www.alexedwards.net/blog/how-to-properly-parse-a-json-request-body>
   - <https://blog.simon-frey.eu/go-as-in-golang-standard-net-http-config-will-break-your-production/>
   - <https://medium.com/@nate510/don-t-use-go-s-default-http-client-4804cb19f779>
+
+- Logging
+  - <https://github.com/apex/log>
+  - <https://brandur.org/logfmt>
 
 - Colored JSON
   - <https://stackoverflow.com/a/50549770/903870>

@@ -8,8 +8,9 @@
 package routes
 
 import (
-	"log"
 	"net/http"
+
+	"github.com/apex/log"
 )
 
 // Route reflects the patterns and handlers for each supported path in our
@@ -30,7 +31,7 @@ type Routes []Route
 func (rs *Routes) Add(r ...Route) {
 
 	for _, newRoute := range r {
-		log.Printf("DEBUG: Add %s to routes ...\n", newRoute.Name)
+		log.Debugf("Add %s to routes ...", newRoute.Name)
 		*rs = append(*rs, newRoute)
 	}
 }
@@ -42,7 +43,7 @@ func (rs *Routes) RegisterWithServeMux(mux *http.ServeMux) {
 	// TODO: How would we check for errors registering our route?
 
 	for _, route := range *rs {
-		log.Printf("DEBUG: Register %s with ServeMux ...\n", route.Name)
+		log.Debugf("Register %s with ServeMux ...", route.Name)
 		mux.HandleFunc(route.Pattern, route.HandlerFunc)
 	}
 
