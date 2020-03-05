@@ -410,9 +410,13 @@ and with colorized JSON output enabled:
   - <https://stackoverflow.com/questions/24556001/how-to-range-over-slice-of-structs-instead-of-struct-of-slices>
   - <https://golangcode.com/get-the-request-ip-addr/>
   - <https://github.com/eddturtle/golangcode-site>
-  - <https://stackoverflow.com/questions/19038598/how-can-i-pretty-print-json-using-go/42426889>
+
+- Request body
   - <https://stackoverflow.com/questions/43021058/golang-read-request-body/43021236#43021236>
   - <https://www.alexedwards.net/blog/how-to-properly-parse-a-json-request-body>
+  - <https://stackoverflow.com/questions/33532374/in-go-how-can-i-reuse-a-readcloser>
+
+- HTTP Server
   - <https://blog.simon-frey.eu/go-as-in-golang-standard-net-http-config-will-break-your-production/>
   - <https://medium.com/@nate510/don-t-use-go-s-default-http-client-4804cb19f779>
 
@@ -420,7 +424,8 @@ and with colorized JSON output enabled:
   - <https://github.com/apex/log>
   - <https://brandur.org/logfmt>
 
-- Colored JSON
+- Formatted / Colored JSON
+  - <https://stackoverflow.com/questions/19038598/how-can-i-pretty-print-json-using-go/42426889>
   - <https://stackoverflow.com/a/50549770/903870>
   - <https://github.com/TylerBrock/colorjson>
 
