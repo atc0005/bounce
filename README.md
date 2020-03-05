@@ -12,7 +12,7 @@ Small utility to assist with building HTTP endpoints
   - [Overview](#overview)
   - [Features](#features)
     - [Current](#current)
-    - [Under consideration](#under-consideration)
+    - [Future](#future)
   - [Available Endpoints](#available-endpoints)
   - [Changelog](#changelog)
   - [Requirements](#requirements)
@@ -67,12 +67,13 @@ in testing other tools that submit data via HTTP requests.
 - User configurable logging settings
   - levels, format and output (see command-line arguments table)
 
-### Under consideration
+### Future
 
-| Priority | Description                                                |
-| -------- | ---------------------------------------------------------- |
-| Low      | Batch email endpoint requests                              |
-| Medium   | Sending endpoint request data to a Microsoft Teams channel |
+| Priority | Milestone                                                         | Description                                                                                                                     |
+| -------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Low      | [Unplanned](https://github.com/atc0005/bounce/milestone/8)        | Potential merit, but are either low demand or are more complex to implement than other issues under consideration.              |
+| Medium   | [Future](https://github.com/atc0005/bounce/milestone/2)           | Considered to have merit and sufficiently low complexity to fit within a near-future milestone.                                 |
+| High     | [vX.Y.Z](https://github.com/atc0005/bounce/milestones?state=open) | Milestones with a semantic versioning pattern reflect collections of issues that are in a planning or active development state. |
 
 ## Available Endpoints
 
