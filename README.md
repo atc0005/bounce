@@ -64,11 +64,13 @@ in testing other tools that submit data via HTTP requests.
     endpoint
   - Optional, colorization and custom ident control for formatted JSON output
 
+- User configurable logging settings
+  - levels, format and output (see command-line arguments table)
+
 ### Under consideration
 
 | Priority | Description                                                |
 | -------- | ---------------------------------------------------------- |
-| High     | Colorized, leveled logging                                 |
 | Low      | Batch email endpoint requests                              |
 | Medium   | Sending endpoint request data to a Microsoft Teams channel |
 
