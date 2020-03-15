@@ -48,7 +48,7 @@ const MB int64 = 1048576
 // of defined routes when this handler is finally called.
 func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 
-	htmlTemplate := htmlTemplate.Must(htmlTemplate.New("indexPage").Parse(templateText))
+	tmpl := htmlTemplate.Must(htmlTemplate.New("indexPage").Parse(templateText))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -88,7 +88,7 @@ func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "text/html")
-		err := htmlTemplate.Execute(w, *rs)
+		err := tmpl.Execute(w, *rs)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
