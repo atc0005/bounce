@@ -26,7 +26,16 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.3.3] - 2020-03-14
+
+### Fixed
+
+- Fix potential variable shadowing
+- Add missing CHANGELOG subsection header
+
 ## [v0.3.2] - 2020-03-05
+
+### Fixed
 
 - Fix CHANGELOG sub-bullet format
 - Update README to point readers to milestones for current development status
@@ -124,7 +133,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.3.3...HEAD
+[v0.3.3]: https://github.com/atc0005/bounce/releases/tag/v0.3.3
 [v0.3.2]: https://github.com/atc0005/bounce/releases/tag/v0.3.2
 [v0.3.1]: https://github.com/atc0005/bounce/releases/tag/v0.3.1
 [v0.3.0]: https://github.com/atc0005/bounce/releases/tag/v0.3.0
