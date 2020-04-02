@@ -119,6 +119,7 @@ func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 		err := tmpl.Execute(w, *rs)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			ctxLog.Error(err.Error())
 		}
 
 	}
@@ -143,6 +144,7 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 			err := tmpl.Execute(mw, ourResponse)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
+				log.Errorf("error occurred while trying to execute template: %v", err)
 
 				// We force a a return here since it is unlikely that we should
 				// execute any other code after failing to generate/write out our
@@ -174,7 +176,10 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 				// Send request details to Microsoft Teams
 				ourMessage := createMessage(ourResponse)
 				if err := sendMessage(webhookURL, ourMessage); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					// We can use http.Error() here because it hasn't already
+					// been called yet.
+					// http.Error(w, err.Error(), http.StatusInternalServerError)
+					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
 				}
 
 				return
@@ -189,14 +194,21 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 					ourResponse.BodyError = errorMsg
 
 					http.Error(w, errorMsg, http.StatusBadRequest)
-
-					/* *********************************************************
-						TODO: Add MS Teams submission call here.
-						TODO: This HAS to come before `writeTemplate()` call since
-						that function includes a `return` statement within.
-					***********************************************************/
+					log.Error(errorMsg)
 
 					writeTemplate()
+
+					// Send request details to Microsoft Teams
+					ourMessage := createMessage(ourResponse)
+					if err := sendMessage(webhookURL, ourMessage); err != nil {
+						// We already called this once earlier. Because
+						// http.Error() sets headers, we should not call it
+						// again because they will most likely be ignored by
+						// the client.
+						// http.Error(w, err.Error(), http.StatusInternalServerError)
+						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+					}
+
 					return
 				}
 
@@ -207,26 +219,41 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 					apiV1EchoJSONEndpointPattern,
 				)
 
-				/* *********************************************************
-					TODO: Add MS Teams submission call here.
-				***********************************************************/
-
 				// If we made it this far, then presumably our template data
 				// structure "ourResponse" is fully populated and we can execute
 				// the template against it
 				writeTemplate()
+
+				// Send request details to Microsoft Teams
+				ourMessage := createMessage(ourResponse)
+				if err := sendMessage(webhookURL, ourMessage); err != nil {
+					// We can use http.Error() here because it hasn't already
+					// been called yet.
+					//http.Error(w, err.Error(), http.StatusInternalServerError)
+					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+				}
+
+				return
 
 			default:
 				errorMsg := fmt.Sprintf("ERROR: Unsupported method %q received; please try again using %s method", r.Method, http.MethodPost)
 				ourResponse.RequestError = errorMsg
 
 				http.Error(w, errorMsg, http.StatusMethodNotAllowed)
-
-				/* *********************************************************
-					TODO: Add MS Teams submission call here.
-				***********************************************************/
+				log.Error(errorMsg)
 
 				writeTemplate()
+
+				// Send request details to Microsoft Teams
+				ourMessage := createMessage(ourResponse)
+				if err := sendMessage(webhookURL, ourMessage); err != nil {
+					// We already called this once earlier. Because
+					// http.Error() sets headers, we should not call it again
+					// because they will most likely be ignored by the client.
+					//http.Error(w, err.Error(), http.StatusInternalServerError)
+					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+				}
+
 				return
 			}
 
@@ -244,12 +271,20 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 				ourResponse.RequestError = errorMsg
 
 				http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-
-				/* *********************************************************
-					TODO: Add MS Teams submission call here.
-				***********************************************************/
+				log.Error(errorMsg)
 
 				writeTemplate()
+
+				// Send request details to Microsoft Teams
+				ourMessage := createMessage(ourResponse)
+				if err := sendMessage(webhookURL, ourMessage); err != nil {
+					// We already called this once earlier. Because
+					// http.Error() sets headers, we should not call it again
+					// because they will most likely be ignored by the client.
+					//http.Error(w, err.Error(), http.StatusInternalServerError)
+					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+				}
+
 				return
 
 			case http.MethodPost:
@@ -269,14 +304,21 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 					ourResponse.BodyError = errorMsg
 
 					http.Error(w, errorMsg, http.StatusBadRequest)
-
-					/* *********************************************************
-						TODO: Add MS Teams submission call here.
-						TODO: This HAS to come before `writeTemplate()` call since
-						that function includes a `return` statement within.
-					***********************************************************/
+					log.Error(errorMsg)
 
 					writeTemplate()
+
+					// Send request details to Microsoft Teams
+					ourMessage := createMessage(ourResponse)
+					if err := sendMessage(webhookURL, ourMessage); err != nil {
+						// We already called this once earlier. Because
+						// http.Error() sets headers, we should not call it
+						// again because they will most likely be ignored by
+						// the client.
+						//http.Error(w, err.Error(), http.StatusInternalServerError)
+						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+					}
+
 					return
 				}
 				ourResponse.Body = string(requestBody)
@@ -296,28 +338,40 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 							http.Error(w, mr.msg, mr.status)
 
-							/* *********************************************************
-								TODO: Add MS Teams submission call here.
-								TODO: This HAS to come before `writeTemplate()` call since
-								that function includes a `return` statement within.
-							***********************************************************/
-
 							writeTemplate()
+
+							// Send request details to Microsoft Teams
+							ourMessage := createMessage(ourResponse)
+							if err := sendMessage(webhookURL, ourMessage); err != nil {
+								// We already called this once earlier.
+								// Because http.Error() sets headers, we
+								// should not call it again because they will
+								// most likely be ignored by the client.
+								// http.Error(w, err.Error(), http.StatusInternalServerError)
+								log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+							}
+
 							return
 						}
 
 						errorMsg := fmt.Sprintf("%s: %s", errorPrefix, err.Error())
 						ourResponse.FormattedBodyError = errorMsg
-						log.Error(errorMsg)
 						http.Error(w, errorMsg, http.StatusInternalServerError)
-
-						/* *********************************************************
-							TODO: Add MS Teams submission call here.
-							TODO: This HAS to come before `writeTemplate()` call since
-							that function includes a `return` statement within.
-						***********************************************************/
+						log.Error(errorMsg)
 
 						writeTemplate()
+
+						// Send request details to Microsoft Teams
+						ourMessage := createMessage(ourResponse)
+						if err := sendMessage(webhookURL, ourMessage); err != nil {
+							// We already called this once earlier. Because
+							// http.Error() sets headers, we should not call
+							// it again because they will most likely be
+							// ignored by the client.
+							// http.Error(w, err.Error(), http.StatusInternalServerError)
+							log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+						}
+
 						return
 					}
 				}
@@ -352,14 +406,21 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 					ourResponse.FormattedBody = prettyJSON.String()
 				}
 
-				/* *********************************************************
-					TODO: Add MS Teams submission call here.
-				***********************************************************/
-
 				// If we made it this far, then presumably our template data
 				// structure "ourResponse" is fully populated and we can execute
 				// the template against it
 				writeTemplate()
+
+				// Send request details to Microsoft Teams
+				ourMessage := createMessage(ourResponse)
+				if err := sendMessage(webhookURL, ourMessage); err != nil {
+					// We already called this once earlier. Because
+					// http.Error() sets headers, we should not call it
+					// again because they will most likely be ignored by
+					// the client.
+					// http.Error(w, err.Error(), http.StatusInternalServerError)
+					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+				}
 
 			default:
 				errorMsg := fmt.Sprintf("ERROR: Unsupported method %q received; please try again using %s method", r.Method, http.MethodPost)
@@ -367,11 +428,19 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 				http.Error(w, errorMsg, http.StatusMethodNotAllowed)
 
-				/* *********************************************************
-					TODO: Add MS Teams submission call here.
-				***********************************************************/
-
 				writeTemplate()
+
+				// Send request details to Microsoft Teams
+				ourMessage := createMessage(ourResponse)
+				if err := sendMessage(webhookURL, ourMessage); err != nil {
+					// We already called this once earlier. Because
+					// http.Error() sets headers, we should not call it
+					// again because they will most likely be ignored by
+					// the client.
+					// http.Error(w, err.Error(), http.StatusInternalServerError)
+					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+				}
+
 				return
 			}
 
@@ -380,6 +449,18 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 			// the output in the template
 			log.Debugf("Rejecting request %q; not explicitly handled by a route.", r.URL.Path)
 			http.NotFound(w, r)
+
+			// Send request details to Microsoft Teams
+			ourMessage := createMessage(ourResponse)
+			if err := sendMessage(webhookURL, ourMessage); err != nil {
+				// We already called this once earlier. Because
+				// http.Error() sets headers, we should not call it
+				// again because they will most likely be ignored by
+				// the client.
+				// http.Error(w, err.Error(), http.StatusInternalServerError)
+				log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+			}
+
 			return
 		}
 
