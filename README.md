@@ -65,6 +65,9 @@ in testing other tools that submit data via HTTP requests.
     endpoint
   - Optional, colorization and custom ident control for formatted JSON output
 
+- Optional submission of client request details to a user-specified Microsoft
+  Teams channel (by providing a webhook URL)
+
 - User configurable logging settings
   - levels, format and output (see command-line arguments table)
 
