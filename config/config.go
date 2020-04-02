@@ -387,6 +387,8 @@ func validate(c Config) error {
 
 	// LogFormat
 
+	// TODO: Do we really need both of these?
+
 	if ok, err := goteamsnotify.IsValidWebhookURL(c.WebhookURL); !ok {
 		return err
 	}
