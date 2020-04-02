@@ -270,7 +270,7 @@ func NewConfig() (*Config, error) {
 		&config.WebhookURL,
 		"webhook-url",
 		defaultWebhookURL,
-		"The Webhook URL provided by a preconfigured Connector.",
+		"The Webhook URL provided by a preconfigured Connector. If specified, this application will attempt to send client request details to the Microsoft Teams channel associated with the webhook URL.",
 	)
 
 	mainFlagSet.Usage = Usage(mainFlagSet)

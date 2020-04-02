@@ -24,6 +24,7 @@ Small utility to assist with building HTTP endpoints
   - [How to use it](#how-to-use-it)
     - [General](#general)
     - [Examples](#examples)
+      - [Local: Send client request details to Microsoft Teams](#local-send-client-request-details-to-microsoft-teams)
       - [Local: View headers submitted by `GET` request using your browser](#local-view-headers-submitted-by-get-request-using-your-browser)
       - [Local: Submit JSON payload using `curl`, receive unformatted response](#local-submit-json-payload-using-curl-receive-unformatted-response)
       - [Local: Submit JSON payload using `curl` to JSON-specific endpoint, get formatted response](#local-submit-json-payload-using-curl-to-json-specific-endpoint-get-formatted-response)
@@ -166,16 +167,17 @@ Tested using:
 
 ### Command-line Arguments
 
-| Option       | Required | Default     | Repeat | Possible                                   | Description                                                                                                        |
-| ------------ | -------- | ----------- | ------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| `h`, `help`  | No       | `false`     | No     | `h`, `help`                                | Show Help text along with the list of supported flags.                                                             |
-| `port`       | No       | `8000`      | No     | *valid whole numbers*                      | TCP port that this application should listen on for incoming HTTP requests.                                        |
-| `ipaddr`     | No       | `localhost` | No     | *valid fqdn, local name or IP Address*     | Local IP Address that this application should listen on for incoming HTTP requests.                                |
-| `color`      | No       | `false`     | No     | `true`, `false`                            | Whether JSON output should be colorized.                                                                           |
-| `indent-lvl` | No       | `2`         | No     | *1+; positive whole numbers*               | Number of spaces to use when indenting colorized JSON output. Has no effect unless colorized JSON mode is enabled. |
-| `log-lvl`    | No       | `info`      | No     | `fatal`, `error`, `warn`, `info`, `debug`  | Log message priority filter. Log messages with a lower level are ignored.                                          |
-| `log-out`    | No       | `stdout`    | No     | `stdout`, `stderr`                         | Log messages are written to this output target.                                                                    |
-| `log-fmt`    | No       | `text`      | No     | `cli`, `json`, `logfmt`, `text`, `discard` | Use the specified `apex/log` package "handler" to output log messages in that handler's format.                    |
+| Option        | Required | Default        | Repeat | Possible                                   | Description                                                                                                                                                                                       |
+| ------------- | -------- | -------------- | ------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `h`, `help`   | No       | `false`        | No     | `h`, `help`                                | Show Help text along with the list of supported flags.                                                                                                                                            |
+| `port`        | No       | `8000`         | No     | *valid whole numbers*                      | TCP port that this application should listen on for incoming HTTP requests.                                                                                                                       |
+| `ipaddr`      | No       | `localhost`    | No     | *valid fqdn, local name or IP Address*     | Local IP Address that this application should listen on for incoming HTTP requests.                                                                                                               |
+| `color`       | No       | `false`        | No     | `true`, `false`                            | Whether JSON output should be colorized.                                                                                                                                                          |
+| `indent-lvl`  | No       | `2`            | No     | *1+; positive whole numbers*               | Number of spaces to use when indenting colorized JSON output. Has no effect unless colorized JSON mode is enabled.                                                                                |
+| `log-lvl`     | No       | `info`         | No     | `fatal`, `error`, `warn`, `info`, `debug`  | Log message priority filter. Log messages with a lower level are ignored.                                                                                                                         |
+| `log-out`     | No       | `stdout`       | No     | `stdout`, `stderr`                         | Log messages are written to this output target.                                                                                                                                                   |
+| `log-fmt`     | No       | `text`         | No     | `cli`, `json`, `logfmt`, `text`, `discard` | Use the specified `apex/log` package "handler" to output log messages in that handler's format.                                                                                                   |
+| `webhook-url` | No       | *empty string* | No     | *valid webhook URL*                        | The Webhook URL provided by a preconfigured Connector. If specified, this application will attempt to send client request details to the Microsoft Teams channel associated with the webhook URL. |
 
 ### Worth noting
 
@@ -193,6 +195,12 @@ Tested using:
 | `logfmt`               | plain-text logfmt output           |
 | `text`                 | human-friendly colored output      |
 | `discard`              | discards all logs                  |
+
+- Microsoft Teams webhook URLs have one of two known prefixes. Both are valid
+  as of this writing, but new webhook URLs only appear to be generated using
+  the first prefix.
+  1. <https://outlook.office.com>
+  1. <https://outlook.office365.com>
 
 ## How to use it
 
@@ -214,12 +222,27 @@ Tested using:
    - skip this step if you plan to only submit HTTP requests from your own
      system to this application running *on* your system
      - e.g., `localhost:8000`
+1. Run this application using your preferred settings by specifying the
+   appropriate command-line flag options.
+   - e.g., if you specify a valid Outlook/Microsoft Teams webhook URL, this
+     application will attempt to send client request details to the associated
+     Microsoft Teams channel.
 1. Visit the index page for this application at the appropriate IP Address and
    the port you specified
    - e.g., `http://localhost:8000/`
 1. Chose one of the available routes that meet your requirements
 
 ### Examples
+
+#### Local: Send client request details to Microsoft Teams
+
+**TODO**: Update this to include real log output from using this option.
+
+```ShellSession
+$ ./bounce.exe -webhook-url "https://outlook.office.com/webhook/a1269812-6d10-44b1-abc5-b84f93580ba0@9e7b80c7-d1eb-4b52-8582-76f921e416d9/IncomingWebhook/3fdd6767bae44ac58e5995547d66a4e4/f332c8d9-3397-4ac5-957b-b8e3fc465a8c"
+
+INSERT REAL OUTPUT HERE
+```
 
 #### Local: View headers submitted by `GET` request using your browser
 
