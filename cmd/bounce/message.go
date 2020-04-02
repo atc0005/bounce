@@ -28,7 +28,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	// build MessageCard for submission
 	msgCard := goteamsnotify.NewMessageCard()
-	msgCard.Title = "Notification received from " + config.MyAppName
+	msgCard.Title = "Notification from " + config.MyAppName
 	msgCard.Text = fmt.Sprintf(
 		"%s request received on %s endpoint",
 		goteamsnotify.TryToFormatAsCodeSnippet(responseDetails.HTTPMethod),
@@ -86,6 +86,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	clientRequestSummarySection := goteamsnotify.NewMessageCardSection()
 	clientRequestSummarySection.Title = "## Client Request Summary"
+	clientRequestSummarySection.StartGroup = true
 
 	clientRequestSummarySection.AddFactFromKeyValue(
 		"Received at",
@@ -114,12 +115,73 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	}
 
 	/*
+		Client Request Errors Section
+	*/
+
+	responseErrorsSection := goteamsnotify.NewMessageCardSection()
+	responseErrorsSection.Title = "## Client Request errors"
+	responseErrorsSection.StartGroup = true
+
+	// Be optimistic to start with
+	responseErrorsSection.Text = "No errors recorded for client request."
+
+	// Don't add this section if there are no errors to show
+	if responseDetails.RequestError != "" {
+
+		responseErrorsSection.Text = ""
+		responseErrorsSection.AddFactFromKeyValue(
+			"RequestError",
+			//goteamsnotify.TryToFormatAsCodeSnippet(responseDetails.RequestError),
+			send2teams.ConvertEOLToBreak(responseDetails.RequestError),
+		)
+	}
+
+	if responseDetails.BodyError != "" {
+
+		responseErrorsSection.Text = "Errors recorded for client request"
+		responseErrorsSection.AddFactFromKeyValue(
+			"BodyError",
+			send2teams.ConvertEOLToBreak(responseDetails.BodyError),
+		)
+	}
+
+	if responseDetails.ContentTypeError != "" {
+
+		responseErrorsSection.Text = "Errors recorded for client request"
+		responseErrorsSection.AddFactFromKeyValue(
+			"ContentTypeError",
+			send2teams.ConvertEOLToBreak(responseDetails.ContentTypeError),
+		)
+	}
+
+	if responseDetails.FormattedBodyError != "" {
+
+		responseErrorsSection.Text = "Errors recorded for client request"
+		responseErrorsSection.AddFactFromKeyValue(
+			"FormattedBodyError",
+			send2teams.ConvertEOLToBreak(responseDetails.FormattedBodyError),
+		)
+
+	}
+
+	if err := msgCard.AddSection(responseErrorsSection); err != nil {
+		errMsg := fmt.Sprintf("Error returned from attempt to add responseErrorsSection: %v", err)
+		log.Error(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+	}
+
+	/*
 		Client Request Headers Section
 	*/
 
 	clientRequestHeadersSection := goteamsnotify.NewMessageCardSection()
-	clientRequestSummarySection.StartGroup = true
+	clientRequestHeadersSection.StartGroup = true
 	clientRequestHeadersSection.Title = "## Client Request Headers"
+
+	clientRequestHeadersSection.Text = fmt.Sprintf(
+		"%d client request headers provided",
+		len(responseDetails.Headers),
+	)
 
 	// process client request headers
 
