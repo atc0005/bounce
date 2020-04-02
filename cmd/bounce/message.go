@@ -53,34 +53,6 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	// log.Info("This should show if the function is still running")
 
 	/*
-		Client Request Payload Section
-	*/
-
-	clientPayloadSection := goteamsnotify.NewMessageCardSection()
-	clientPayloadSection.Title = "## Request body/payload"
-	clientPayloadSection.StartGroup = true
-
-	switch {
-	case responseDetails.Body == "":
-		log.Debugf("Body is NOT defined, cannot use it to generate code block")
-		clientPayloadSection.Text = goteamsnotify.TryToFormatAsCodeSnippet("No request body was provided by client.")
-	case responseDetails.Body != "":
-		log.Debugf("Body is defined, using it to generate code block")
-		clientPayloadSection.Text = goteamsnotify.TryToFormatAsCodeBlock(responseDetails.Body)
-	}
-
-	log.Debugf("Body field contents: %v", responseDetails.Body)
-
-	// FIXME: Remove this; only added for testing
-	//clientPayloadSection.Text = ""
-
-	if err := msgCard.AddSection(clientPayloadSection); err != nil {
-		errMsg := fmt.Sprintf("Error returned from attempt to add clientPayloadSection: %v", err)
-		log.Error(errMsg)
-		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
-	}
-
-	/*
 		Client Request Summary Section - General client request details
 	*/
 
@@ -110,6 +82,34 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	if err := msgCard.AddSection(clientRequestSummarySection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add clientRequestSummarySection: %v", err)
+		log.Error(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+	}
+
+	/*
+		Client Request Payload Section
+	*/
+
+	clientPayloadSection := goteamsnotify.NewMessageCardSection()
+	clientPayloadSection.Title = "## Request body/payload"
+	clientPayloadSection.StartGroup = true
+
+	switch {
+	case responseDetails.Body == "":
+		log.Debugf("Body is NOT defined, cannot use it to generate code block")
+		clientPayloadSection.Text = goteamsnotify.TryToFormatAsCodeSnippet("No request body was provided by client.")
+	case responseDetails.Body != "":
+		log.Debugf("Body is defined, using it to generate code block")
+		clientPayloadSection.Text = goteamsnotify.TryToFormatAsCodeBlock(responseDetails.Body)
+	}
+
+	log.Debugf("Body field contents: %v", responseDetails.Body)
+
+	// FIXME: Remove this; only added for testing
+	//clientPayloadSection.Text = ""
+
+	if err := msgCard.AddSection(clientPayloadSection); err != nil {
+		errMsg := fmt.Sprintf("Error returned from attempt to add clientPayloadSection: %v", err)
 		log.Error(errMsg)
 		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
 	}
