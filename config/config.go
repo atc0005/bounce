@@ -132,8 +132,8 @@ const (
 )
 
 // Branding is responsible for emitting application name, version and origin
-func Branding() {
-	fmt.Fprintf(flag.CommandLine.Output(), "\n%s %s\n%s\n\n", myAppName, version, myAppURL)
+func Branding() string {
+	return fmt.Sprintf("\n%s %s\n%s\n\n", myAppName, version, myAppURL)
 }
 
 // Usage is a custom override for the default Help text provided by
@@ -143,7 +143,7 @@ func Usage(flagSet *flag.FlagSet) func() {
 
 	return func() {
 
-		Branding()
+		fmt.Fprintf(flag.CommandLine.Output(), Branding())
 
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage of \"%s\":\n",
 			flagSet.Name(),

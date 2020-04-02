@@ -28,8 +28,6 @@ import (
 	// use our fork for now until recent work can be submitted for inclusion
 	// in the upstream project
 	goteamsnotify "github.com/atc0005/go-teams-notify"
-
-	send2teams "github.com/atc0005/send2teams/teams"
 )
 
 func init() {
@@ -53,6 +51,22 @@ const (
 // impact from misconfigured http clients).
 // TODO: Find a better location for this constant
 const MB int64 = 1048576
+
+// echoHandlerResponse is used to bundle various client request details for
+// processing by templates or notification functions.
+type echoHandlerResponse struct {
+	Datestamp          string
+	EndpointPath       string
+	HTTPMethod         string
+	ClientIPAddress    string
+	Headers            http.Header
+	Body               string
+	BodyError          string
+	FormattedBody      string
+	FormattedBodyError string
+	RequestError       string
+	ContentTypeError   string
+}
 
 // handleIndex receives our HTML template and our defined routes as a pointer.
 // Both are used to generate a dynamic index of the available routes or
@@ -119,45 +133,6 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 		// For now, we generate plain text responses
 		//w.Header().Set("Content-Type", "text/plain")
 
-		type echoHandlerResponse struct {
-			Datestamp          string
-			EndpointPath       string
-			HTTPMethod         string
-			ClientIPAddress    string
-			Headers            http.Header
-			Body               string
-			BodyError          string
-			FormattedBody      string
-			FormattedBodyError string
-			RequestError       string
-			ContentTypeError   string
-		}
-
-		// define function/wrapper for sending details to Microsoft Teams
-		sendMessage := func(webhookURL string, responseDetails echoHandlerResponse) error {
-
-			if webhookURL == "" {
-				log.Debug("webhookURL not defined, skipping message submission to Microsoft Teams channel")
-			}
-
-			// build MessageCard for submission
-			msgCard := goteamsnotify.NewMessageCard()
-			msgCard.Text = "Our first test from bounce!"
-
-			// Submit message card
-			if err := send2teams.SendMessage(webhookURL, msgCard); err != nil {
-				errMsg := fmt.Errorf("ERROR: Failed to submit message to Microsoft Teams: %v", err)
-				log.Error(errMsg.Error())
-				return errMsg
-			}
-
-			// Emit basic success message
-			log.Info("Message successfully sent to Microsoft Teams")
-
-			return nil
-
-		}
-
 		ourResponse := echoHandlerResponse{}
 
 		mw := io.MultiWriter(w, os.Stdout)
@@ -193,18 +168,15 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 			case http.MethodGet:
 
-				/* *********************************************************
-					TODO: Add MS Teams submission call here.
-					TODO: This HAS to come before `writeTemplate()` call since
-					that function includes a `return` statement within.
-				***********************************************************/
+				// Write out what we have.
+				writeTemplate()
 
-				if err := sendMessage(webhookURL, ourResponse); err != nil {
+				// Send request details to Microsoft Teams
+				ourMessage := createMessage(ourResponse)
+				if err := sendMessage(webhookURL, ourMessage); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
 
-				// Write out what we have. Nothing further to do for this endpoint
-				writeTemplate()
 				return
 
 			case http.MethodPost:
@@ -237,8 +209,6 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 				/* *********************************************************
 					TODO: Add MS Teams submission call here.
-					TODO: This HAS to come before `writeTemplate()` call since
-					that function includes a `return` statement within.
 				***********************************************************/
 
 				// If we made it this far, then presumably our template data
@@ -254,8 +224,6 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 				/* *********************************************************
 					TODO: Add MS Teams submission call here.
-					TODO: This HAS to come before `writeTemplate()` call since
-					that function includes a `return` statement within.
 				***********************************************************/
 
 				writeTemplate()
@@ -279,8 +247,6 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 				/* *********************************************************
 					TODO: Add MS Teams submission call here.
-					TODO: This HAS to come before `writeTemplate()` call since
-					that function includes a `return` statement within.
 				***********************************************************/
 
 				writeTemplate()
@@ -388,8 +354,6 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 				/* *********************************************************
 					TODO: Add MS Teams submission call here.
-					TODO: This HAS to come before `writeTemplate()` call since
-					that function includes a `return` statement within.
 				***********************************************************/
 
 				// If we made it this far, then presumably our template data
@@ -405,8 +369,6 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 				/* *********************************************************
 					TODO: Add MS Teams submission call here.
-					TODO: This HAS to come before `writeTemplate()` call since
-					that function includes a `return` statement within.
 				***********************************************************/
 
 				writeTemplate()
