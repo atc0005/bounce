@@ -100,7 +100,12 @@ func main() {
 		Description:    "Prints received values as-is to stdout and returns them via HTTP response",
 		Pattern:        apiV1EchoEndpointPattern,
 		AllowedMethods: []string{http.MethodGet, http.MethodPost},
-		HandlerFunc:    echoHandler(echoHandlerTemplate, appConfig.ColorizedJSON, appConfig.ColorizedJSONIndent),
+		HandlerFunc: echoHandler(
+			echoHandlerTemplate,
+			appConfig.ColorizedJSON,
+			appConfig.ColorizedJSONIndent,
+			appConfig.WebhookURL,
+		),
 	})
 
 	ourRoutes.Add(routes.Route{
