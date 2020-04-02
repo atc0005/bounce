@@ -18,8 +18,8 @@ replace github.com/atc0005/go-teams-notify => T:\github\go-teams-notify
 replace github.com/atc0005/send2teams => T:\github\send2teams
 
 require (
-
-	github.com/atc0005/send2teams v0.0.0
+	github.com/TylerBrock/colorjson v0.0.0-20180527164720-95ec53f28296
+	github.com/apex/log v1.1.2
 
 	//gopkg.in/dasrick/go-teams-notify.v1 v1.2.0
 
@@ -29,11 +29,8 @@ require (
 	// Note: Due to `replace` directive and `v0.0.0` here, we use the current
 	// state of this library package instead of fetching remote content
 	github.com/atc0005/go-teams-notify v0.0.0
-
-	github.com/TylerBrock/colorjson v0.0.0-20180527164720-95ec53f28296
-	github.com/apex/log v1.1.2
+	github.com/atc0005/send2teams v0.0.0
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/golang/gddo v0.0.0-20200219175727-df439dd5819e
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e // indirect
-	gopkg.in/yaml.v2 v2.2.4 // indirect
 )
