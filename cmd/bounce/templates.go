@@ -7,7 +7,7 @@
 
 package main
 
-const handleIndexTemplate string = `
+const handleIndexTemplateText string = `
 <!doctype html>
 
 <html lang="en">
@@ -119,7 +119,7 @@ const handleIndexTemplate string = `
 </html>
 `
 
-const echoHandlerTemplate string = `
+const handleEchoTemplateText string = `
 Request received: {{if .Datestamp }}{{ .Datestamp }}{{end}}
 Endpoint path requested by client: {{if .EndpointPath }}{{ .EndpointPath }}{{end}}
 HTTP Method used by client: {{if .HTTPMethod }}{{ .HTTPMethod }}{{end}}

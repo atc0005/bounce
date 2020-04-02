@@ -24,6 +24,7 @@ Small utility to assist with building HTTP endpoints
   - [How to use it](#how-to-use-it)
     - [General](#general)
     - [Examples](#examples)
+      - [Local: Send client request details to Microsoft Teams](#local-send-client-request-details-to-microsoft-teams)
       - [Local: View headers submitted by `GET` request using your browser](#local-view-headers-submitted-by-get-request-using-your-browser)
       - [Local: Submit JSON payload using `curl`, receive unformatted response](#local-submit-json-payload-using-curl-receive-unformatted-response)
       - [Local: Submit JSON payload using `curl` to JSON-specific endpoint, get formatted response](#local-submit-json-payload-using-curl-to-json-specific-endpoint-get-formatted-response)
@@ -64,8 +65,20 @@ in testing other tools that submit data via HTTP requests.
     endpoint
   - Optional, colorization and custom ident control for formatted JSON output
 
+- Optional submission of client request details to a user-specified Microsoft
+  Teams channel (by providing a webhook URL)
+
 - User configurable logging settings
   - levels, format and output (see command-line arguments table)
+
+- Message delivery retry support with retry and retry delay values
+  configurable via flag
+  - currently used by Microsoft Teams notifications support, also intended for
+    use with future email notifications support
+
+- Capture `Ctrl+C` and attempt graceful shutdown
+
+- Notification statistics emitted periodically to assist with troubleshooting
 
 ### Future
 
@@ -166,16 +179,19 @@ Tested using:
 
 ### Command-line Arguments
 
-| Option       | Required | Default     | Repeat | Possible                                   | Description                                                                                                        |
-| ------------ | -------- | ----------- | ------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| `h`, `help`  | No       | `false`     | No     | `h`, `help`                                | Show Help text along with the list of supported flags.                                                             |
-| `port`       | No       | `8000`      | No     | *valid whole numbers*                      | TCP port that this application should listen on for incoming HTTP requests.                                        |
-| `ipaddr`     | No       | `localhost` | No     | *valid fqdn, local name or IP Address*     | Local IP Address that this application should listen on for incoming HTTP requests.                                |
-| `color`      | No       | `false`     | No     | `true`, `false`                            | Whether JSON output should be colorized.                                                                           |
-| `indent-lvl` | No       | `2`         | No     | *1+; positive whole numbers*               | Number of spaces to use when indenting colorized JSON output. Has no effect unless colorized JSON mode is enabled. |
-| `log-lvl`    | No       | `info`      | No     | `fatal`, `error`, `warn`, `info`, `debug`  | Log message priority filter. Log messages with a lower level are ignored.                                          |
-| `log-out`    | No       | `stdout`    | No     | `stdout`, `stderr`                         | Log messages are written to this output target.                                                                    |
-| `log-fmt`    | No       | `text`      | No     | `cli`, `json`, `logfmt`, `text`, `discard` | Use the specified `apex/log` package "handler" to output log messages in that handler's format.                    |
+| Option          | Required | Default        | Repeat | Possible                                   | Description                                                                                                                                                                                       |
+| --------------- | -------- | -------------- | ------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `h`, `help`     | No       | `false`        | No     | `h`, `help`                                | Show Help text along with the list of supported flags.                                                                                                                                            |
+| `port`          | No       | `8000`         | No     | *valid whole numbers*                      | TCP port that this application should listen on for incoming HTTP requests.                                                                                                                       |
+| `ipaddr`        | No       | `localhost`    | No     | *valid fqdn, local name or IP Address*     | Local IP Address that this application should listen on for incoming HTTP requests.                                                                                                               |
+| `color`         | No       | `false`        | No     | `true`, `false`                            | Whether JSON output should be colorized.                                                                                                                                                          |
+| `indent-lvl`    | No       | `2`            | No     | *1+; positive whole numbers*               | Number of spaces to use when indenting colorized JSON output. Has no effect unless colorized JSON mode is enabled.                                                                                |
+| `log-lvl`       | No       | `info`         | No     | `fatal`, `error`, `warn`, `info`, `debug`  | Log message priority filter. Log messages with a lower level are ignored.                                                                                                                         |
+| `log-out`       | No       | `stdout`       | No     | `stdout`, `stderr`                         | Log messages are written to this output target.                                                                                                                                                   |
+| `log-fmt`       | No       | `text`         | No     | `cli`, `json`, `logfmt`, `text`, `discard` | Use the specified `apex/log` package "handler" to output log messages in that handler's format.                                                                                                   |
+| `webhook-url`   | No       | *empty string* | No     | *valid webhook URL*                        | The Webhook URL provided by a preconfigured Connector. If specified, this application will attempt to send client request details to the Microsoft Teams channel associated with the webhook URL. |
+| `retries`       | No       | `2`            | No     | *positive whole number*                    | The number of attempts that this application will make to deliver messages before giving up.                                                                                                      |
+| `retries-delay` | No       | `2`            | No     | *positive whole number*                    | The number of seconds that this application will wait before making another delivery attempt.                                                                                                     |
 
 ### Worth noting
 
@@ -193,6 +209,12 @@ Tested using:
 | `logfmt`               | plain-text logfmt output           |
 | `text`                 | human-friendly colored output      |
 | `discard`              | discards all logs                  |
+
+- Microsoft Teams webhook URLs have one of two known prefixes. Both are valid
+  as of this writing, but new webhook URLs only appear to be generated using
+  the first prefix.
+  1. <https://outlook.office.com>
+  1. <https://outlook.office365.com>
 
 ## How to use it
 
@@ -214,12 +236,91 @@ Tested using:
    - skip this step if you plan to only submit HTTP requests from your own
      system to this application running *on* your system
      - e.g., `localhost:8000`
+1. Run this application using your preferred settings by specifying the
+   appropriate command-line flag options.
+   - e.g., if you specify a valid Outlook/Microsoft Teams webhook URL, this
+     application will attempt to send client request details to the associated
+     Microsoft Teams channel.
 1. Visit the index page for this application at the appropriate IP Address and
    the port you specified
    - e.g., `http://localhost:8000/`
 1. Chose one of the available routes that meet your requirements
 
 ### Examples
+
+#### Local: Send client request details to Microsoft Teams
+
+In order to have messages sent to a Microsoft Teams channel, `bounce` requires
+that you provide a webhook URL to use for submissions. Many more options are
+available. See the list of available flags for details.
+
+Short example:
+
+`./bounce.exe -webhook-url WEBHOOK_URL_HERE`
+
+Full example:
+
+```ShellSession
+$ ./bounce.exe -webhook-url "https://outlook.office.com/webhook/a1269812-6d10-44b1-abc5-b84f93580ba0@9e7b80c7-d1eb-4b52-8582-76f921e416d9/IncomingWebhook/3fdd6767bae44ac58e5995547d66a4e4/f332c8d9-3397-4ac5-957b-b8e3fc465a8c"
+
+  INFO[0000] bounce is listening on localhost port 8000
+  INFO[0000] Visit http://localhost:8000 in your web browser for details
+```
+
+When visiting <http://localhost:8000/api/v1/echo> in your browser the
+following will be logged in the console:
+
+```log
+Request received: 2020-04-23 16:42:27
+Endpoint path requested by client: /api/v1/echo
+HTTP Method used by client: GET
+Client IP Address: 127.0.0.1:53093
+
+Headers:
+
+
+  * Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+  * Accept-Encoding: gzip, deflate, br
+  * Accept-Language: en-US,en;q=0.9
+  * Cache-Control: max-age=0
+  * Connection: keep-alive
+  * Referer: http://localhost:8000/
+  * Sec-Fetch-Dest: document
+  * Sec-Fetch-Mode: navigate
+  * Sec-Fetch-Site: same-origin
+  * Sec-Fetch-User: ?1
+  * Upgrade-Insecure-Requests: 1
+  * User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4124.2 Safari/537.36
+
+
+
+No request body was provided by client.
+
+
+
+
+
+  INFO[0405] StartNotifyMgr: sendMessage: Message successfully sent to Microsoft Teams at 16:42:33
+```
+
+and finally this is what I see in a test Microsoft Teams channel:
+
+<!-- Attempt to use image reference and inherit the alt-text already set -->
+![Microsoft Teams test submission example screenshot for v0.4.0
+release][screenshot-microsoft-teams-example-submission-v0.4.0]
+
+Note:
+
+- Output is from preparing the `v0.4.0` release and is subject to change
+- The `go-teams-notify` named webhook connector is a test entry initially
+  created when testing the `dasrick/go-teams-notify` package; I've just
+  kept using this test connector ever since
+- Port `8000` is the default, but can be overridden via a command-line flag
+- Localhost is the default, but another active IP Address can be specified via
+  a command-line flag
+- I ran the application on Windows 10 Version 1903
+- I visited the `/echo` endpoint (`http://localhost:8000/echo`) from Google Chrome Canary
+- The same non-logging output shown here is also shown in the browser
 
 #### Local: View headers submitted by `GET` request using your browser
 
@@ -413,6 +514,28 @@ and with colorized JSON output enabled:
   - <https://stackoverflow.com/questions/24556001/how-to-range-over-slice-of-structs-instead-of-struct-of-slices>
   - <https://golangcode.com/get-the-request-ip-addr/>
   - <https://github.com/eddturtle/golangcode-site>
+  - <https://stackoverflow.com/questions/22886598/how-to-handle-errors-in-goroutines>
+    - <https://stackoverflow.com/a/22887491>
+  - <https://groups.google.com/forum/#!topic/golang-nuts/QEORIGKZO24>
+    - explains benefits of 1-deep buffered channels (asynchronous) vs
+      unbuffered (synchronous)
+      - Bakul Shah: *In general, synchronize only when you have to. Here the main thread
+        wants to know when the worker thread terminates but the worker thread
+        doesn't care when the main thread gets around to reading from "done".
+        Using a 1 deep buffer channel exactly captures this usage pattern.  An
+        unbuffered channel would make the worker thread "rendezvous" with the
+        main thread, which is unnecessary.*
+  - <https://golang.org/ref/spec#Length_and_capacity>
+  - <https://gobyexample.com/closures>
+  - <https://golangr.com/closure/>
+
+- Contexts
+  - <https://gobyexample.com/context>
+  - <https://gobyexample.com/timeouts>
+  - <https://golang.org/pkg/context/#WithCancel>
+  - <https://groups.google.com/forum/#!topic/golang-nuts/IJXjldvpNQM>
+  - <https://medium.com/@pinkudebnath/graceful-shutdown-of-golang-servers-using-context-and-os-signals-cc1fa2c55e97>
+  - <https://marcofranssen.nl/go-webserver-with-graceful-shutdown/>
 
 - Request body
   - <https://stackoverflow.com/questions/43021058/golang-read-request-body/43021236#43021236>
@@ -422,6 +545,8 @@ and with colorized JSON output enabled:
 - HTTP Server
   - <https://blog.simon-frey.eu/go-as-in-golang-standard-net-http-config-will-break-your-production/>
   - <https://medium.com/@nate510/don-t-use-go-s-default-http-client-4804cb19f779>
+  - <https://medium.com/@pinkudebnath/graceful-shutdown-of-golang-servers-using-context-and-os-signals-cc1fa2c55e97>
+  - <https://marcofranssen.nl/go-webserver-with-graceful-shutdown/>
 
 - Logging
   - <https://github.com/apex/log>
@@ -435,6 +560,10 @@ and with colorized JSON output enabled:
 - Splunk / JSON payload
   - [Splunk Enterprise (v8.0.1) > Alerting Manual > Use a webhook alert action](https://docs.splunk.com/Documentation/Splunk/8.0.1/Alert/Webhooks)
 
+- Microsoft Teams
+  - <https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using#rate-limiting-for-connectors>
+
 <!-- Screenshot references for use within example section  -->
 [screenshot-uncolored-json-output]: media/v0.2.0/bounce-json-uncolored-output-2020-03-04.png "Uncolored JSON output example screenshot"
 [screenshot-colored-json-output-v0.2.0]: media/v0.2.0/bounce-json-colorizer-output-2020-03-04.png "Colored JSON output example screenshot for v0.2.0 release"
+[screenshot-microsoft-teams-example-submission-v0.4.0]: media/v0.4.0/microsoft-teams-test-submission-2020-04-23.png "Microsoft Teams test submission example screenshot for v0.4.0 release"
