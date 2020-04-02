@@ -108,7 +108,12 @@ func main() {
 		Description:    "Prints formatted JSON response to stdout and via HTTP response",
 		Pattern:        apiV1EchoJSONEndpointPattern,
 		AllowedMethods: []string{http.MethodPost},
-		HandlerFunc:    echoHandler(echoHandlerTemplate, appConfig.ColorizedJSON, appConfig.ColorizedJSONIndent),
+		HandlerFunc: echoHandler(
+			echoHandlerTemplate,
+			appConfig.ColorizedJSON,
+			appConfig.ColorizedJSONIndent,
+			appConfig.WebhookURL,
+		),
 	})
 
 	mux := http.NewServeMux()

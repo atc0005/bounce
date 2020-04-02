@@ -17,6 +17,8 @@ import (
 
 	"github.com/apex/log"
 
+	// use our fork for now until recent work can be submitted for inclusion
+	// in the upstream project
 	goteamsnotify "github.com/atc0005/go-teams-notify"
 	send2teams "github.com/atc0005/send2teams/teams"
 )

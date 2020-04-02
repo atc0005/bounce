@@ -24,7 +24,21 @@ import (
 
 	"github.com/TylerBrock/colorjson"
 	"github.com/apex/log"
+
+	// use our fork for now until recent work can be submitted for inclusion
+	// in the upstream project
+	goteamsnotify "github.com/atc0005/go-teams-notify"
+
+	send2teams "github.com/atc0005/send2teams/teams"
 )
+
+func init() {
+
+	// Go ahead and enable debug logging from this library package while we
+	// are actively working on the `i21-add-msteams-integration-2nd-attempt`
+	// branch
+	goteamsnotify.EnableLogging()
+}
 
 // API endpoint patterns supported by this application
 //
@@ -98,7 +112,7 @@ func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 }
 
 // echoHandler echos back the HTTP request received by
-func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) http.HandlerFunc {
+func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, webhookURL string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -117,6 +131,31 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 			FormattedBodyError string
 			RequestError       string
 			ContentTypeError   string
+		}
+
+		// define function/wrapper for sending details to Microsoft Teams
+		sendMessage := func(webhookURL string, responseDetails echoHandlerResponse) error {
+
+			if webhookURL == "" {
+				log.Debug("webhookURL not defined, skipping message submission to Microsoft Teams channel")
+			}
+
+			// build MessageCard for submission
+			msgCard := goteamsnotify.NewMessageCard()
+			msgCard.Text = "Our first test from bounce!"
+
+			// Submit message card
+			if err := send2teams.SendMessage(webhookURL, msgCard); err != nil {
+				errMsg := fmt.Errorf("ERROR: Failed to submit message to Microsoft Teams: %v", err)
+				log.Error(errMsg.Error())
+				return errMsg
+			}
+
+			// Emit basic success message
+			log.Info("Message successfully sent to Microsoft Teams")
+
+			return nil
+
 		}
 
 		ourResponse := echoHandlerResponse{}
@@ -154,6 +193,16 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 
 			case http.MethodGet:
 
+				/* *********************************************************
+					TODO: Add MS Teams submission call here.
+					TODO: This HAS to come before `writeTemplate()` call since
+					that function includes a `return` statement within.
+				***********************************************************/
+
+				if err := sendMessage(webhookURL, ourResponse); err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
+
 				// Write out what we have. Nothing further to do for this endpoint
 				writeTemplate()
 				return
@@ -168,6 +217,13 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 					ourResponse.BodyError = errorMsg
 
 					http.Error(w, errorMsg, http.StatusBadRequest)
+
+					/* *********************************************************
+						TODO: Add MS Teams submission call here.
+						TODO: This HAS to come before `writeTemplate()` call since
+						that function includes a `return` statement within.
+					***********************************************************/
+
 					writeTemplate()
 					return
 				}
@@ -179,6 +235,12 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 					apiV1EchoJSONEndpointPattern,
 				)
 
+				/* *********************************************************
+					TODO: Add MS Teams submission call here.
+					TODO: This HAS to come before `writeTemplate()` call since
+					that function includes a `return` statement within.
+				***********************************************************/
+
 				// If we made it this far, then presumably our template data
 				// structure "ourResponse" is fully populated and we can execute
 				// the template against it
@@ -189,6 +251,13 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 				ourResponse.RequestError = errorMsg
 
 				http.Error(w, errorMsg, http.StatusMethodNotAllowed)
+
+				/* *********************************************************
+					TODO: Add MS Teams submission call here.
+					TODO: This HAS to come before `writeTemplate()` call since
+					that function includes a `return` statement within.
+				***********************************************************/
+
 				writeTemplate()
 				return
 			}
@@ -207,6 +276,13 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 				ourResponse.RequestError = errorMsg
 
 				http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+
+				/* *********************************************************
+					TODO: Add MS Teams submission call here.
+					TODO: This HAS to come before `writeTemplate()` call since
+					that function includes a `return` statement within.
+				***********************************************************/
+
 				writeTemplate()
 				return
 
@@ -227,6 +303,13 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 					ourResponse.BodyError = errorMsg
 
 					http.Error(w, errorMsg, http.StatusBadRequest)
+
+					/* *********************************************************
+						TODO: Add MS Teams submission call here.
+						TODO: This HAS to come before `writeTemplate()` call since
+						that function includes a `return` statement within.
+					***********************************************************/
+
 					writeTemplate()
 					return
 				}
@@ -246,6 +329,13 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 							ourResponse.FormattedBodyError = fmt.Sprintf("%s: %s", errorPrefix, mr.msg)
 
 							http.Error(w, mr.msg, mr.status)
+
+							/* *********************************************************
+								TODO: Add MS Teams submission call here.
+								TODO: This HAS to come before `writeTemplate()` call since
+								that function includes a `return` statement within.
+							***********************************************************/
+
 							writeTemplate()
 							return
 						}
@@ -254,6 +344,13 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 						ourResponse.FormattedBodyError = errorMsg
 						log.Error(errorMsg)
 						http.Error(w, errorMsg, http.StatusInternalServerError)
+
+						/* *********************************************************
+							TODO: Add MS Teams submission call here.
+							TODO: This HAS to come before `writeTemplate()` call since
+							that function includes a `return` statement within.
+						***********************************************************/
+
 						writeTemplate()
 						return
 					}
@@ -289,6 +386,12 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 					ourResponse.FormattedBody = prettyJSON.String()
 				}
 
+				/* *********************************************************
+					TODO: Add MS Teams submission call here.
+					TODO: This HAS to come before `writeTemplate()` call since
+					that function includes a `return` statement within.
+				***********************************************************/
+
 				// If we made it this far, then presumably our template data
 				// structure "ourResponse" is fully populated and we can execute
 				// the template against it
@@ -299,6 +402,13 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int) h
 				ourResponse.RequestError = errorMsg
 
 				http.Error(w, errorMsg, http.StatusMethodNotAllowed)
+
+				/* *********************************************************
+					TODO: Add MS Teams submission call here.
+					TODO: This HAS to come before `writeTemplate()` call since
+					that function includes a `return` statement within.
+				***********************************************************/
+
 				writeTemplate()
 				return
 			}
