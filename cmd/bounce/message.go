@@ -22,13 +22,21 @@ import (
 
 func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCard {
 
+	// FIXME: This isn't an actual warning, just relying on color differences
+	// during dev work for now.
+	log.Warnf("echoHandlerResponse received: %#v", responseDetails)
+
 	// build MessageCard for submission
 	msgCard := goteamsnotify.NewMessageCard()
 	msgCard.Title = "Client request received"
 	msgCard.Text = "Our first test from bounce!"
 
+	/*
+		Main Message Section
+	*/
+
 	mainMsgSection := goteamsnotify.NewMessageCardSection()
-	// mainMsgSection.Title = "Client request received (mainMsgSection.Title)"
+	mainMsgSection.Title = "Client request received (mainMsgSection.Title)"
 
 	if err := msgCard.AddSection(mainMsgSection); err != nil {
 		errMsg := fmt.Sprintf("\nError returned from attempt to add mainMsgSection: %v", err)
@@ -38,33 +46,12 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	log.Info("This should show if the function is still running")
 
+	/*
+		Client Request Payload Section
+	*/
+
 	clientPayloadSection := goteamsnotify.NewMessageCardSection()
 	clientPayloadSection.Title = "Client request details"
-
-	// JSON payload if available
-	// echoHandlerResponse struct {
-	// 	Datestamp          string
-	// 	EndpointPath       string
-	// 	HTTPMethod         string
-	// 	ClientIPAddress    string
-	// 	Headers            http.Header
-	// 	Body               string
-	// 	BodyError          string
-	// 	FormattedBody      string
-	// 	FormattedBodyError string
-	// 	RequestError       string
-	// 	ContentTypeError   string
-	// }
-
-	// 	Request received: 2020-04-02T07:30:11-05:00
-	// Endpoint path requested by client: /api/v1/echo
-	// HTTP Method used by client: GET
-	// Client IP Address: 127.0.0.1:61452
-
-	// Headers:
-
-	//   * Accept: */*
-	//   * User-Agent: curl/7.68.0
 
 	switch {
 	case responseDetails.Body == "":
@@ -92,8 +79,43 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 		msgCard.Text = msgCard.Text + "\n\n" + errMsg
 	}
 
+	/*
+		Client Request Summary Section - General client request details
+	*/
+
+	clientRequestSummarySection := goteamsnotify.NewMessageCardSection()
+	clientRequestSummarySection.Title = "Client Request Summary"
+
+	clientRequestSummarySection.AddFactFromKeyValue("Datestamp", responseDetails.Datestamp)
+	clientRequestSummarySection.AddFactFromKeyValue("EndpointPath", responseDetails.EndpointPath)
+	clientRequestSummarySection.AddFactFromKeyValue("HTTPMethod", responseDetails.HTTPMethod)
+	clientRequestSummarySection.AddFactFromKeyValue("ClientIPAddress", responseDetails.ClientIPAddress)
+
+	if err := msgCard.AddSection(clientRequestSummarySection); err != nil {
+		errMsg := fmt.Sprintf("Error returned from attempt to add clientRequestSummarySection: %v", err)
+		log.Error(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + errMsg
+	}
+
+	/*
+		Client Request Headers Section
+	*/
+
+	clientRequestHeadersSection := goteamsnotify.NewMessageCardSection()
+	clientRequestHeadersSection.Title = "Client Request Headers"
+
+	if err := msgCard.AddSection(clientRequestHeadersSection); err != nil {
+		errMsg := fmt.Sprintf("Error returned from attempt to add clientRequestHeadersSection: %v", err)
+		log.Error(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + errMsg
+	}
+
+	/*
+		Message Card Branding/Trailer Section
+	*/
+
 	trailerSection := goteamsnotify.NewMessageCardSection()
-	trailerSection.Text = send2teams.ConvertEOLToBreak(config.Branding())
+	trailerSection.Text = send2teams.ConvertEOLToBreak(config.MessageTrailer())
 	if err := msgCard.AddSection(trailerSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add trailerSection: %v", err)
 		log.Error(errMsg)
