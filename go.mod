@@ -12,7 +12,24 @@ go 1.13
 // $ go list -m -versions github.com/apex/log
 // github.com/apex/log v1.0.0 v1.1.0 v1.1.1 v1.1.2
 
+// Use local copy of library package (instead of fetching remote content)
+replace github.com/atc0005/go-teams-notify => T:\github\go-teams-notify
+
+replace github.com/atc0005/send2teams => T:\github\send2teams
+
 require (
+
+	github.com/atc0005/send2teams v0.0.0
+
+	//gopkg.in/dasrick/go-teams-notify.v1 v1.2.0
+
+	// temporarily use our fork while developing changes for potential
+	// inclusion in the upstream project
+	//
+	// Note: Due to `replace` directive and `v0.0.0` here, we use the current
+	// state of this library package instead of fetching remote content
+	github.com/atc0005/go-teams-notify v0.0.0
+
 	github.com/TylerBrock/colorjson v0.0.0-20180527164720-95ec53f28296
 	github.com/apex/log v1.1.2
 	github.com/fatih/color v1.9.0 // indirect

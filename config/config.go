@@ -16,6 +16,9 @@ import (
 	"time"
 
 	"github.com/apex/log"
+
+	goteamsnotify "github.com/atc0005/go-teams-notify"
+	send2teams "github.com/atc0005/send2teams/teams"
 )
 
 // version is updated via Makefile builds by referencing the fully-qualified
@@ -36,6 +39,7 @@ const (
 	defaultLogLevel            string = "info"
 	defaultLogOutput           string = "stdout"
 	defaultLogFormat           string = "text"
+	defaultWebhookURL          string = ""
 )
 
 // Timeout settings applied to our instance of http.Server
@@ -181,11 +185,19 @@ type Config struct {
 	// of the formats supported by the third-party leveled-logging package
 	// used by this application.
 	LogFormat string
+
+	// WebhookURL is the full URL used to submit messages to the Teams channel
+	// This URL is in the form of https://outlook.office.com/webhook/xxx or
+	// https://outlook.office365.com/webhook/xxx. This URL is REQUIRED in
+	// order for this application to function and needs to be created in
+	// advance by adding/configuring a Webhook Connector in a Microsoft Teams
+	// channel that you wish to submit messages to using this application.
+	WebhookURL string
 }
 
 func (c *Config) String() string {
 	return fmt.Sprintf(
-		"LocalTCPPort: %d, LocalIPAddress: %s, ColorizedJSON: %t, ColorizedJSONIndent: %d, LogLevel: %s, LogOutput: %s, LogFormat: %s",
+		"LocalTCPPort: %d, LocalIPAddress: %s, ColorizedJSON: %t, ColorizedJSONIndent: %d, LogLevel: %s, LogOutput: %s, LogFormat: %s, WebhookURL: %s",
 		c.LocalTCPPort,
 		c.LocalIPAddress,
 		c.ColorizedJSON,
@@ -193,6 +205,7 @@ func (c *Config) String() string {
 		c.LogLevel,
 		c.LogOutput,
 		c.LogFormat,
+		c.WebhookURL,
 	)
 }
 
@@ -251,6 +264,13 @@ func NewConfig() (*Config, error) {
 		"log-fmt",
 		defaultLogFormat,
 		"Log messages are written in this format",
+	)
+
+	mainFlagSet.StringVar(
+		&config.WebhookURL,
+		"webhook-url",
+		defaultWebhookURL,
+		"The Webhook URL provided by a preconfigured Connector.",
 	)
 
 	mainFlagSet.Usage = Usage(mainFlagSet)
@@ -366,6 +386,18 @@ func validate(c Config) error {
 	}
 
 	// LogFormat
+
+	if ok, err := goteamsnotify.IsValidWebhookURL(c.WebhookURL); !ok {
+		return err
+	}
+
+	if err := send2teams.ValidateWebhook(c.WebhookURL); err != nil {
+		return err
+	}
+
+	// if c.WebhookURL == "" {
+	// 	return fmt.Errorf("webhook URL not provided")
+	// }
 
 	// if we made it this far then we signal all is well
 	return nil
