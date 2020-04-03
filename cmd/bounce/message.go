@@ -24,7 +24,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	// FIXME: This isn't an actual warning, just relying on color differences
 	// during dev work for now.
-	log.Warnf("echoHandlerResponse received: %#v", responseDetails)
+	log.Debugf("echoHandlerResponse received: %#v", responseDetails)
 
 	// build MessageCard for submission
 	msgCard := goteamsnotify.NewMessageCard()
