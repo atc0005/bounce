@@ -151,6 +151,13 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 				// template
 				return
 			}
+
+			// Manually flush http.ResponseWriter
+			// https://blog.simon-frey.eu/manual-flush-golang-http-responsewriter/
+			if f, ok := w.(http.Flusher); ok {
+				f.Flush()
+			}
+
 		}
 
 		log.Debug("echoHandler endpoint hit")
