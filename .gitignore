@@ -19,3 +19,6 @@
 
 # Temporary or local content to ignore
 /scratch
+
+# Ignore temporary log files
+/*.log
