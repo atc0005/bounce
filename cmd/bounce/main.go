@@ -16,6 +16,8 @@ import (
 
 	"github.com/atc0005/bounce/config"
 	"github.com/atc0005/bounce/routes"
+	goteamsnotify "github.com/atc0005/go-teams-notify"
+	send2teams "github.com/atc0005/send2teams/teams"
 
 	"github.com/apex/log"
 	"github.com/apex/log/handlers/cli"
@@ -31,6 +33,15 @@ import (
 
 // see templates.go for the hard-coded HTML/CSS template used for the index
 // page
+
+func init() {
+
+	// Go ahead and enable debug logging from these library packages while we
+	// are actively working on the `i21-add-msteams-integration-2nd-attempt`
+	// branch
+	goteamsnotify.EnableLogging()
+	send2teams.EnableLogging()
+}
 
 func main() {
 

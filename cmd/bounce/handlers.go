@@ -24,19 +24,9 @@ import (
 
 	"github.com/TylerBrock/colorjson"
 	"github.com/apex/log"
-
 	// use our fork for now until recent work can be submitted for inclusion
 	// in the upstream project
-	goteamsnotify "github.com/atc0005/go-teams-notify"
 )
-
-func init() {
-
-	// Go ahead and enable debug logging from this library package while we
-	// are actively working on the `i21-add-msteams-integration-2nd-attempt`
-	// branch
-	goteamsnotify.EnableLogging()
-}
 
 // API endpoint patterns supported by this application
 //
