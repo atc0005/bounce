@@ -13,9 +13,9 @@ go 1.13
 // github.com/apex/log v1.0.0 v1.1.0 v1.1.1 v1.1.2
 
 // Use local copy of library package (instead of fetching remote content)
-replace github.com/atc0005/go-teams-notify => T:\github\go-teams-notify
+replace github.com/atc0005/go-teams-notify => ../go-teams-notify
 
-replace github.com/atc0005/send2teams => T:\github\send2teams
+replace github.com/atc0005/send2teams => ../send2teams
 
 require (
 	github.com/TylerBrock/colorjson v0.0.0-20180527164720-95ec53f28296
