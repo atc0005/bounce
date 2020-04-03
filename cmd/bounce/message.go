@@ -219,8 +219,11 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 // define function/wrapper for sending details to Microsoft Teams
 func sendMessage(webhookURL string, msgCard goteamsnotify.MessageCard) error {
 
+	// Note: We already do validation elsewhere, and the library call does
+	// even more validation, but we can handle this obvious empty argument
+	// problem directly
 	if webhookURL == "" {
-		log.Debug("webhookURL not defined, skipping message submission to Microsoft Teams channel")
+		return fmt.Errorf("webhookURL not defined, skipping message submission to Microsoft Teams channel")
 	}
 
 	// Submit message card
