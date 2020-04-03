@@ -39,8 +39,11 @@ func init() {
 	// Go ahead and enable debug logging from these library packages while we
 	// are actively working on the `i21-add-msteams-integration-2nd-attempt`
 	// branch
+	// goteamsnotify.EnableLogging()
+	// send2teams.EnableLogging()
+
 	goteamsnotify.EnableLogging()
-	send2teams.EnableLogging()
+	send2teams.DisableLogging()
 }
 
 func main() {
