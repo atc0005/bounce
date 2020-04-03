@@ -31,8 +31,8 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	msgCard.Title = "Notification from " + config.MyAppName
 	msgCard.Text = fmt.Sprintf(
 		"%s request received on %s endpoint",
-		goteamsnotify.TryToFormatAsCodeSnippet(responseDetails.HTTPMethod),
-		goteamsnotify.TryToFormatAsCodeSnippet(responseDetails.EndpointPath),
+		send2teams.TryToFormatAsCodeSnippet(responseDetails.HTTPMethod),
+		send2teams.TryToFormatAsCodeSnippet(responseDetails.EndpointPath),
 	)
 
 	/*
@@ -47,7 +47,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	// if err := msgCard.AddSection(mainMsgSection); err != nil {
 	// 	errMsg := fmt.Sprintf("\nError returned from attempt to add mainMsgSection: %v", err)
 	// 	log.Error(errMsg)
-	// 	msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+	// 	msgCard.Text = msgCard.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
 	// }
 
 	// log.Info("This should show if the function is still running")
@@ -62,28 +62,28 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	clientRequestSummarySection.AddFactFromKeyValue(
 		"Received at",
-		goteamsnotify.TryToFormatAsCodeSnippet(responseDetails.Datestamp),
+		send2teams.TryToFormatAsCodeSnippet(responseDetails.Datestamp),
 	)
 
 	clientRequestSummarySection.AddFactFromKeyValue(
 		"Endpoint path",
-		goteamsnotify.TryToFormatAsCodeSnippet(responseDetails.EndpointPath),
+		send2teams.TryToFormatAsCodeSnippet(responseDetails.EndpointPath),
 	)
 
 	clientRequestSummarySection.AddFactFromKeyValue(
 		"HTTP Method",
-		goteamsnotify.TryToFormatAsCodeSnippet(responseDetails.HTTPMethod),
+		send2teams.TryToFormatAsCodeSnippet(responseDetails.HTTPMethod),
 	)
 
 	clientRequestSummarySection.AddFactFromKeyValue(
 		"Client IP Address",
-		goteamsnotify.TryToFormatAsCodeSnippet(responseDetails.ClientIPAddress),
+		send2teams.TryToFormatAsCodeSnippet(responseDetails.ClientIPAddress),
 	)
 
 	if err := msgCard.AddSection(clientRequestSummarySection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add clientRequestSummarySection: %v", err)
 		log.Error(errMsg)
-		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
 	}
 
 	/*
@@ -97,10 +97,10 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	switch {
 	case responseDetails.Body == "":
 		log.Debugf("Body is NOT defined, cannot use it to generate code block")
-		clientPayloadSection.Text = goteamsnotify.TryToFormatAsCodeSnippet("No request body was provided by client.")
+		clientPayloadSection.Text = send2teams.TryToFormatAsCodeSnippet("No request body was provided by client.")
 	case responseDetails.Body != "":
 		log.Debugf("Body is defined, using it to generate code block")
-		clientPayloadSection.Text = goteamsnotify.TryToFormatAsCodeBlock(responseDetails.Body)
+		clientPayloadSection.Text = send2teams.TryToFormatAsCodeBlock(responseDetails.Body)
 	}
 
 	log.Debugf("Body field contents: %v", responseDetails.Body)
@@ -111,7 +111,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	if err := msgCard.AddSection(clientPayloadSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add clientPayloadSection: %v", err)
 		log.Error(errMsg)
-		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
 	}
 
 	/*
@@ -131,7 +131,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 		responseErrorsSection.Text = ""
 		responseErrorsSection.AddFactFromKeyValue(
 			"RequestError",
-			//goteamsnotify.TryToFormatAsCodeSnippet(responseDetails.RequestError),
+			//send2teams.TryToFormatAsCodeSnippet(responseDetails.RequestError),
 			send2teams.ConvertEOLToBreak(responseDetails.RequestError),
 		)
 	}
@@ -167,7 +167,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	if err := msgCard.AddSection(responseErrorsSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add responseErrorsSection: %v", err)
 		log.Error(errMsg)
-		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
 	}
 
 	/*
@@ -189,7 +189,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 		for index, value := range values {
 			// update value with code snippet formatting, assign back using
 			// the available index value
-			values[index] = goteamsnotify.TryToFormatAsCodeSnippet(value)
+			values[index] = send2teams.TryToFormatAsCodeSnippet(value)
 		}
 		clientRequestHeadersSection.AddFactFromKeyValue(header, values...)
 	}
@@ -197,7 +197,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	if err := msgCard.AddSection(clientRequestHeadersSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add clientRequestHeadersSection: %v", err)
 		log.Error(errMsg)
-		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
 	}
 
 	/*
@@ -210,7 +210,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	if err := msgCard.AddSection(trailerSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add trailerSection: %v", err)
 		log.Error(errMsg)
-		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
 	}
 
 	return msgCard
