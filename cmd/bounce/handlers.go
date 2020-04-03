@@ -155,7 +155,11 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 			// Manually flush http.ResponseWriter
 			// https://blog.simon-frey.eu/manual-flush-golang-http-responsewriter/
 			if f, ok := w.(http.Flusher); ok {
+				log.Debug("Manually flushing http.ResponseWriter")
 				f.Flush()
+			} else {
+				log.Warn("http.Flusher interface not available, cannot flush http.ResponseWriter")
+				log.Warn("Not flushing http.ResponseWriter may cause a noticeable delay between requests")
 			}
 
 		}
