@@ -174,13 +174,12 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 				// Write out what we have.
 				writeTemplate()
 
-				// Send request details to Microsoft Teams
-				ourMessage := createMessage(ourResponse)
-				if err := sendMessage(webhookURL, ourMessage); err != nil {
-					// We can use http.Error() here because it hasn't already
-					// been called yet.
-					// http.Error(w, err.Error(), http.StatusInternalServerError)
-					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+				// Send request details to Microsoft Teams if webhook URL set
+				if webhookURL != "" {
+					ourMessage := createMessage(ourResponse)
+					if err := sendMessage(webhookURL, ourMessage); err != nil {
+						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+					}
 				}
 
 				return
@@ -199,15 +198,12 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 					writeTemplate()
 
-					// Send request details to Microsoft Teams
-					ourMessage := createMessage(ourResponse)
-					if err := sendMessage(webhookURL, ourMessage); err != nil {
-						// We already called this once earlier. Because
-						// http.Error() sets headers, we should not call it
-						// again because they will most likely be ignored by
-						// the client.
-						// http.Error(w, err.Error(), http.StatusInternalServerError)
-						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+					// Send request details to Microsoft Teams if webhook URL set
+					if webhookURL != "" {
+						ourMessage := createMessage(ourResponse)
+						if err := sendMessage(webhookURL, ourMessage); err != nil {
+							log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+						}
 					}
 
 					return
@@ -225,13 +221,12 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 				// the template against it
 				writeTemplate()
 
-				// Send request details to Microsoft Teams
-				ourMessage := createMessage(ourResponse)
-				if err := sendMessage(webhookURL, ourMessage); err != nil {
-					// We can use http.Error() here because it hasn't already
-					// been called yet.
-					//http.Error(w, err.Error(), http.StatusInternalServerError)
-					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+				// Send request details to Microsoft Teams if webhook URL set
+				if webhookURL != "" {
+					ourMessage := createMessage(ourResponse)
+					if err := sendMessage(webhookURL, ourMessage); err != nil {
+						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+					}
 				}
 
 				return
@@ -245,14 +240,12 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 				writeTemplate()
 
-				// Send request details to Microsoft Teams
-				ourMessage := createMessage(ourResponse)
-				if err := sendMessage(webhookURL, ourMessage); err != nil {
-					// We already called this once earlier. Because
-					// http.Error() sets headers, we should not call it again
-					// because they will most likely be ignored by the client.
-					//http.Error(w, err.Error(), http.StatusInternalServerError)
-					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+				// Send request details to Microsoft Teams if webhook URL set
+				if webhookURL != "" {
+					ourMessage := createMessage(ourResponse)
+					if err := sendMessage(webhookURL, ourMessage); err != nil {
+						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+					}
 				}
 
 				return
@@ -276,14 +269,12 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 				writeTemplate()
 
-				// Send request details to Microsoft Teams
-				ourMessage := createMessage(ourResponse)
-				if err := sendMessage(webhookURL, ourMessage); err != nil {
-					// We already called this once earlier. Because
-					// http.Error() sets headers, we should not call it again
-					// because they will most likely be ignored by the client.
-					//http.Error(w, err.Error(), http.StatusInternalServerError)
-					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+				// Send request details to Microsoft Teams if webhook URL set
+				if webhookURL != "" {
+					ourMessage := createMessage(ourResponse)
+					if err := sendMessage(webhookURL, ourMessage); err != nil {
+						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+					}
 				}
 
 				return
@@ -309,15 +300,12 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 					writeTemplate()
 
-					// Send request details to Microsoft Teams
-					ourMessage := createMessage(ourResponse)
-					if err := sendMessage(webhookURL, ourMessage); err != nil {
-						// We already called this once earlier. Because
-						// http.Error() sets headers, we should not call it
-						// again because they will most likely be ignored by
-						// the client.
-						//http.Error(w, err.Error(), http.StatusInternalServerError)
-						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+					// Send request details to Microsoft Teams if webhook URL set
+					if webhookURL != "" {
+						ourMessage := createMessage(ourResponse)
+						if err := sendMessage(webhookURL, ourMessage); err != nil {
+							log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+						}
 					}
 
 					return
@@ -341,15 +329,12 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 							writeTemplate()
 
-							// Send request details to Microsoft Teams
-							ourMessage := createMessage(ourResponse)
-							if err := sendMessage(webhookURL, ourMessage); err != nil {
-								// We already called this once earlier.
-								// Because http.Error() sets headers, we
-								// should not call it again because they will
-								// most likely be ignored by the client.
-								// http.Error(w, err.Error(), http.StatusInternalServerError)
-								log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+							// Send request details to Microsoft Teams if webhook URL set
+							if webhookURL != "" {
+								ourMessage := createMessage(ourResponse)
+								if err := sendMessage(webhookURL, ourMessage); err != nil {
+									log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+								}
 							}
 
 							return
@@ -362,15 +347,12 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 						writeTemplate()
 
-						// Send request details to Microsoft Teams
-						ourMessage := createMessage(ourResponse)
-						if err := sendMessage(webhookURL, ourMessage); err != nil {
-							// We already called this once earlier. Because
-							// http.Error() sets headers, we should not call
-							// it again because they will most likely be
-							// ignored by the client.
-							// http.Error(w, err.Error(), http.StatusInternalServerError)
-							log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+						// Send request details to Microsoft Teams if webhook URL set
+						if webhookURL != "" {
+							ourMessage := createMessage(ourResponse)
+							if err := sendMessage(webhookURL, ourMessage); err != nil {
+								log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+							}
 						}
 
 						return
@@ -412,15 +394,12 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 				// the template against it
 				writeTemplate()
 
-				// Send request details to Microsoft Teams
-				ourMessage := createMessage(ourResponse)
-				if err := sendMessage(webhookURL, ourMessage); err != nil {
-					// We already called this once earlier. Because
-					// http.Error() sets headers, we should not call it
-					// again because they will most likely be ignored by
-					// the client.
-					// http.Error(w, err.Error(), http.StatusInternalServerError)
-					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+				// Send request details to Microsoft Teams if webhook URL set
+				if webhookURL != "" {
+					ourMessage := createMessage(ourResponse)
+					if err := sendMessage(webhookURL, ourMessage); err != nil {
+						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+					}
 				}
 
 			default:
@@ -431,15 +410,12 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 				writeTemplate()
 
-				// Send request details to Microsoft Teams
-				ourMessage := createMessage(ourResponse)
-				if err := sendMessage(webhookURL, ourMessage); err != nil {
-					// We already called this once earlier. Because
-					// http.Error() sets headers, we should not call it
-					// again because they will most likely be ignored by
-					// the client.
-					// http.Error(w, err.Error(), http.StatusInternalServerError)
-					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+				// Send request details to Microsoft Teams if webhook URL set
+				if webhookURL != "" {
+					ourMessage := createMessage(ourResponse)
+					if err := sendMessage(webhookURL, ourMessage); err != nil {
+						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+					}
 				}
 
 				return
@@ -451,15 +427,12 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 			log.Debugf("Rejecting request %q; not explicitly handled by a route.", r.URL.Path)
 			http.NotFound(w, r)
 
-			// Send request details to Microsoft Teams
-			ourMessage := createMessage(ourResponse)
-			if err := sendMessage(webhookURL, ourMessage); err != nil {
-				// We already called this once earlier. Because
-				// http.Error() sets headers, we should not call it
-				// again because they will most likely be ignored by
-				// the client.
-				// http.Error(w, err.Error(), http.StatusInternalServerError)
-				log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+			// Send request details to Microsoft Teams if webhook URL set
+			if webhookURL != "" {
+				ourMessage := createMessage(ourResponse)
+				if err := sendMessage(webhookURL, ourMessage); err != nil {
+					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
+				}
 			}
 
 			return

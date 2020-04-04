@@ -397,19 +397,20 @@ func validate(c Config) error {
 
 	// LogFormat
 
-	// TODO: Do we really need both of these?
+	// Not having a webhook URL is a valid choice. Perform validation if value
+	// is provided.
+	if c.WebhookURL != "" {
 
-	if ok, err := goteamsnotify.IsValidWebhookURL(c.WebhookURL); !ok {
-		return err
+		// TODO: Do we really need both of these?
+		if ok, err := goteamsnotify.IsValidWebhookURL(c.WebhookURL); !ok {
+			return err
+		}
+
+		if err := send2teams.ValidateWebhook(c.WebhookURL); err != nil {
+			return err
+		}
+
 	}
-
-	if err := send2teams.ValidateWebhook(c.WebhookURL); err != nil {
-		return err
-	}
-
-	// if c.WebhookURL == "" {
-	// 	return fmt.Errorf("webhook URL not provided")
-	// }
 
 	// if we made it this far then we signal all is well
 	return nil
