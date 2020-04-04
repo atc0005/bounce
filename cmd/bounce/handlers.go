@@ -83,7 +83,7 @@ func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 				"http_method": r.Method,
 			}).Debug("non-GET request received on GET-only endpoint")
 			errorMsg := fmt.Sprintf(
-				"\nSorry, this endpoint only accepts %s requests.\n"+
+				"Sorry, this endpoint only accepts %s requests. "+
 					"Please see the README for examples and then try again.",
 				http.MethodGet,
 			)
@@ -258,7 +258,7 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 			case http.MethodGet:
 				// TODO: Collect this for use with our template
 				errorMsg := fmt.Sprintf(
-					"Sorry, this endpoint only accepts JSON data via %s requests.\n"+
+					"Sorry, this endpoint only accepts JSON data via %s requests. "+
 						"Please see the README for examples and then try again.",
 					http.MethodPost,
 				)
