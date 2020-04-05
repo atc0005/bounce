@@ -31,45 +31,77 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 	emailNotifyWorkQueue := make(chan echoHandlerResponse)
 	emailNotifyResultQueue := make(chan error)
 
-	// Block waiting on input from notifyWorkQueue channel
-	responseDetails := <-notifyWorkQueue
-
 	// spin off goroutine to create and send Teams messages
-	go func(incoming <-chan echoHandlerResponse, result chan<- error) {
+	go func(ctx context.Context, incoming <-chan echoHandlerResponse, result chan<- error) {
 
-		// TODO: setup infinite loop to process incoming items
+		for {
 
-		// Send request details to Microsoft Teams if webhook URL set
-		if cfg.NotifyTeams() {
-			ourMessage := createMessage(responseDetails)
-			if err := sendMessage(cfg.WebhookURL, ourMessage); err != nil {
-				result <- fmt.Errorf("error occurred while trying to send message to Microsoft Teams: %w", err)
+			select {
+
+			case <-ctx.Done():
+				// returning not to leak the goroutine
+				log.Debug("Received Done signal from context")
+				return
+
+			// Block waiting on input from notifyWorkQueue channel
+			case responseDetails := <-incoming:
+
+				log.Debugf("Request received by teams notification goroutine: %#v", responseDetails)
+
+				// Send request details to Microsoft Teams if webhook URL set
+				if cfg.NotifyTeams() {
+					ourMessage := createMessage(responseDetails)
+					if err := sendMessage(cfg.WebhookURL, ourMessage); err != nil {
+						result <- fmt.Errorf("error occurred while trying to send message to Microsoft Teams: %w", err)
+					}
+				}
+
+				// should a return be used here?
+
 			}
 		}
 
-		result <- nil
-	}(teamsNotifyWorkQueue, teamsNotifyResultQueue)
+	}(ctx, teamsNotifyWorkQueue, teamsNotifyResultQueue)
 
 	// spin off goroutine to create and send email messages
-	go func(incoming <-chan echoHandlerResponse, result chan<- error) {
+	go func(ctx context.Context, incoming <-chan echoHandlerResponse, result chan<- error) {
 
-		// TODO: setup infinite loop to process incoming items
+		for {
 
-		// Send request details if enabled
-		if !cfg.NotifyEmail() {
-			errMsg := "Sending email is not currently enabled."
-			log.Error(errMsg)
-			result <- fmt.Errorf(errMsg)
+			select {
+
+			case <-ctx.Done():
+				// returning not to leak the goroutine
+				log.Debug("Received Done signal from context")
+				return
+
+			// Block waiting on input from notifyWorkQueue channel
+			case responseDetails := <-incoming:
+
+				log.Debugf("Request received by email notification goroutine: %#v", responseDetails)
+
+				// Send request details if enabled
+				if !cfg.NotifyEmail() {
+					errMsg := "Sending email is not currently enabled."
+					log.Error(errMsg)
+					result <- fmt.Errorf(errMsg)
+				}
+
+				// should a return be used here?
+			}
 		}
 
-		// this shouldn't be reached
-		result <- nil
-	}(emailNotifyWorkQueue, emailNotifyResultQueue)
+	}(ctx, emailNotifyWorkQueue, emailNotifyResultQueue)
 
-	// FIXME: Is this for loop dedicated to just receiving values? If so, we
-	// should not insert any statements that sent values down a channel ...
 	for {
+
+		// Block waiting on input from notifyWorkQueue channel
+		log.Debug("Waiting on input from notifyWorkQueue")
+		responseDetails := <-notifyWorkQueue
+		log.Debug("Input received from notifyWorkQueue")
+
 		select {
+
 		case <-ctx.Done():
 			// returning not to leak the goroutine
 			log.Debug("Received Done signal from context")
@@ -101,30 +133,4 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 		}
 
 	}
-
 }
-
-// At least one goroutine running an infinite for loop with a cancel context.
-// Process queue, wait on queue items.
-
-// Would channels function as queues?
-
-// Q: How to make the goroutine pause while waiting on items to be added to
-// the queue?
-
-// A: select statement
-
-// ---
-
-// main calls a function that launches an infinite loop goroutine with a
-// cancel context. Wait on incoming messages, spin off separate goroutine when
-// needed to handle sending the message. This "notification manager" goroutine
-// can handle errors from message send operations.
-
-// Potentially it could also handle email notifications too?
-
-// Incoming email channel and incoming teams channel? Perhaps this manager
-// goroutine can use a single incoming channel to receive the responseDetails
-// (perhaps ResponseDetails) type and also check flag settings. If Teams
-// support enabled, then send message via Teams. If email support enabled,
-// send email. Both send msg types would be by new goroutines.
