@@ -8,6 +8,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -154,9 +155,20 @@ func main() {
 	// TODO:
 	//
 	// Create context that can be used to cancel background jobs.
-	//
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// cancel when we are finished sending notification requests
+	defer cancel()
+
+	// Where echoHandlerResponse values will be sent for processing
+	notifyWorkQueue := make(chan echoHandlerResponse)
+
 	// Create "notifications manager" function that will start infinite loop
 	// with select statement to process incoming notification requests.
+	go StartNotifyMgr(ctx)
+
+	//
 	//
 	// Call (as of yet to be created) function that determines whether
 	// notifications will be generated. If so, call `StartNotifyMgr()` with

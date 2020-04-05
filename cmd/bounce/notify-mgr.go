@@ -1,5 +1,45 @@
 package main
 
+import "context"
+
+// StartNotifyMgr receives echoHandlerResponse values from a receive-only
+// incoming queue of echoHandlerResponse values and sends notifications to any
+// enabled service (e.g., Microsoft Teams).
+func StartNotifyMgr(ctx context.Context, notifyWorkQueue <-chan echoHandlerResponse) {
+
+	// https://gobyexample.com/channel-directions
+	//
+	// func pong(pings <-chan string, pongs chan<- string) {
+	// 	msg := <-pings
+	// 	pongs <- msg
+	// }
+
+	// Create channels to hand-off echoHandlerResponse values for
+	// processing. Due to my ignorance of channels, I believe that I'll need
+	// separate channels for each service. E.g., one channel for Microsoft
+	// Teams outgoing notifications, another for email and so on.
+
+	teamsNotifyWorkQueue := make(chan echoHandlerResponse)
+	//emailNotifyWorkQueue := make(chan echoHandlerResponse)
+
+	// Block waiting on input from notifyWorkQueue channel
+	responseDetails := <-notifyWorkQueue
+
+	for {
+		select {
+		case <-ctx.Done():
+			// returning not to leak the goroutine
+			return
+
+		// Attempt to send response details to goroutine responsible for
+		// generating Microsoft Teams messages
+		case teamsNotifyWorkQueue <- responseDetails:
+			// success; now what?
+		}
+	}
+
+}
+
 // At least one goroutine running an infinite for loop with a cancel context.
 // Process queue, wait on queue items.
 
