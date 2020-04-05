@@ -151,12 +151,25 @@ func main() {
 		Addr:              fmt.Sprintf("%s:%d", appConfig.LocalIPAddress, appConfig.LocalTCPPort),
 	}
 
+	// TODO:
+	//
+	// Create context that can be used to cancel background jobs.
+	//
+	// Create "notifications manager" function that will start infinite loop
+	// with select statement to process incoming notification requests.
+	//
+	// Insert call to notifications manager function that starts up concurrent
+	// handling of notifications (e.g., Microsoft Teams); pass in
+
 	// listen on specified port on ALL IP Addresses, block until app is terminated
 	log.Infof("Listening on %s port %d ",
 		appConfig.LocalIPAddress, appConfig.LocalTCPPort)
 
 	// TODO: This can be handled in a cleaner fashion?
 	if err := httpServer.ListenAndServe(); err != nil {
+
+		// TODO: use context to shutdown background tasks
+
 		log.Fatal(err.Error())
 	}
 }
