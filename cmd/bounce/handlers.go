@@ -130,6 +130,9 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 		tmpl := textTemplate.Must(textTemplate.New("echoHandler").Parse(templateText))
 
+		// TODO: Consider moving this "up" so that it can receive values as
+		// arguments instead of relying on them to be defined in the local
+		// scope?
 		writeTemplate := func() {
 			err := tmpl.Execute(mw, ourResponse)
 			if err != nil {
