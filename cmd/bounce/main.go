@@ -98,6 +98,18 @@ func main() {
 
 	log.Debugf("AppConfig: %+v", appConfig)
 
+	// TODO:
+	//
+	// Create context that can be used to cancel background jobs.
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// cancel when we are finished sending notification requests
+	defer cancel()
+
+	// Where echoHandlerResponse values will be sent for processing
+	notifyWorkQueue := make(chan echoHandlerResponse)
+
 	// SETUP ROUTES
 	// See handlers.go for handler definitions
 
@@ -107,7 +119,8 @@ func main() {
 		Description:    "Main page, fallback for unspecified routes",
 		Pattern:        "/",
 		AllowedMethods: []string{http.MethodGet},
-		HandlerFunc:    handleIndex(handleIndexTemplate, &ourRoutes),
+		// TODO: Do we need to pass in a context here?
+		HandlerFunc: handleIndex(handleIndexTemplate, &ourRoutes),
 	})
 
 	ourRoutes.Add(routes.Route{
@@ -116,10 +129,11 @@ func main() {
 		Pattern:        apiV1EchoEndpointPattern,
 		AllowedMethods: []string{http.MethodGet, http.MethodPost},
 		HandlerFunc: echoHandler(
+			ctx,
 			echoHandlerTemplate,
 			appConfig.ColorizedJSON,
 			appConfig.ColorizedJSONIndent,
-			appConfig.WebhookURL,
+			notifyWorkQueue,
 		),
 	})
 
@@ -129,10 +143,11 @@ func main() {
 		Pattern:        apiV1EchoJSONEndpointPattern,
 		AllowedMethods: []string{http.MethodPost},
 		HandlerFunc: echoHandler(
+			ctx,
 			echoHandlerTemplate,
 			appConfig.ColorizedJSON,
 			appConfig.ColorizedJSONIndent,
-			appConfig.WebhookURL,
+			notifyWorkQueue,
 		),
 	})
 
@@ -152,21 +167,9 @@ func main() {
 		Addr:              fmt.Sprintf("%s:%d", appConfig.LocalIPAddress, appConfig.LocalTCPPort),
 	}
 
-	// TODO:
-	//
-	// Create context that can be used to cancel background jobs.
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	// cancel when we are finished sending notification requests
-	defer cancel()
-
-	// Where echoHandlerResponse values will be sent for processing
-	notifyWorkQueue := make(chan echoHandlerResponse)
-
 	// Create "notifications manager" function that will start infinite loop
 	// with select statement to process incoming notification requests.
-	go StartNotifyMgr(ctx)
+	go StartNotifyMgr(ctx, appConfig, notifyWorkQueue)
 
 	//
 	//

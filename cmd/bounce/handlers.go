@@ -9,6 +9,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -117,7 +118,7 @@ func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 }
 
 // echoHandler echos back the HTTP request received by
-func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, webhookURL string) http.HandlerFunc {
+func echoHandler(ctx context.Context, templateText string, coloredJSON bool, coloredJSONIndent int, notifyWorkQueue chan<- echoHandlerResponse) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -177,13 +178,8 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 				// Write out what we have.
 				writeTemplate()
 
-				// Send request details to Microsoft Teams if webhook URL set
-				if webhookURL != "" {
-					ourMessage := createMessage(ourResponse)
-					if err := sendMessage(webhookURL, ourMessage); err != nil {
-						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
-					}
-				}
+				// Send to Notification Manager for further processing
+				notifyWorkQueue <- ourResponse
 
 				return
 
@@ -201,13 +197,8 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 					writeTemplate()
 
-					// Send request details to Microsoft Teams if webhook URL set
-					if webhookURL != "" {
-						ourMessage := createMessage(ourResponse)
-						if err := sendMessage(webhookURL, ourMessage); err != nil {
-							log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
-						}
-					}
+					// Send to Notification Manager for further processing
+					notifyWorkQueue <- ourResponse
 
 					return
 				}
@@ -224,13 +215,8 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 				// the template against it
 				writeTemplate()
 
-				// Send request details to Microsoft Teams if webhook URL set
-				if webhookURL != "" {
-					ourMessage := createMessage(ourResponse)
-					if err := sendMessage(webhookURL, ourMessage); err != nil {
-						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
-					}
-				}
+				// Send to Notification Manager for further processing
+				notifyWorkQueue <- ourResponse
 
 				return
 
@@ -243,13 +229,8 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 				writeTemplate()
 
-				// Send request details to Microsoft Teams if webhook URL set
-				if webhookURL != "" {
-					ourMessage := createMessage(ourResponse)
-					if err := sendMessage(webhookURL, ourMessage); err != nil {
-						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
-					}
-				}
+				// Send to Notification Manager for further processing
+				notifyWorkQueue <- ourResponse
 
 				return
 			}
@@ -272,13 +253,8 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 				writeTemplate()
 
-				// Send request details to Microsoft Teams if webhook URL set
-				if webhookURL != "" {
-					ourMessage := createMessage(ourResponse)
-					if err := sendMessage(webhookURL, ourMessage); err != nil {
-						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
-					}
-				}
+				// Send to Notification Manager for further processing
+				notifyWorkQueue <- ourResponse
 
 				return
 
@@ -303,13 +279,8 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 					writeTemplate()
 
-					// Send request details to Microsoft Teams if webhook URL set
-					if webhookURL != "" {
-						ourMessage := createMessage(ourResponse)
-						if err := sendMessage(webhookURL, ourMessage); err != nil {
-							log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
-						}
-					}
+					// Send to Notification Manager for further processing
+					notifyWorkQueue <- ourResponse
 
 					return
 				}
@@ -332,13 +303,8 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 							writeTemplate()
 
-							// Send request details to Microsoft Teams if webhook URL set
-							if webhookURL != "" {
-								ourMessage := createMessage(ourResponse)
-								if err := sendMessage(webhookURL, ourMessage); err != nil {
-									log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
-								}
-							}
+							// Send to Notification Manager for further processing
+							notifyWorkQueue <- ourResponse
 
 							return
 						}
@@ -350,13 +316,8 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 						writeTemplate()
 
-						// Send request details to Microsoft Teams if webhook URL set
-						if webhookURL != "" {
-							ourMessage := createMessage(ourResponse)
-							if err := sendMessage(webhookURL, ourMessage); err != nil {
-								log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
-							}
-						}
+						// Send to Notification Manager for further processing
+						notifyWorkQueue <- ourResponse
 
 						return
 					}
@@ -397,13 +358,8 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 				// the template against it
 				writeTemplate()
 
-				// Send request details to Microsoft Teams if webhook URL set
-				if webhookURL != "" {
-					ourMessage := createMessage(ourResponse)
-					if err := sendMessage(webhookURL, ourMessage); err != nil {
-						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
-					}
-				}
+				// Send to Notification Manager for further processing
+				notifyWorkQueue <- ourResponse
 
 			default:
 				errorMsg := fmt.Sprintf("ERROR: Unsupported method %q received; please try again using %s method", r.Method, http.MethodPost)
@@ -413,13 +369,8 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 
 				writeTemplate()
 
-				// Send request details to Microsoft Teams if webhook URL set
-				if webhookURL != "" {
-					ourMessage := createMessage(ourResponse)
-					if err := sendMessage(webhookURL, ourMessage); err != nil {
-						log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
-					}
-				}
+				// Send to Notification Manager for further processing
+				notifyWorkQueue <- ourResponse
 
 				return
 			}
@@ -430,13 +381,8 @@ func echoHandler(templateText string, coloredJSON bool, coloredJSONIndent int, w
 			log.Debugf("Rejecting request %q; not explicitly handled by a route.", r.URL.Path)
 			http.NotFound(w, r)
 
-			// Send request details to Microsoft Teams if webhook URL set
-			if webhookURL != "" {
-				ourMessage := createMessage(ourResponse)
-				if err := sendMessage(webhookURL, ourMessage); err != nil {
-					log.Errorf("error occurred while trying to send message to Microsoft Teams: %v", err)
-				}
-			}
+			// Send to Notification Manager for further processing
+			notifyWorkQueue <- ourResponse
 
 			return
 		}

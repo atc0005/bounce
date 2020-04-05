@@ -219,6 +219,37 @@ func (c *Config) String() string {
 	)
 }
 
+// NotifyTeams indicates whether or not notifications should be sent to a
+// Microsoft Teams channel.
+func (c Config) NotifyTeams() bool {
+
+	// Assumption: config.validate() has already been called for the existing
+	// instance of the Config type and this method is now being called by
+	// later stages of the codebase to determine only whether an attempt
+	// should be made to send a message to Teams.
+
+	// For now, use the same logic that validate() uses to determine whether
+	// validation checks should be run: Is c.WebhookURL set to a non-empty
+	// string.
+	if c.WebhookURL != "" {
+		return true
+	}
+
+	return false
+
+}
+
+// NotifyEmail indicates whether or not notifications should be generated and
+// sent via email to specified recipients.
+func (c Config) NotifyEmail() bool {
+
+	// TODO: Add support for email notifications. For now, this method is a
+	// placeholder to allow logic for future notification support to be
+	// written.
+	return false
+
+}
+
 // NewConfig is a factory function that produces a new Config object based
 // on user provided flag values.
 func NewConfig() (*Config, error) {

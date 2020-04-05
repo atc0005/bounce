@@ -1,11 +1,17 @@
 package main
 
-import "context"
+import (
+	"context"
+	"fmt"
+
+	"github.com/apex/log"
+	"github.com/atc0005/bounce/config"
+)
 
 // StartNotifyMgr receives echoHandlerResponse values from a receive-only
 // incoming queue of echoHandlerResponse values and sends notifications to any
 // enabled service (e.g., Microsoft Teams).
-func StartNotifyMgr(ctx context.Context, notifyWorkQueue <-chan echoHandlerResponse) {
+func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-chan echoHandlerResponse) {
 
 	// https://gobyexample.com/channel-directions
 	//
@@ -20,10 +26,45 @@ func StartNotifyMgr(ctx context.Context, notifyWorkQueue <-chan echoHandlerRespo
 	// Teams outgoing notifications, another for email and so on.
 
 	teamsNotifyWorkQueue := make(chan echoHandlerResponse)
-	//emailNotifyWorkQueue := make(chan echoHandlerResponse)
+	teamsNotifyResultQueue := make(chan error)
+
+	emailNotifyWorkQueue := make(chan echoHandlerResponse)
+	emailNotifyResultQueue := make(chan error)
 
 	// Block waiting on input from notifyWorkQueue channel
 	responseDetails := <-notifyWorkQueue
+
+	// spin off goroutine to create and send Teams messages
+	go func(incoming <-chan echoHandlerResponse, result chan<- error) {
+
+		// TODO: setup infinite loop to process incoming items
+
+		// Send request details to Microsoft Teams if webhook URL set
+		if cfg.NotifyTeams() {
+			ourMessage := createMessage(responseDetails)
+			if err := sendMessage(cfg.WebhookURL, ourMessage); err != nil {
+				result <- fmt.Errorf("error occurred while trying to send message to Microsoft Teams: %w", err)
+			}
+		}
+
+		result <- nil
+	}(teamsNotifyWorkQueue, teamsNotifyResultQueue)
+
+	// spin off goroutine to create and send email messages
+	go func(incoming <-chan echoHandlerResponse, result chan<- error) {
+
+		// TODO: setup infinite loop to process incoming items
+
+		// Send request details if enabled
+		if !cfg.NotifyEmail() {
+			errMsg := "Sending email is not currently enabled."
+			log.Error(errMsg)
+			result <- fmt.Errorf(errMsg)
+		}
+
+		// this shouldn't be reached
+		result <- nil
+	}(emailNotifyWorkQueue, emailNotifyResultQueue)
 
 	// FIXME: Is this for loop dedicated to just receiving values? If so, we
 	// should not insert any statements that sent values down a channel ...
@@ -31,13 +72,34 @@ func StartNotifyMgr(ctx context.Context, notifyWorkQueue <-chan echoHandlerRespo
 		select {
 		case <-ctx.Done():
 			// returning not to leak the goroutine
+			log.Debug("Received Done signal from context")
 			return
 
 		// Attempt to send response details to goroutine responsible for
 		// generating Microsoft Teams messages
 		case teamsNotifyWorkQueue <- responseDetails:
+			log.Debug("Handed off responseDetails to teamsNotifyWorkQueue")
 			// success; now what?
+
+		case err := <-teamsNotifyResultQueue:
+			// do something based on success or failure sending to Teams
+			if err != nil {
+				log.Error(err.Error())
+			}
+
+		// Attempt to send response details to goroutine responsible for
+		// generating email messages
+		case emailNotifyWorkQueue <- responseDetails:
+			log.Debug("Handed off responseDetails to emailNotifyWorkQueue")
+			// success; now what?
+
+		case err := <-emailNotifyResultQueue:
+			// do something based on success or failure sending to Teams
+			if err != nil {
+				log.Error(err.Error())
+			}
 		}
+
 	}
 
 }
