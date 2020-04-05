@@ -158,8 +158,10 @@ func main() {
 	// Create "notifications manager" function that will start infinite loop
 	// with select statement to process incoming notification requests.
 	//
-	// Insert call to notifications manager function that starts up concurrent
-	// handling of notifications (e.g., Microsoft Teams); pass in
+	// Call (as of yet to be created) function that determines whether
+	// notifications will be generated. If so, call `StartNotifyMgr()` with
+	// appropriate arguments to enable  concurrent handling of notifications
+	// (e.g., Microsoft Teams); pass in context, any required channels, etc.
 
 	// listen on specified port on ALL IP Addresses, block until app is terminated
 	log.Infof("Listening on %s port %d ",
@@ -168,7 +170,9 @@ func main() {
 	// TODO: This can be handled in a cleaner fashion?
 	if err := httpServer.ListenAndServe(); err != nil {
 
-		// TODO: use context to shutdown background tasks
+		// TODO: Call (as of yet to be created) function that determines
+		// whether notifications will be generated. If so, use context to
+		// shutdown background tasks
 
 		log.Fatal(err.Error())
 	}
