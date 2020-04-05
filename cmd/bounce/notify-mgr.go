@@ -25,6 +25,8 @@ func StartNotifyMgr(ctx context.Context, notifyWorkQueue <-chan echoHandlerRespo
 	// Block waiting on input from notifyWorkQueue channel
 	responseDetails := <-notifyWorkQueue
 
+	// FIXME: Is this for loop dedicated to just receiving values? If so, we
+	// should not insert any statements that sent values down a channel ...
 	for {
 		select {
 		case <-ctx.Done():
