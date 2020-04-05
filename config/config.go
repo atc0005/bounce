@@ -54,6 +54,23 @@ const (
 	HTTPServerWriteTimeout      time.Duration = 2 * time.Minute
 )
 
+// Timeout settings used by our notification manager when using goroutines
+// to concurrently process notification requests.
+const (
+
+	// NotifyMgrTeamsTimeout is the timeout setting applied to each Microsoft
+	// Teams notification attempt.
+	// FIXME: Look into propagating this to the teamsClient object used by
+	// the go-teams-notify package (both fork and upstream).
+	NotifyMgrTeamsTimeout time.Duration = 10 * time.Second
+
+	// NotifyMgrEmailTimeout is the timeout setting applied to each email
+	// notification attempt.
+	// TODO: Email support is not (as of this writing) available. This is a
+	// stub entry to satisfy stub functionality for later use.
+	NotifyMgrEmailTimeout time.Duration = 30 * time.Second
+)
+
 // ReadHeaderTimeout:
 
 // TCP port ranges
