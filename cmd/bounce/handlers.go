@@ -149,16 +149,16 @@ func echoHandler(ctx context.Context, templateText string, coloredJSON bool, col
 			// Manually flush http.ResponseWriter
 			// https://blog.simon-frey.eu/manual-flush-golang-http-responsewriter/
 			if f, ok := w.(http.Flusher); ok {
-				log.Debug("Manually flushing http.ResponseWriter")
+				log.Debug("echoHandler: Manually flushing http.ResponseWriter")
 				f.Flush()
 			} else {
-				log.Warn("http.Flusher interface not available, cannot flush http.ResponseWriter")
-				log.Warn("Not flushing http.ResponseWriter may cause a noticeable delay between requests")
+				log.Warn("echoHandler: http.Flusher interface not available, cannot flush http.ResponseWriter")
+				log.Warn("echoHandler: Not flushing http.ResponseWriter may cause a noticeable delay between requests")
 			}
 
 		}
 
-		log.Debug("echoHandler endpoint hit")
+		log.Debug("echoHandler: echoHandler endpoint hit")
 
 		ourResponse.Datestamp = time.Now().Format((time.RFC3339))
 		ourResponse.EndpointPath = r.URL.Path
@@ -225,7 +225,7 @@ func echoHandler(ctx context.Context, templateText string, coloredJSON bool, col
 				ourResponse.RequestError = errorMsg
 
 				http.Error(w, errorMsg, http.StatusMethodNotAllowed)
-				log.Error(errorMsg)
+				log.Error("echoHandler: " + errorMsg)
 
 				writeTemplate()
 
@@ -249,7 +249,7 @@ func echoHandler(ctx context.Context, templateText string, coloredJSON bool, col
 				ourResponse.RequestError = errorMsg
 
 				http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-				log.Error(errorMsg)
+				log.Error("echoHandler: " + errorMsg)
 
 				writeTemplate()
 
@@ -312,7 +312,7 @@ func echoHandler(ctx context.Context, templateText string, coloredJSON bool, col
 						errorMsg := fmt.Sprintf("%s: %s", errorPrefix, err.Error())
 						ourResponse.FormattedBodyError = errorMsg
 						http.Error(w, errorMsg, http.StatusInternalServerError)
-						log.Error(errorMsg)
+						log.Error("echoHandler: " + errorMsg)
 
 						writeTemplate()
 
@@ -378,7 +378,7 @@ func echoHandler(ctx context.Context, templateText string, coloredJSON bool, col
 		default:
 			// Template is not used for this code block, so no need to account for
 			// the output in the template
-			log.Debugf("Rejecting request %q; not explicitly handled by a route.", r.URL.Path)
+			log.Debugf("echoHandler: Rejecting request %q; not explicitly handled by a route.", r.URL.Path)
 			http.NotFound(w, r)
 
 			// Send to Notification Manager for further processing
