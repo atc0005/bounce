@@ -9,13 +9,21 @@ import (
 	"github.com/atc0005/bounce/config"
 )
 
+// NotifyResult wraps the results of goroutine operations to make it easier to
+// inspect the status of various tasks so that we can take action on either
+// error or success conditions
+type NotifyResult struct {
+	Val string
+	Err error
+}
+
 // teamsNotifier is a persistent goroutine used to receive incoming
 // notification requests and spin off goroutines to create and send Microsoft
 // Teams messages.
-func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Duration, incoming <-chan echoHandlerResponse, notifyMgrResultQueue chan<- error) {
+func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Duration, incoming <-chan echoHandlerResponse, notifyMgrResultQueue chan<- NotifyResult) {
 
 	// used by goroutines called by this function to return results
-	ourResultQueue := make(chan error)
+	ourResultQueue := make(chan NotifyResult)
 
 	for {
 
@@ -25,38 +33,51 @@ func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Dura
 		log.Debugf("teamsNotifier: Request received: %#v", responseDetails)
 
 		// launch task in separate goroutine
-		go func(ctx context.Context, webhookURL string, responseDetails echoHandlerResponse, result chan<- error) {
+		log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
+		go func(ctx context.Context, webhookURL string, responseDetails echoHandlerResponse, ourResultQueue chan<- NotifyResult) {
 			ourMessage := createMessage(responseDetails)
+			result := NotifyResult{}
 			if err := sendMessage(webhookURL, ourMessage); err != nil {
-				result <- fmt.Errorf("teamsNotifier: error occurred while trying to send message to Microsoft Teams: %w", err)
+
+				result = NotifyResult{
+					Err: fmt.Errorf("teamsNotifier: error occurred while trying to send message to Microsoft Teams: %w", err),
+				}
+
+				ourResultQueue <- result
 			}
 
 			// Success
-			log.Info("teamsNotifier: Successfully sent message via Microsoft Teams")
-			result <- nil
+			result.Val = "teamsNotifier: Successfully sent message via Microsoft Teams"
+			log.Info(result.Val)
+			ourResultQueue <- result
 		}(ctx, webhookURL, responseDetails, ourResultQueue)
 
 		select {
-
 		case <-ctx.Done():
 			// returning not to leak the goroutine
-			// log.Debug("teamsNotifier: Received Done signal from context")
-			notifyMgrResultQueue <- fmt.Errorf("teamsNotifier: Received Done signal from context")
+
+			result := NotifyResult{
+				Err: fmt.Errorf("teamsNotifier: Received Done signal from context"),
+			}
+			log.Debug(result.Err.Error())
+			notifyMgrResultQueue <- result
 			return
 
 		case <-time.After(sendTimeout):
 
-			// log.Debugf("teamsNotifier: Timeout reached after %v for sending Microsoft Teams notification", sendTimeout)
-			notifyMgrResultQueue <- fmt.Errorf("teamsNotifier: Timeout reached after %v for sending Microsoft Teams notification", sendTimeout)
+			result := NotifyResult{
+				Err: fmt.Errorf("teamsNotifier: Timeout reached after %v for sending Microsoft Teams notification", sendTimeout),
+			}
+			log.Debug(result.Err.Error())
+			notifyMgrResultQueue <- result
 
-		case err := <-ourResultQueue:
-			if err != nil {
-				// log.Errorf("teamsNotifier: Error received from ourResultQueue: %v", err.Error())
-				notifyMgrResultQueue <- fmt.Errorf("teamsNotifier: Error received from ourResultQueue: %v", err.Error())
+		case result := <-ourResultQueue:
+			if result.Err != nil {
+				log.Errorf("teamsNotifier: Error received from ourResultQueue: %v", result.Err)
 			}
 
-			// log.Debug("teamsNotifier: non-error status received on ourResultQueue")
-			notifyMgrResultQueue <- fmt.Errorf("teamsNotifier: non-error status received on ourResultQueue")
+			log.Debugf("teamsNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
+			notifyMgrResultQueue <- result
 
 		}
 	}
@@ -69,10 +90,10 @@ func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Dura
 //
 // FIXME: Once the logic is worked out in teamsNotifier, update this function
 // to match it
-func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-chan echoHandlerResponse, notifyMgrResultQueue chan<- error) {
+func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-chan echoHandlerResponse, notifyMgrResultQueue chan<- NotifyResult) {
 
 	// used by goroutines called by this function to return results
-	ourResultQueue := make(chan error)
+	ourResultQueue := make(chan NotifyResult)
 
 	for {
 
@@ -83,31 +104,40 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 
 		// launch task in a separate goroutine
 		go func() {
-			// log.Error("emailNotifier: Sending email is not currently enabled.")
-			notifyMgrResultQueue <- fmt.Errorf("emailNotifier: Sending email is not currently enabled.")
+			result := NotifyResult{
+				Err: fmt.Errorf("emailNotifier: Sending email is not currently enabled"),
+			}
+			log.Error(result.Err.Error())
+			notifyMgrResultQueue <- result
 		}()
 
 		select {
 
 		case <-ctx.Done():
 			// returning not to leak the goroutine
-			// log.Debug("emailNotifier: Received Done signal from context")
-			notifyMgrResultQueue <- fmt.Errorf("emailNotifier: Received Done signal from context")
+
+			result := NotifyResult{
+				Err: fmt.Errorf("emailNotifier: Received Done signal from context"),
+			}
+			log.Debug(result.Err.Error())
+			notifyMgrResultQueue <- result
 			return
 
 		case <-time.After(sendTimeout):
 
-			// log.Debugf("emailNotifier: Timeout reached after %v for sending Microsoft Teams notification", sendTimeout)
-			notifyMgrResultQueue <- fmt.Errorf("emailNotifier: Timeout reached after %v for sending Microsoft Teams notification", sendTimeout)
+			result := NotifyResult{
+				Err: fmt.Errorf("emailNotifier: Timeout reached after %v for sending email notification", sendTimeout),
+			}
+			log.Debug(result.Err.Error())
+			notifyMgrResultQueue <- result
 
-		case err := <-ourResultQueue:
-			if err != nil {
-				// log.Errorf("emailNotifier: Error received from ourResultQueue: %v", err.Error())
-				notifyMgrResultQueue <- fmt.Errorf("emailNotifier: Error received from ourResultQueue: %v", err.Error())
+		case result := <-ourResultQueue:
+			if result.Err != nil {
+				log.Errorf("emailNotifier: Error received from ourResultQueue: %v", result.Err)
 			}
 
-			// log.Debug("emailNotifier: non-error status received on ourResultQueue")
-			notifyMgrResultQueue <- fmt.Errorf("emailNotifier: non-error status received on ourResultQueue")
+			log.Debugf("emailNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
+			notifyMgrResultQueue <- result
 
 		}
 	}
@@ -125,10 +155,10 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 	// Teams outgoing notifications, another for email and so on.
 
 	teamsNotifyWorkQueue := make(chan echoHandlerResponse)
-	teamsNotifyResultQueue := make(chan error)
+	teamsNotifyResultQueue := make(chan NotifyResult)
 
 	emailNotifyWorkQueue := make(chan echoHandlerResponse)
-	emailNotifyResultQueue := make(chan error)
+	emailNotifyResultQueue := make(chan NotifyResult)
 
 	// If enabled, start persistent goroutine to process request details and
 	// submit messages to Microsoft Teams.
@@ -170,15 +200,15 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 		}
 
 		if cfg.NotifyTeams() {
+			log.Debug("StartNotifyMgr: Handing off responseDetails to teamsNotifyWorkQueue")
 			go func() {
-				log.Debug("StartNotifyMgr: Handed off responseDetails to teamsNotifyWorkQueue")
 				teamsNotifyWorkQueue <- responseDetails
 			}()
 		}
 
 		if cfg.NotifyEmail() {
+			log.Debug("StartNotifyMgr: Handing off responseDetails to emailNotifyResultQueue")
 			go func() {
-				log.Debug("StartNotifyMgr: Handed off responseDetails to emailNotifyResultQueue")
 				emailNotifyWorkQueue <- responseDetails
 			}()
 		}
@@ -190,21 +220,21 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			log.Debug("StartNotifyMgr: Received Done signal from context")
 			return
 
-		case err := <-teamsNotifyResultQueue:
-			if err != nil {
-				log.Errorf("StartNotifyMgr: Error received from teamsNotifyResultQueue: %v", err.Error())
+		case result := <-teamsNotifyResultQueue:
+			if result.Err != nil {
+				log.Errorf("StartNotifyMgr: Error received from teamsNotifyResultQueue: %v", result.Err)
 				continue
 			}
 
-			log.Debug("StartNotifyMgr: non-error status received on teamsNotifyResultQueue")
+			log.Debugf("StartNotifyMgr: OK: non-error status received on teamsNotifyResultQueue", result.Val)
 
-		case err := <-emailNotifyResultQueue:
-			if err != nil {
-				log.Errorf("StartNotifyMgr: Error received from emailNotifyResultQueue: %v", err.Error())
+		case result := <-emailNotifyResultQueue:
+			if result.Err != nil {
+				log.Errorf("StartNotifyMgr: Error received from emailNotifyResultQueue: %v", result.Err)
 				continue
 			}
 
-			log.Debug("StartNotifyMgr: non-error status received on teamsNotifyResultQueue")
+			log.Debugf("StartNotifyMgr: non-error status received on teamsNotifyResultQueue: %v", result.Val)
 
 		default:
 			log.Debug("StartNotifyMgr: default case statement triggered")

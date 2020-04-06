@@ -439,6 +439,8 @@ and with colorized JSON output enabled:
   - <https://stackoverflow.com/questions/24556001/how-to-range-over-slice-of-structs-instead-of-struct-of-slices>
   - <https://golangcode.com/get-the-request-ip-addr/>
   - <https://github.com/eddturtle/golangcode-site>
+  - <https://stackoverflow.com/questions/22886598/how-to-handle-errors-in-goroutines>
+    - <https://stackoverflow.com/a/22887491>
 
 - Request body
   - <https://stackoverflow.com/questions/43021058/golang-read-request-body/43021236#43021236>
