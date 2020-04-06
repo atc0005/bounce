@@ -38,7 +38,7 @@ func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Dura
 
 		case <-time.After(sendTimeout):
 
-			log.Info("teamsNotifier: Timeout reached after for sending Microsoft Teams notification")
+			log.Debug("teamsNotifier: Timeout reached after for sending Microsoft Teams notification")
 
 			// FIXME
 			// 	Q: send message back to log?
