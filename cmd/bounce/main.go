@@ -12,8 +12,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	htmlTemplate "html/template"
 	"net/http"
 	"os"
+	textTemplate "text/template"
 
 	"github.com/atc0005/bounce/config"
 	"github.com/atc0005/bounce/routes"
@@ -112,6 +114,13 @@ func main() {
 	// as much as possible.
 	notifyWorkQueue := make(chan echoHandlerResponse, 5)
 
+	// Pre-process bundled templates in string/text format to Templates that
+	// our handlers can execute.
+	indexPageHandleTemplate := htmlTemplate.Must(
+		htmlTemplate.New("indexPage").Parse(handleIndexTemplateText))
+	echoHandlerTemplate := textTemplate.Must(
+		textTemplate.New("echoHandler").Parse(handleEchoTemplateText))
+
 	// SETUP ROUTES
 	// See handlers.go for handler definitions
 
@@ -122,7 +131,7 @@ func main() {
 		Pattern:        "/",
 		AllowedMethods: []string{http.MethodGet},
 		// TODO: Do we need to pass in a context here?
-		HandlerFunc: handleIndex(handleIndexTemplate, &ourRoutes),
+		HandlerFunc: handleIndex(indexPageHandleTemplate, &ourRoutes),
 	})
 
 	ourRoutes.Add(routes.Route{

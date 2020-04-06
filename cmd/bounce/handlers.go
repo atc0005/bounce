@@ -65,9 +65,7 @@ type echoHandlerResponse struct {
 // by the time this handler is defined, the full set of routes has *not* been
 // defined. Using a pointer, we are able to access the complete collection
 // of defined routes when this handler is finally called.
-func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
-
-	tmpl := htmlTemplate.Must(htmlTemplate.New("indexPage").Parse(templateText))
+func handleIndex(tmpl *htmlTemplate.Template, rs *routes.Routes) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -118,7 +116,7 @@ func handleIndex(templateText string, rs *routes.Routes) http.HandlerFunc {
 }
 
 // echoHandler echos back the HTTP request received by
-func echoHandler(ctx context.Context, templateText string, coloredJSON bool, coloredJSONIndent int, notifyWorkQueue chan<- echoHandlerResponse) http.HandlerFunc {
+func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON bool, coloredJSONIndent int, notifyWorkQueue chan<- echoHandlerResponse) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -128,8 +126,6 @@ func echoHandler(ctx context.Context, templateText string, coloredJSON bool, col
 		ourResponse := echoHandlerResponse{}
 
 		mw := io.MultiWriter(w, os.Stdout)
-
-		tmpl := textTemplate.Must(textTemplate.New("echoHandler").Parse(templateText))
 
 		// TODO: Consider moving this "up" so that it can receive values as
 		// arguments instead of relying on them to be defined in the local
