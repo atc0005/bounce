@@ -24,7 +24,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	// FIXME: This isn't an actual warning, just relying on color differences
 	// during dev work for now.
-	log.Debugf("echoHandlerResponse received: %#v", responseDetails)
+	log.Debugf("createMessage: echoHandlerResponse received: %#v", responseDetails)
 
 	// build MessageCard for submission
 	msgCard := goteamsnotify.NewMessageCard()
@@ -46,7 +46,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	// if err := msgCard.AddSection(mainMsgSection); err != nil {
 	// 	errMsg := fmt.Sprintf("\nError returned from attempt to add mainMsgSection: %v", err)
-	// 	log.Error(errMsg)
+	// 	log.Error("createMessage: " + errMsg)
 	// 	msgCard.Text = msgCard.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
 	// }
 
@@ -82,7 +82,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	if err := msgCard.AddSection(clientRequestSummarySection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add clientRequestSummarySection: %v", err)
-		log.Error(errMsg)
+		log.Error("createMessage: " + errMsg)
 		msgCard.Text = msgCard.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
 	}
 
@@ -96,21 +96,21 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	switch {
 	case responseDetails.Body == "":
-		log.Debugf("Body is NOT defined, cannot use it to generate code block")
+		log.Debugf("createMessage: Body is NOT defined, cannot use it to generate code block")
 		clientPayloadSection.Text = send2teams.TryToFormatAsCodeSnippet("No request body was provided by client.")
 	case responseDetails.Body != "":
-		log.Debugf("Body is defined, using it to generate code block")
+		log.Debugf("createMessage: Body is defined, using it to generate code block")
 		clientPayloadSection.Text = send2teams.TryToFormatAsCodeBlock(responseDetails.Body)
 	}
 
-	log.Debugf("Body field contents: %v", responseDetails.Body)
+	log.Debugf("createMessage: Body field contents: %v", responseDetails.Body)
 
 	// FIXME: Remove this; only added for testing
 	//clientPayloadSection.Text = ""
 
 	if err := msgCard.AddSection(clientPayloadSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add clientPayloadSection: %v", err)
-		log.Error(errMsg)
+		log.Error("createMessage: " + errMsg)
 		msgCard.Text = msgCard.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
 	}
 
@@ -166,7 +166,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	if err := msgCard.AddSection(responseErrorsSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add responseErrorsSection: %v", err)
-		log.Error(errMsg)
+		log.Error("createMessage: " + errMsg)
 		msgCard.Text = msgCard.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
 	}
 
@@ -196,7 +196,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	if err := msgCard.AddSection(clientRequestHeadersSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add clientRequestHeadersSection: %v", err)
-		log.Error(errMsg)
+		log.Error("createMessage: " + errMsg)
 		msgCard.Text = msgCard.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
 	}
 
@@ -209,7 +209,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	trailerSection.Text = send2teams.ConvertEOLToBreak(config.MessageTrailer())
 	if err := msgCard.AddSection(trailerSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add trailerSection: %v", err)
-		log.Error(errMsg)
+		log.Error("createMessage: " + errMsg)
 		msgCard.Text = msgCard.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
 	}
 
@@ -228,8 +228,8 @@ func sendMessage(webhookURL string, msgCard goteamsnotify.MessageCard) error {
 
 	// Submit message card
 	if err := send2teams.SendMessage(webhookURL, msgCard); err != nil {
-		errMsg := fmt.Errorf("ERROR: Failed to submit message to Microsoft Teams: %v", err)
-		log.Error(errMsg.Error())
+		errMsg := fmt.Errorf("createMessage: ERROR: Failed to submit message to Microsoft Teams: %v", err)
+		log.Error("sendMessage: " + errMsg.Error())
 		return errMsg
 	}
 
@@ -244,18 +244,18 @@ func sendMessage(webhookURL string, msgCard goteamsnotify.MessageCard) error {
 	// 	// Submit message card
 	// 	if err := send2teams.SendMessage(webhookURL, msgCard); err != nil {
 	// 		errMsg := fmt.Errorf("ERROR: Failed to submit message to Microsoft Teams: %v", err)
-	// 		log.Error(errMsg.Error())
+	// 		log.Error("sendMessage: " + errMsg.Error())
 	// 		return errMsg
 	// 	}
 
 	// 	// Emit basic success message
-	// 	log.Info("Message successfully sent to Microsoft Teams")
+	// 	log.Info("sendMessage: Message successfully sent to Microsoft Teams")
 	// 	return nil
 
 	// }()
 
 	// Emit basic success message
-	log.Info("Message successfully sent to Microsoft Teams")
+	log.Info("sendMessage: Message successfully sent to Microsoft Teams")
 
 	return nil
 
