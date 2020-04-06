@@ -115,7 +115,9 @@ func main() {
 	notifyWorkQueue := make(chan echoHandlerResponse, 5)
 
 	// Pre-process bundled templates in string/text format to Templates that
-	// our handlers can execute.
+	// our handlers can execute. Based on brief testing, this seems to provide
+	// a significant performance boost at the cost of a little more startup
+	// time.
 	indexPageHandleTemplate := htmlTemplate.Must(
 		htmlTemplate.New("indexPage").Parse(handleIndexTemplateText))
 	echoHandlerTemplate := textTemplate.Must(
