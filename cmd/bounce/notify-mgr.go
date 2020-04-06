@@ -17,21 +17,6 @@ type NotifyResult struct {
 	Err error
 }
 
-// TODO: Move this elsewhere later
-// https://medium.com/@arpith/resetting-a-ticker-in-go-63858a2c17ec
-type ticker struct {
-	period time.Duration
-	ticker time.Ticker
-}
-
-func createTicker(period time.Duration) *ticker {
-	return &ticker{period, *time.NewTicker(period)}
-}
-
-func (t *ticker) resetTicker() {
-	t.ticker = *time.NewTicker(t.period)
-}
-
 // teamsNotifier is a persistent goroutine used to receive incoming
 // notification requests and spin off goroutines to create and send Microsoft
 // Teams messages.
@@ -40,31 +25,17 @@ func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Dura
 	// used by goroutines called by this function to return results
 	ourResultQueue := make(chan NotifyResult)
 
-	// Used to help implement notification delays
-	delayTimer := createTicker(config.NotifyMgrTeamsNotificationDelay)
-
-	defer delayTimer.ticker.Stop()
-
 	for {
 
 		// Block while waiting on input
 		responseDetails := <-incoming
 
-		tickerTrace := log.Trace("teamsNotifier: ticker timing: ")
-
-		tickerTrace.Trace("Request received")
 		log.Debugf("teamsNotifier: Request received: %#v", responseDetails)
 
 		// Wait for specified amount of time before attempting notification.
 		// This is done in an effort prevent unintentional abuse of
 		// remote services
-		tickerTrace.Trace("Waiting on delayTimer.ticker.C: " + time.Now().Format("15:04:05"))
-		_ = <-delayTimer.ticker.C
-		tickerTrace.Trace("Throwing away the first ticker response: " + time.Now().Format("15:04:05"))
-
-		tick := <-delayTimer.ticker.C
-		tickerTrace.Trace("Using second response from ticker: " + tick.Format("15:04:05"))
-		tickerTrace.Stop(nil)
+		time.Sleep(config.NotifyMgrTeamsNotificationDelay)
 
 		// launch task in separate goroutine
 		log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
@@ -99,8 +70,6 @@ func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Dura
 
 		case <-time.After(sendTimeout):
 
-			delayTimer.resetTicker()
-
 			result := NotifyResult{
 				Err: fmt.Errorf("teamsNotifier: Timeout reached after %v for sending Microsoft Teams notification", sendTimeout),
 			}
@@ -108,8 +77,6 @@ func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Dura
 			notifyMgrResultQueue <- result
 
 		case result := <-ourResultQueue:
-
-			delayTimer.resetTicker()
 
 			if result.Err != nil {
 				log.Errorf("teamsNotifier: Error received from ourResultQueue: %v", result.Err)
