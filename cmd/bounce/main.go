@@ -107,8 +107,10 @@ func main() {
 	// cancel when we are finished sending notification requests
 	defer cancel()
 
-	// Where echoHandlerResponse values will be sent for processing
-	notifyWorkQueue := make(chan echoHandlerResponse)
+	// Where echoHandlerResponse values will be sent for processing. We use a
+	// buffered channel in an effort to reduce the delay for client requests
+	// as much as possible.
+	notifyWorkQueue := make(chan echoHandlerResponse, 5)
 
 	// SETUP ROUTES
 	// See handlers.go for handler definitions
