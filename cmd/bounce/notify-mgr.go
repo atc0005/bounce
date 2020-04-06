@@ -226,7 +226,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 				continue
 			}
 
-			log.Debugf("StartNotifyMgr: OK: non-error status received on teamsNotifyResultQueue", result.Val)
+			log.Debugf("StartNotifyMgr: OK: non-error status received on teamsNotifyResultQueue: %v", result.Val)
 
 		case result := <-emailNotifyResultQueue:
 			if result.Err != nil {
