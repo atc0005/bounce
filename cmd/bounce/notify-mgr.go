@@ -25,12 +25,20 @@ func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Dura
 	// used by goroutines called by this function to return results
 	ourResultQueue := make(chan NotifyResult)
 
+	// Used to help implement notification delays
+	ticker := time.NewTicker(config.NotifyMgrTeamsNotificationDelay)
+
 	for {
 
 		// Block while waiting on input
 		responseDetails := <-incoming
 
 		log.Debugf("teamsNotifier: Request received: %#v", responseDetails)
+
+		// Wait for specified amount of time before attempting notification.
+		// This is done in an effort prevent unintentional abuse of
+		// remote services
+		<-ticker.C
 
 		// launch task in separate goroutine
 		log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
@@ -95,12 +103,20 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 	// used by goroutines called by this function to return results
 	ourResultQueue := make(chan NotifyResult)
 
+	// Used to help implement notification delays
+	ticker := time.NewTicker(config.NotifyMgrTeamsNotificationDelay)
+
 	for {
 
 		// Block while waiting on input
 		responseDetails := <-incoming
 
 		log.Debugf("emailNotifier: Request received: %#v", responseDetails)
+
+		// Wait for specified amount of time before attempting notification.
+		// This is done in an effort prevent unintentional abuse of
+		// remote services
+		<-ticker.C
 
 		// launch task in a separate goroutine
 		go func() {
