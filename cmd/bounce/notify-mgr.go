@@ -22,6 +22,8 @@ type NotifyResult struct {
 // Teams messages.
 func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Duration, incoming <-chan echoHandlerResponse, notifyMgrResultQueue chan<- NotifyResult) {
 
+	log.Debug("teamsNotifier: Running")
+
 	// used by goroutines called by this function to return results
 	ourResultQueue := make(chan NotifyResult)
 
@@ -99,6 +101,8 @@ func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Dura
 // FIXME: Once the logic is worked out in teamsNotifier, update this function
 // to match it
 func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-chan echoHandlerResponse, notifyMgrResultQueue chan<- NotifyResult) {
+
+	log.Debug("emailNotifier: Running")
 
 	// used by goroutines called by this function to return results
 	ourResultQueue := make(chan NotifyResult)
