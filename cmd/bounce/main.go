@@ -100,10 +100,7 @@ func main() {
 
 	log.Debugf("AppConfig: %+v", appConfig)
 
-	// TODO:
-	//
 	// Create context that can be used to cancel background jobs.
-
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// cancel when we are finished sending notification requests

@@ -233,27 +233,6 @@ func sendMessage(webhookURL string, msgCard goteamsnotify.MessageCard) error {
 		return errMsg
 	}
 
-	// NOTE: Unscientific testing showed a MASSIVE difference in
-	// response times when launching this in a goroutine. We'll
-	// need to find a way to communicate *back* to the caller
-	// the results of the goroutine, otherwise we are not
-	// able to properly handle errors.
-
-	// go func() error {
-
-	// 	// Submit message card
-	// 	if err := send2teams.SendMessage(webhookURL, msgCard); err != nil {
-	// 		errMsg := fmt.Errorf("ERROR: Failed to submit message to Microsoft Teams: %v", err)
-	// 		log.Error("sendMessage: " + errMsg.Error())
-	// 		return errMsg
-	// 	}
-
-	// 	// Emit basic success message
-	// 	log.Info("sendMessage: Message successfully sent to Microsoft Teams")
-	// 	return nil
-
-	// }()
-
 	// Emit basic success message
 	log.Info("sendMessage: Message successfully sent to Microsoft Teams")
 
