@@ -353,6 +353,7 @@ func NewConfig() (*Config, error) {
 	// If no errors were encountered during parsing, proceed to validation of
 	// configuration settings (both user-specified and defaults)
 	if err := validate(config); err != nil {
+		mainFlagSet.Usage()
 		return nil, err
 	}
 
