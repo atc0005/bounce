@@ -33,13 +33,13 @@ func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Dura
 		log.Debugf("teamsNotifier: Request received: %#v", responseDetails)
 
 		// Wait for specified amount of time before attempting notification.
-		// This is done in an effort prevent unintentional abuse of
+		// This is done in an effort to prevent unintentional abuse of
 		// remote services
 		time.Sleep(config.NotifyMgrTeamsNotificationDelay)
 
 		// launch task in separate goroutine
 		log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
-		go func(ctx context.Context, webhookURL string, responseDetails echoHandlerResponse, ourResultQueue chan<- NotifyResult) {
+		go func(ctx context.Context, webhookURL string, responseDetails echoHandlerResponse, resultQueue chan<- NotifyResult) {
 			ourMessage := createMessage(responseDetails)
 			result := NotifyResult{}
 			if err := sendMessage(webhookURL, ourMessage); err != nil {
@@ -48,16 +48,17 @@ func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Dura
 					Err: fmt.Errorf("teamsNotifier: error occurred while trying to send message to Microsoft Teams: %w", err),
 				}
 
-				ourResultQueue <- result
+				resultQueue <- result
 			}
 
 			// Success
 			result.Val = "teamsNotifier: Successfully sent message via Microsoft Teams"
 			log.Info(result.Val)
-			ourResultQueue <- result
+			resultQueue <- result
 		}(ctx, webhookURL, responseDetails, ourResultQueue)
 
 		select {
+
 		case <-ctx.Done():
 			// returning not to leak the goroutine
 
@@ -80,9 +81,10 @@ func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Dura
 
 			if result.Err != nil {
 				log.Errorf("teamsNotifier: Error received from ourResultQueue: %v", result.Err)
+			} else {
+				log.Debugf("teamsNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
 			}
 
-			log.Debugf("teamsNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
 			notifyMgrResultQueue <- result
 
 		}
@@ -101,9 +103,6 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 	// used by goroutines called by this function to return results
 	ourResultQueue := make(chan NotifyResult)
 
-	// Used to help implement notification delays
-	ticker := time.NewTicker(config.NotifyMgrTeamsNotificationDelay)
-
 	for {
 
 		// Block while waiting on input
@@ -112,18 +111,18 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 		log.Debugf("emailNotifier: Request received: %#v", responseDetails)
 
 		// Wait for specified amount of time before attempting notification.
-		// This is done in an effort prevent unintentional abuse of
+		// This is done in an effort to prevent unintentional abuse of
 		// remote services
-		<-ticker.C
+		time.Sleep(config.NotifyMgrEmailNotificationDelay)
 
 		// launch task in a separate goroutine
-		go func() {
+		go func(resultQueue chan<- NotifyResult) {
 			result := NotifyResult{
 				Err: fmt.Errorf("emailNotifier: Sending email is not currently enabled"),
 			}
 			log.Error(result.Err.Error())
-			notifyMgrResultQueue <- result
-		}()
+			resultQueue <- result
+		}(ourResultQueue)
 
 		select {
 
@@ -146,11 +145,13 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 			notifyMgrResultQueue <- result
 
 		case result := <-ourResultQueue:
+
 			if result.Err != nil {
 				log.Errorf("emailNotifier: Error received from ourResultQueue: %v", result.Err)
+			} else {
+				log.Debugf("emailNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
 			}
 
-			log.Debugf("emailNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
 			notifyMgrResultQueue <- result
 
 		}
