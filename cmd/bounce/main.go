@@ -15,6 +15,7 @@ import (
 	htmlTemplate "html/template"
 	"net/http"
 	"os"
+	"os/signal"
 	textTemplate "text/template"
 	"time"
 
@@ -101,16 +102,75 @@ func main() {
 
 	log.Debugf("AppConfig: %+v", appConfig)
 
+	mux := http.NewServeMux()
+
+	// Apply "default" timeout settings provided by Simon Frey; override the
+	// default "wait forever" configuration.
+	// FIXME: Refine these settings to apply values more appropriate for a
+	// small-to-medium on-premise API (e.g., not over a public Internet link
+	// where clients are expected to be slow)
+	httpServer := &http.Server{
+		ReadHeaderTimeout: config.HTTPServerReadHeaderTimeout,
+		ReadTimeout:       config.HTTPServerReadTimeout,
+		WriteTimeout:      config.HTTPServerWriteTimeout,
+		Handler:           mux,
+		Addr:              fmt.Sprintf("%s:%d", appConfig.LocalIPAddress, appConfig.LocalTCPPort),
+	}
+
 	// Create context that can be used to cancel background jobs.
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// cancel when we are finished sending notification requests
+	// Defer cancel() to cover edge cases where it might not otherwise be
+	// called
+	// TODO: Is this defer needed if we cover the cases elsewhere?
 	defer cancel()
+
+	// Use signal.Notify() to send a message on dedicated when when Ctrl+C or
+	// other interrupt-related requests are received so that we can cleanly
+	// shutdown the application.
+	shutdownSignal := make(chan os.Signal, 1)
+	signal.Notify(shutdownSignal, os.Interrupt)
 
 	// Where echoHandlerResponse values will be sent for processing. We use a
 	// buffered channel in an effort to reduce the delay for client requests
 	// as much as possible.
 	notifyWorkQueue := make(chan echoHandlerResponse, 5)
+
+	// Create "notifications manager" function that will start infinite loop
+	// with select statement to process incoming notification requests.
+	go StartNotifyMgr(ctx, appConfig, notifyWorkQueue)
+
+	// monitor for shutdown signal, then issue cancel() call to safely
+	go func() {
+		osSignal := <-shutdownSignal
+		log.Debugf("system call:%+v", osSignal)
+		log.Info("Received shutdown signal: %v")
+		log.Info("Calling cancel() context to shutdown notifiers and http server")
+		cancel()
+	}()
+
+	// Setup "listener" to shutdown the running http server when a
+	// cancellation context is triggered
+	go func(ctx context.Context) {
+		<-ctx.Done()
+
+		ctxErr := ctx.Err()
+
+		log.Debugf("main: Received Done signal: %v, shutting down ...", ctxErr)
+
+		ctxShutDown, cancel := context.WithTimeout(ctx, 5*time.Second)
+
+		// what is this cancelling exactly?
+		defer cancel()
+
+		// Pass in a new timeout-based context to *force* shutdown if the
+		// normal shutdown process takes longer than expected.
+		err := httpServer.Shutdown(ctxShutDown)
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Errorf("main: error shutting down http server: %v", err)
+		}
+
+	}(ctx)
 
 	// Pre-process bundled templates in string/text format to Templates that
 	// our handlers can execute. Based on brief testing, this seems to provide
@@ -162,61 +222,11 @@ func main() {
 		),
 	})
 
-	mux := http.NewServeMux()
 	ourRoutes.RegisterWithServeMux(mux)
-
-	// Apply "default" timeout settings provided by Simon Frey; override the
-	// default "wait forever" configuration.
-	// FIXME: Refine these settings to apply values more appropriate for a
-	// small-to-medium on-premise API (e.g., not over a public Internet link
-	// where clients are expected to be slow)
-	httpServer := &http.Server{
-		ReadHeaderTimeout: config.HTTPServerReadHeaderTimeout,
-		ReadTimeout:       config.HTTPServerReadTimeout,
-		WriteTimeout:      config.HTTPServerWriteTimeout,
-		Handler:           mux,
-		Addr:              fmt.Sprintf("%s:%d", appConfig.LocalIPAddress, appConfig.LocalTCPPort),
-	}
-
-	// Create "notifications manager" function that will start infinite loop
-	// with select statement to process incoming notification requests.
-	go StartNotifyMgr(ctx, appConfig, notifyWorkQueue)
 
 	// listen on specified port on ALL IP Addresses, block until app is terminated
 	log.Infof("Listening on %s port %d ",
 		appConfig.LocalIPAddress, appConfig.LocalTCPPort)
-
-	// FIXME: Remove this once done testing
-	// TODO: Replace with use of Signal to call cancel() when Ctrl+C is issued?
-	go func() {
-		time.Sleep(time.Second * 3)
-		log.Warn("Calling cancel() to test shutdown behavior for notifier")
-		cancel()
-	}()
-
-	// Setup "listener" to shutdown the running http server when a
-	// cancellation context is triggered
-	go func(ctx context.Context) {
-		select {
-		case <-ctx.Done():
-
-			ctxErr := ctx.Err()
-
-			log.Debugf("main: Received Done signal: %v, shutting down ...", ctxErr)
-
-			ctxShutDown, cancel := context.WithTimeout(ctx, 5*time.Second)
-
-			// what is this cancelling exactly?
-			defer cancel()
-
-			// Pass in a new timeout-based context to *force* shutdown if the
-			// normal shutdown process takes longer than expected.
-			err := httpServer.Shutdown(ctxShutDown)
-			if err != nil && !errors.Is(err, http.ErrServerClosed) {
-				log.Errorf("main: error shutting down http server: %v", err)
-			}
-		}
-	}(ctx)
 
 	// TODO: This can be handled in a cleaner fashion?
 	if err := httpServer.ListenAndServe(); err != nil {
