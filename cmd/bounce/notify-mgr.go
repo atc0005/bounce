@@ -37,43 +37,14 @@ func teamsNotifier(
 
 	for {
 
-		// Block while waiting on input
-		responseDetails := <-incoming
-
-		log.Debugf("teamsNotifier: Request received: %#v", responseDetails)
-
-		// Wait for specified amount of time before attempting notification.
-		// This is done in an effort to prevent unintentional abuse of
-		// remote services
-		time.Sleep(config.NotifyMgrTeamsNotificationDelay)
-
-		// launch task in separate goroutine
-		log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
-		go func(ctx context.Context, webhookURL string, responseDetails echoHandlerResponse, resultQueue chan<- NotifyResult) {
-			ourMessage := createMessage(responseDetails)
-			result := NotifyResult{}
-			if err := sendMessage(webhookURL, ourMessage, retries, retriesDelay); err != nil {
-
-				result = NotifyResult{
-					Err: fmt.Errorf("teamsNotifier: error occurred while trying to send message to Microsoft Teams: %w", err),
-				}
-
-				resultQueue <- result
-			}
-
-			// Success
-			result.Val = "teamsNotifier: Successfully sent message via Microsoft Teams"
-			log.Info(result.Val)
-			resultQueue <- result
-		}(ctx, webhookURL, responseDetails, ourResultQueue)
-
 		select {
 
 		case <-ctx.Done():
 			// returning not to leak the goroutine
 
+			ctxErr := ctx.Err()
 			result := NotifyResult{
-				Err: fmt.Errorf("teamsNotifier: Received Done signal from context"),
+				Err: fmt.Errorf("teamsNotifier: Received Done signal: %v, shutting down ...", ctxErr.Error()),
 			}
 			log.Debug(result.Err.Error())
 			notifyMgrResultQueue <- result
@@ -86,6 +57,37 @@ func teamsNotifier(
 			}
 			log.Debug(result.Err.Error())
 			notifyMgrResultQueue <- result
+
+			// TODO: How to actually abandon sending the notification?
+
+		case responseDetails := <-incoming:
+
+			log.Debugf("teamsNotifier: Request received: %#v", responseDetails)
+
+			// Wait for specified amount of time before attempting notification.
+			// This is done in an effort to prevent unintentional abuse of
+			// remote services
+			time.Sleep(config.NotifyMgrTeamsNotificationDelay)
+
+			// launch task in separate goroutine
+			log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
+			go func(ctx context.Context, webhookURL string, responseDetails echoHandlerResponse, resultQueue chan<- NotifyResult) {
+				ourMessage := createMessage(responseDetails)
+				result := NotifyResult{}
+				if err := sendMessage(webhookURL, ourMessage, retries, retriesDelay); err != nil {
+
+					result = NotifyResult{
+						Err: fmt.Errorf("teamsNotifier: error occurred while trying to send message to Microsoft Teams: %w", err),
+					}
+
+					resultQueue <- result
+				}
+
+				// Success
+				result.Val = "teamsNotifier: Successfully sent message via Microsoft Teams"
+				log.Info(result.Val)
+				resultQueue <- result
+			}(ctx, webhookURL, responseDetails, ourResultQueue)
 
 		case result := <-ourResultQueue:
 
@@ -117,32 +119,14 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 
 	for {
 
-		// Block while waiting on input
-		responseDetails := <-incoming
-
-		log.Debugf("emailNotifier: Request received: %#v", responseDetails)
-
-		// Wait for specified amount of time before attempting notification.
-		// This is done in an effort to prevent unintentional abuse of
-		// remote services
-		time.Sleep(config.NotifyMgrEmailNotificationDelay)
-
-		// launch task in a separate goroutine
-		go func(resultQueue chan<- NotifyResult) {
-			result := NotifyResult{
-				Err: fmt.Errorf("emailNotifier: Sending email is not currently enabled"),
-			}
-			log.Error(result.Err.Error())
-			resultQueue <- result
-		}(ourResultQueue)
-
 		select {
 
 		case <-ctx.Done():
 			// returning not to leak the goroutine
 
+			ctxErr := ctx.Err()
 			result := NotifyResult{
-				Err: fmt.Errorf("emailNotifier: Received Done signal from context"),
+				Err: fmt.Errorf("emailNotifier: Received Done signal: %v, shutting down ...", ctxErr.Error()),
 			}
 			log.Debug(result.Err.Error())
 			notifyMgrResultQueue <- result
@@ -155,6 +139,24 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 			}
 			log.Debug(result.Err.Error())
 			notifyMgrResultQueue <- result
+
+		case responseDetails := <-incoming:
+
+			log.Debugf("emailNotifier: Request received: %#v", responseDetails)
+
+			// Wait for specified amount of time before attempting notification.
+			// This is done in an effort to prevent unintentional abuse of
+			// remote services
+			time.Sleep(config.NotifyMgrEmailNotificationDelay)
+
+			// launch task in a separate goroutine
+			go func(resultQueue chan<- NotifyResult) {
+				result := NotifyResult{
+					Err: fmt.Errorf("emailNotifier: Sending email is not currently enabled"),
+				}
+				log.Error(result.Err.Error())
+				resultQueue <- result
+			}(ourResultQueue)
 
 		case result := <-ourResultQueue:
 
@@ -223,11 +225,9 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 		select {
 
 		case <-ctx.Done():
-
-			// https://gobyexample.com/context
-			err := ctx.Err()
 			// returning not to leak the goroutine
-			log.Debugf("StartNotifyMgr: Received Done signal: %v", err.Error())
+			ctxErr := ctx.Err()
+			log.Debugf("StartNotifyMgr: Received Done signal: %v", ctxErr.Error())
 			log.Debug("StartNotifyMgr: shutting down ...")
 			return
 
