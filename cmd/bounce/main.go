@@ -207,7 +207,8 @@ func main() {
 			// what is this cancelling exactly?
 			defer cancel()
 
-			// are we supposed to pass in a new context here?
+			// Pass in a new timeout-based context to *force* shutdown if the
+			// normal shutdown process takes longer than expected.
 			err := httpServer.Shutdown(ctxShutDown)
 			if err != nil && !errors.Is(err, http.ErrServerClosed) {
 				log.Errorf("main: error shutting down http server: %v", err)
@@ -218,16 +219,24 @@ func main() {
 	// TODO: This can be handled in a cleaner fashion?
 	if err := httpServer.ListenAndServe(); err != nil {
 
-		log.Errorf("error occurred while running httpServer: %v", err)
+		if !errors.Is(err, http.ErrServerClosed) {
+			log.Errorf("error occurred while running httpServer: %v", err)
+		} else {
+
+			// Calling Shutdown() will immediately return ErrServerClosed, but
+			// based on reading the docs it sounds like any errors from
+			// closing connections will instead overwrite this default error
+			// message with a real one, so receiving ErrServerClosed can be
+			// treated as a "successful shutdown" message of sorts.
+			log.Debug("main: successfully shutdown httpServer")
+		}
+
+		// the deferred cancel() from earlier should be sufficient to handle
+		// this task, but we call it explicitly just to be sure.
+		// TODO: Is this best practice? Is it safe to call cancel() multiple
+		// times?
 		log.Debug("Explicitly using cancel() to shutdown background tasks")
 		cancel()
-
-		log.Fatal(err.Error())
 	}
-
-	// Q: Will this be reached if the background goroutine successfully
-	// shuts down the http server?
-	// A: No, the Shutdown() call is considered an error state
-	log.Debug("main: successfully shutdown httpServer")
 
 }
