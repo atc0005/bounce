@@ -178,6 +178,8 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 // enabled service (e.g., Microsoft Teams).
 func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-chan echoHandlerResponse) {
 
+	log.Debug("StartNotifyMgr: Running")
+
 	// Create channels to hand-off echoHandlerResponse values for
 	// processing. Due to my ignorance of channels, I believe that I'll need
 	// separate channels for each service. E.g., one channel for Microsoft
@@ -224,11 +226,14 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 		select {
 
+		// NOTE: This should ONLY ever be done when shutting down the entire
+		// application, as otherwise goroutines associated with client
+		// requests will likely hang, likely until client/server timeout
+		// settings are reached
 		case <-ctx.Done():
 			// returning not to leak the goroutine
 			ctxErr := ctx.Err()
-			log.Debugf("StartNotifyMgr: Received Done signal: %v", ctxErr.Error())
-			log.Debug("StartNotifyMgr: shutting down ...")
+			log.Debugf("StartNotifyMgr: Received Done signal: %v, shutting down ...", ctxErr.Error())
 			return
 
 		case result := <-teamsNotifyResultQueue:
