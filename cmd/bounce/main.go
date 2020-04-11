@@ -186,6 +186,8 @@ func main() {
 	log.Infof("Listening on %s port %d ",
 		appConfig.LocalIPAddress, appConfig.LocalTCPPort)
 
+	// FIXME: Remove this once done testing
+	// TODO: Replace with use of Signal to call cancel() when Ctrl+C is issued?
 	go func() {
 		time.Sleep(time.Second * 3)
 		log.Warn("Calling cancel() to test shutdown behavior for notifier")
