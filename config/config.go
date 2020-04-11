@@ -45,6 +45,8 @@ const (
 	defaultLogOutput           string = "stdout"
 	defaultLogFormat           string = "text"
 	defaultWebhookURL          string = ""
+	defaultRetries             int    = 2
+	defaultRetriesDelay        int    = 2
 )
 
 // Timeout settings applied to our instance of http.Server
@@ -191,6 +193,13 @@ func Usage(flagSet *flag.FlagSet) func() {
 // Config represents the application configuration as specified via
 // command-line flags
 type Config struct {
+
+	// Retries is the number of attempts that this application will make
+	// to deliver messages before giving up.
+	Retries int
+
+	// RetriesDelay is the number of seconds to wait between retry attempts.
+	RetriesDelay int
 
 	// LocalTCPPort is the TCP port that this application should listen on for
 	// incoming requests
@@ -339,6 +348,20 @@ func NewConfig() (*Config, error) {
 		"webhook-url",
 		defaultWebhookURL,
 		"The Webhook URL provided by a preconfigured Connector. If specified, this application will attempt to send client request details to the Microsoft Teams channel associated with the webhook URL.",
+	)
+
+	mainFlagSet.IntVar(
+		&config.Retries,
+		"retries",
+		defaultRetries,
+		"The number of attempts that this application will make to deliver messages before giving up.",
+	)
+
+	mainFlagSet.IntVar(
+		&config.RetriesDelay,
+		"retries-delay",
+		defaultRetriesDelay,
+		"The number of seconds that this application will wait before making another delivery attempt.",
 	)
 
 	mainFlagSet.Usage = Usage(mainFlagSet)

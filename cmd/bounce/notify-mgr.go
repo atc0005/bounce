@@ -20,7 +20,15 @@ type NotifyResult struct {
 // teamsNotifier is a persistent goroutine used to receive incoming
 // notification requests and spin off goroutines to create and send Microsoft
 // Teams messages.
-func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Duration, incoming <-chan echoHandlerResponse, notifyMgrResultQueue chan<- NotifyResult) {
+func teamsNotifier(
+	ctx context.Context,
+	webhookURL string,
+	sendTimeout time.Duration,
+	retries int,
+	retriesDelay int,
+	incoming <-chan echoHandlerResponse,
+	notifyMgrResultQueue chan<- NotifyResult,
+) {
 
 	log.Debug("teamsNotifier: Running")
 
@@ -44,7 +52,7 @@ func teamsNotifier(ctx context.Context, webhookURL string, sendTimeout time.Dura
 		go func(ctx context.Context, webhookURL string, responseDetails echoHandlerResponse, resultQueue chan<- NotifyResult) {
 			ourMessage := createMessage(responseDetails)
 			result := NotifyResult{}
-			if err := sendMessage(webhookURL, ourMessage); err != nil {
+			if err := sendMessage(webhookURL, ourMessage, retries, retriesDelay); err != nil {
 
 				result = NotifyResult{
 					Err: fmt.Errorf("teamsNotifier: error occurred while trying to send message to Microsoft Teams: %w", err),
@@ -187,6 +195,8 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			ctx,
 			cfg.WebhookURL,
 			config.NotifyMgrTeamsTimeout,
+			cfg.Retries,
+			cfg.RetriesDelay,
 			teamsNotifyWorkQueue,
 			teamsNotifyResultQueue,
 		)
