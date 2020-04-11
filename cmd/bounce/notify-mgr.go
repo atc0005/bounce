@@ -187,6 +187,10 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 	emailNotifyWorkQueue := make(chan echoHandlerResponse)
 	emailNotifyResultQueue := make(chan NotifyResult)
 
+	if !cfg.NotifyTeams() && !cfg.NotifyEmail() {
+		log.Debug("StartNotifyMgr: Teams and email notifications not requested, not starting notifier goroutines")
+	}
+
 	// If enabled, start persistent goroutine to process request details and
 	// submit messages to Microsoft Teams.
 	if cfg.NotifyTeams() {
