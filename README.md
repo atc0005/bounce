@@ -451,6 +451,7 @@ and with colorized JSON output enabled:
 
 - Contexts
   - <https://gobyexample.com/context>
+  - <https://gobyexample.com/timeouts>
   - <https://golang.org/pkg/context/#WithCancel>
   - <https://groups.google.com/forum/#!topic/golang-nuts/IJXjldvpNQM>
   - <https://medium.com/@pinkudebnath/graceful-shutdown-of-golang-servers-using-context-and-os-signals-cc1fa2c55e97>

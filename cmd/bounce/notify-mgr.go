@@ -50,16 +50,6 @@ func teamsNotifier(
 			notifyMgrResultQueue <- result
 			return
 
-		case <-time.After(sendTimeout):
-
-			result := NotifyResult{
-				Err: fmt.Errorf("teamsNotifier: Timeout reached after %v for sending Microsoft Teams notification", sendTimeout),
-			}
-			log.Debug(result.Err.Error())
-			notifyMgrResultQueue <- result
-
-			// TODO: How to actually abandon sending the notification?
-
 		case responseDetails := <-incoming:
 
 			log.Debugf("teamsNotifier: Request received: %#v", responseDetails)
@@ -89,15 +79,35 @@ func teamsNotifier(
 				resultQueue <- result
 			}(ctx, webhookURL, responseDetails, ourResultQueue)
 
-		case result := <-ourResultQueue:
+			// Wait for either the timeout to occur OR a result to come back
+			// from the attempt to send a Teams message.
 
-			if result.Err != nil {
-				log.Errorf("teamsNotifier: Error received from ourResultQueue: %v", result.Err)
-			} else {
-				log.Debugf("teamsNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
+			select {
+			case <-time.After(sendTimeout):
+
+				result := NotifyResult{
+					Err: fmt.Errorf("teamsNotifier: Timeout reached after %v for sending Microsoft Teams notification", sendTimeout),
+				}
+				log.Debug(result.Err.Error())
+				notifyMgrResultQueue <- result
+
+				// TODO
+				// Q: How to actually abandon sending the notification?
+				// A: Pass context on to sendMessage() function?
+				//    Update that function to use context?
+				//    Call cancel() and then use continue to loop back around?
+
+			case result := <-ourResultQueue:
+
+				if result.Err != nil {
+					log.Errorf("teamsNotifier: Error received from ourResultQueue: %v", result.Err)
+				} else {
+					log.Debugf("teamsNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
+				}
+
+				notifyMgrResultQueue <- result
+
 			}
-
-			notifyMgrResultQueue <- result
 
 		}
 	}
