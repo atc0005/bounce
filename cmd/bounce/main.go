@@ -202,12 +202,16 @@ func main() {
 
 			log.Debugf("main: Received Done signal: %v, shutting down ...", ctxErr)
 
+			ctxShutDown, cancel := context.WithTimeout(ctx, 5*time.Second)
+
+			// what is this cancelling exactly?
+			defer cancel()
+
 			// are we supposed to pass in a new context here?
-			err := httpServer.Shutdown(ctx)
-			if err != nil {
+			err := httpServer.Shutdown(ctxShutDown)
+			if err != nil && !errors.Is(err, http.ErrServerClosed) {
 				log.Errorf("main: error shutting down http server: %v", err)
 			}
-
 		}
 	}(ctx)
 

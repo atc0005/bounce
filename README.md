@@ -448,8 +448,12 @@ and with colorized JSON output enabled:
   - <https://github.com/eddturtle/golangcode-site>
   - <https://stackoverflow.com/questions/22886598/how-to-handle-errors-in-goroutines>
     - <https://stackoverflow.com/a/22887491>
+
+- Contexts
   - <https://gobyexample.com/context>
   - <https://golang.org/pkg/context/#WithCancel>
+  - <https://groups.google.com/forum/#!topic/golang-nuts/IJXjldvpNQM>
+  - <https://medium.com/@pinkudebnath/graceful-shutdown-of-golang-servers-using-context-and-os-signals-cc1fa2c55e97>
 
 - Request body
   - <https://stackoverflow.com/questions/43021058/golang-read-request-body/43021236#43021236>
