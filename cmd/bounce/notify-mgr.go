@@ -224,7 +224,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 		case <-ctx.Done():
 			// returning not to leak the goroutine
-			log.Debug("StartNotifyMgr: Received Done signal from context")
+			log.Debug("StartNotifyMgr: Received Done signal from context, shutting down ...")
 			return
 
 		case result := <-teamsNotifyResultQueue:

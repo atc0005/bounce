@@ -185,6 +185,9 @@ func main() {
 	log.Infof("Listening on %s port %d ",
 		appConfig.LocalIPAddress, appConfig.LocalTCPPort)
 
+	log.Warn("Calling cancel() to test shutdown behavior for notifier")
+	cancel()
+
 	// TODO: This can be handled in a cleaner fashion?
 	if err := httpServer.ListenAndServe(); err != nil {
 
