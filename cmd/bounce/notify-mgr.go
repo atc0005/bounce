@@ -44,7 +44,7 @@ func teamsNotifier(
 
 			ctxErr := ctx.Err()
 			result := NotifyResult{
-				Err: fmt.Errorf("teamsNotifier: Received Done signal: %v, shutting down ...", ctxErr.Error()),
+				Err: fmt.Errorf("teamsNotifier: Received Done signal: %v, shutting down", ctxErr.Error()),
 			}
 			log.Debug(result.Err.Error())
 			notifyMgrResultQueue <- result
@@ -126,7 +126,7 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 
 			ctxErr := ctx.Err()
 			result := NotifyResult{
-				Err: fmt.Errorf("emailNotifier: Received Done signal: %v, shutting down ...", ctxErr.Error()),
+				Err: fmt.Errorf("emailNotifier: Received Done signal: %v, shutting down", ctxErr.Error()),
 			}
 			log.Debug(result.Err.Error())
 			notifyMgrResultQueue <- result
