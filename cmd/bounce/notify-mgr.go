@@ -92,7 +92,7 @@ func teamsNotifier(
 				notifyMgrResultQueue <- result
 
 				// TODO
-				// Q: How to actually abandon sending the notification?
+				// Q: How to actually abandon the Teams message submission?
 				// A: Pass context on to sendMessage() function?
 				//    Update that function to use context?
 				//    Call cancel() and then use continue to loop back around?
