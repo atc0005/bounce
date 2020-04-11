@@ -181,13 +181,6 @@ func main() {
 	// with select statement to process incoming notification requests.
 	go StartNotifyMgr(ctx, appConfig, notifyWorkQueue)
 
-	//
-	//
-	// Call (as of yet to be created) function that determines whether
-	// notifications will be generated. If so, call `StartNotifyMgr()` with
-	// appropriate arguments to enable  concurrent handling of notifications
-	// (e.g., Microsoft Teams); pass in context, any required channels, etc.
-
 	// listen on specified port on ALL IP Addresses, block until app is terminated
 	log.Infof("Listening on %s port %d ",
 		appConfig.LocalIPAddress, appConfig.LocalTCPPort)
@@ -195,9 +188,8 @@ func main() {
 	// TODO: This can be handled in a cleaner fashion?
 	if err := httpServer.ListenAndServe(); err != nil {
 
-		// TODO: Call (as of yet to be created) function that determines
-		// whether notifications will be generated. If so, use context to
-		// shutdown background tasks
+		log.Debug("Explicitly using cancel() to shutdown background tasks")
+		cancel()
 
 		log.Fatal(err.Error())
 	}
