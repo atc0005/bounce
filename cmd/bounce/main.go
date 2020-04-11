@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	textTemplate "text/template"
+	"time"
 
 	"github.com/atc0005/bounce/config"
 	"github.com/atc0005/bounce/routes"
@@ -185,15 +186,44 @@ func main() {
 	log.Infof("Listening on %s port %d ",
 		appConfig.LocalIPAddress, appConfig.LocalTCPPort)
 
-	log.Warn("Calling cancel() to test shutdown behavior for notifier")
-	cancel()
+	go func() {
+		time.Sleep(time.Second * 3)
+		log.Warn("Calling cancel() to test shutdown behavior for notifier")
+		cancel()
+	}()
+
+	// Setup "listener" to shutdown the running http server when a
+	// cancellation context is triggered
+	go func(ctx context.Context) {
+		select {
+		case <-ctx.Done():
+
+			ctxErr := ctx.Err()
+
+			log.Debugf("main: Received Done signal: %v, shutting down ...", ctxErr)
+
+			// are we supposed to pass in a new context here?
+			err := httpServer.Shutdown(ctx)
+			if err != nil {
+				log.Errorf("main: error shutting down http server: %v", err)
+			}
+
+		}
+	}(ctx)
 
 	// TODO: This can be handled in a cleaner fashion?
 	if err := httpServer.ListenAndServe(); err != nil {
 
+		log.Errorf("error occurred while running httpServer: %v", err)
 		log.Debug("Explicitly using cancel() to shutdown background tasks")
 		cancel()
 
 		log.Fatal(err.Error())
 	}
+
+	// Q: Will this be reached if the background goroutine successfully
+	// shuts down the http server?
+	// A: No, the Shutdown() call is considered an error state
+	log.Debug("main: successfully shutdown httpServer")
+
 }
