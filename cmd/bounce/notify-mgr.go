@@ -142,14 +142,6 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 			notifyMgrResultQueue <- result
 			return
 
-		case <-time.After(sendTimeout):
-
-			result := NotifyResult{
-				Err: fmt.Errorf("emailNotifier: Timeout reached after %v for sending email notification", sendTimeout),
-			}
-			log.Debug(result.Err.Error())
-			notifyMgrResultQueue <- result
-
 		case responseDetails := <-incoming:
 
 			log.Debugf("emailNotifier: Request received: %#v", responseDetails)
@@ -168,16 +160,27 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 				resultQueue <- result
 			}(ourResultQueue)
 
-		case result := <-ourResultQueue:
+			select {
 
-			if result.Err != nil {
-				log.Errorf("emailNotifier: Error received from ourResultQueue: %v", result.Err)
-			} else {
-				log.Debugf("emailNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
+			case <-time.After(sendTimeout):
+
+				result := NotifyResult{
+					Err: fmt.Errorf("emailNotifier: Timeout reached after %v for sending email notification", sendTimeout),
+				}
+				log.Debug(result.Err.Error())
+				notifyMgrResultQueue <- result
+
+			case result := <-ourResultQueue:
+
+				if result.Err != nil {
+					log.Errorf("emailNotifier: Error received from ourResultQueue: %v", result.Err)
+				} else {
+					log.Debugf("emailNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
+				}
+
+				notifyMgrResultQueue <- result
+
 			}
-
-			notifyMgrResultQueue <- result
-
 		}
 	}
 
