@@ -71,6 +71,11 @@ in testing other tools that submit data via HTTP requests.
 - User configurable logging settings
   - levels, format and output (see command-line arguments table)
 
+- Message delivery retry support with retry and retry delay values
+  configurable via flag
+  - currently used by Microsoft Teams notifications support, also intended for
+    use with future email notifications support
+
 ### Future
 
 | Priority | Milestone                                                         | Description                                                                                                                     |
@@ -443,6 +448,8 @@ and with colorized JSON output enabled:
   - <https://github.com/eddturtle/golangcode-site>
   - <https://stackoverflow.com/questions/22886598/how-to-handle-errors-in-goroutines>
     - <https://stackoverflow.com/a/22887491>
+  - <https://gobyexample.com/context>
+  - <https://golang.org/pkg/context/#WithCancel>
 
 - Request body
   - <https://stackoverflow.com/questions/43021058/golang-read-request-body/43021236#43021236>

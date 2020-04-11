@@ -42,6 +42,7 @@ FEATURES
 
 • User configurable logging output (stdout or stderr)
 
+• User configurable message submission retry and retry delay limits
 
 USAGE
 
