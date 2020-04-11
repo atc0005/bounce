@@ -13,9 +13,19 @@ go 1.13
 // github.com/apex/log v1.0.0 v1.1.0 v1.1.1 v1.1.2
 
 // Use local copy of library package (instead of fetching remote content)
-replace github.com/atc0005/go-teams-notify => ../go-teams-notify
-
-replace github.com/atc0005/send2teams => ../send2teams
+// replace github.com/atc0005/go-teams-notify => ../go-teams-notify
+// replace github.com/atc0005/send2teams => ../send2teams
+//
+// require (
+//
+// ...
+//  Note: Due to `replace` directive and `v0.0.0` here, we use the current
+//  state of this library package from the local system instead of fetching
+//  remote content
+//	github.com/atc0005/go-teams-notify v0.0.0
+//	github.com/atc0005/send2teams v0.0.0
+// ...
+//)
 
 require (
 	github.com/TylerBrock/colorjson v0.0.0-20180527164720-95ec53f28296
@@ -25,11 +35,8 @@ require (
 
 	// temporarily use our fork while developing changes for potential
 	// inclusion in the upstream project
-	//
-	// Note: Due to `replace` directive and `v0.0.0` here, we use the current
-	// state of this library package instead of fetching remote content
-	github.com/atc0005/go-teams-notify v0.0.0
-	github.com/atc0005/send2teams v0.0.0
+	github.com/atc0005/go-teams-notify v1.3.1-0.20200409143202-ebfbb4503f85
+	github.com/atc0005/send2teams v0.3.0
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/golang/gddo v0.0.0-20200219175727-df439dd5819e
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e // indirect
