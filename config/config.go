@@ -297,7 +297,9 @@ func NewConfig() (*Config, error) {
 
 	config := Config{}
 
-	config.handleFlagsConfig()
+	if err := config.handleFlagsConfig(); err != nil {
+		return nil, fmt.Errorf("error encountered configuring flags: %w", err)
+	}
 
 	// Apply initial logging settings based on any provided CLI flags
 	config.configureLogging()
