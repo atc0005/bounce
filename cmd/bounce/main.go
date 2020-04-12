@@ -99,7 +99,11 @@ func main() {
 	// would make the worker thread "rendezvous" with the main thread, which
 	// is unnecessary.
 	//
-	done := make(chan struct{}, 1)
+	// NOTE: Setting up a separate done channel for notify mgr and another
+	// for when the http server has been shutdown.
+	// done := make(chan struct{}, 1)
+	httpDone := make(chan struct{}, 1)
+	notifyDone := make(chan struct{}, 1)
 	quit := make(chan os.Signal, 1)
 
 	signal.Notify(quit, os.Interrupt)
@@ -110,11 +114,15 @@ func main() {
 
 	// Create "notifications manager" function that will start infinite loop
 	// with select statement to process incoming notification requests.
-	go StartNotifyMgr(ctx, appConfig, notifyWorkQueue)
+	go StartNotifyMgr(ctx, appConfig, notifyWorkQueue, notifyDone)
+
+	// Setup "listener" to cancel the parent contextwhen Signal.Notify()
+	// indicates that SIGINT has been received
+	go shutdownListener(ctx, quit, cancel)
 
 	// Setup "listener" to shutdown the running http server when
-	// Signal.Notify() indicates that SIGINT has been received
-	go gracefulShutdown(ctx, httpServer, quit, done)
+	// the parent context has been cancelled
+	go gracefulShutdown(ctx, httpServer, quit, httpDone)
 
 	// Pre-process bundled templates in string/text format to Templates that
 	// our handlers can execute. Based on brief testing, this seems to provide
@@ -169,8 +177,8 @@ func main() {
 	ourRoutes.RegisterWithServeMux(mux)
 
 	// listen on specified port on ALL IP Addresses, block until app is terminated
-	log.Infof("Listening on %s port %d ",
-		appConfig.LocalIPAddress, appConfig.LocalTCPPort)
+	log.Infof("%s listening on %s port %d",
+		config.MyAppName, appConfig.LocalIPAddress, appConfig.LocalTCPPort)
 
 	// TODO: This can be handled in a cleaner fashion?
 	if err := httpServer.ListenAndServe(); err != nil {
@@ -186,8 +194,14 @@ func main() {
 		}
 	}
 
-	// Waiting on gracefulShutdown to complete
-	<-done
-	log.Debug("main: successfully shutdown httpServer")
+	log.Debug("Waiting on gracefulShutdown completion signal")
+	<-httpDone
+	log.Debug("Received gracefulShutdown completion signal")
+
+	log.Debug("Waiting on StartNotifyMgr completion signal")
+	<-notifyDone
+	log.Debug("Received StartNotifyMgr completion signal")
+
+	log.Infof("Successfully shutdown %s", config.MyAppName)
 
 }

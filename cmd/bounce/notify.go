@@ -28,6 +28,7 @@ func teamsNotifier(
 	retriesDelay int,
 	incoming <-chan echoHandlerResponse,
 	notifyMgrResultQueue chan<- NotifyResult,
+	done chan<- struct{},
 ) {
 
 	log.Debug("teamsNotifier: Running")
@@ -47,7 +48,12 @@ func teamsNotifier(
 				Err: fmt.Errorf("teamsNotifier: Received Done signal: %v, shutting down", ctxErr.Error()),
 			}
 			log.Debug(result.Err.Error())
+
+			log.Debug("teamsNotifier: Sending back results")
 			notifyMgrResultQueue <- result
+
+			log.Debug("teamsNotifier: Closing done channel to signal shutdown")
+			close(done)
 			return
 
 		case responseDetails := <-incoming:
@@ -120,7 +126,7 @@ func teamsNotifier(
 //
 // FIXME: Once the logic is worked out in teamsNotifier, update this function
 // to match it
-func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-chan echoHandlerResponse, notifyMgrResultQueue chan<- NotifyResult) {
+func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-chan echoHandlerResponse, notifyMgrResultQueue chan<- NotifyResult, done chan<- struct{}) {
 
 	log.Debug("emailNotifier: Running")
 
@@ -139,7 +145,12 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 				Err: fmt.Errorf("emailNotifier: Received Done signal: %v, shutting down", ctxErr.Error()),
 			}
 			log.Debug(result.Err.Error())
+
+			log.Debug("emailNotifier: Sending back results")
 			notifyMgrResultQueue <- result
+
+			log.Debug("emailNotifier: Closing done channel to signal shutdown")
+			close(done)
 			return
 
 		case responseDetails := <-incoming:
@@ -189,7 +200,7 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 // StartNotifyMgr receives echoHandlerResponse values from a receive-only
 // incoming queue of echoHandlerResponse values and sends notifications to any
 // enabled service (e.g., Microsoft Teams).
-func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-chan echoHandlerResponse) {
+func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-chan echoHandlerResponse, done chan<- struct{}) {
 
 	log.Debug("StartNotifyMgr: Running")
 
@@ -200,9 +211,11 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 	teamsNotifyWorkQueue := make(chan echoHandlerResponse)
 	teamsNotifyResultQueue := make(chan NotifyResult)
+	teamsNotifyDone := make(chan struct{})
 
 	emailNotifyWorkQueue := make(chan echoHandlerResponse)
 	emailNotifyResultQueue := make(chan NotifyResult)
+	emailNotifyDone := make(chan struct{})
 
 	if !cfg.NotifyTeams() && !cfg.NotifyEmail() {
 		log.Debug("StartNotifyMgr: Teams and email notifications not requested, not starting notifier goroutines")
@@ -220,6 +233,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			cfg.RetriesDelay,
 			teamsNotifyWorkQueue,
 			teamsNotifyResultQueue,
+			teamsNotifyDone,
 		)
 	}
 
@@ -232,6 +246,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			config.NotifyMgrEmailTimeout,
 			emailNotifyWorkQueue,
 			emailNotifyResultQueue,
+			emailNotifyDone,
 		)
 	}
 
@@ -247,6 +262,29 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			// returning not to leak the goroutine
 			ctxErr := ctx.Err()
 			log.Debugf("StartNotifyMgr: Received Done signal: %v, shutting down ...", ctxErr.Error())
+
+			evalResults := func(queueName string, result NotifyResult) {
+				if result.Err != nil {
+					log.Errorf("StartNotifyMgr: Error received from %s: %v", queueName, result.Err)
+				}
+				log.Debugf("StartNotifyMgr: OK: non-error status received on %s: %v", queueName, result.Val)
+			}
+
+			// Process any waiting results before blocking and waiting
+			// on final completion response from notifier goroutines
+			for result := range teamsNotifyResultQueue {
+				evalResults("teamsNotifyResultQueue", result)
+			}
+			for result := range emailNotifyResultQueue {
+				evalResults("teamsNotifyResultQueue", result)
+			}
+
+			// Wait on child goroutines to complete before closing the done
+			// channel for the notification manager and returning
+			<-teamsNotifyDone
+			<-emailNotifyDone
+
+			close(done)
 			return
 
 		case result := <-teamsNotifyResultQueue:

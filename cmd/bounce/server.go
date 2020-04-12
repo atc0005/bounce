@@ -16,6 +16,19 @@ import (
 	"github.com/atc0005/bounce/config"
 )
 
+func shutdownListener(ctx context.Context, quit <-chan os.Signal, cancel context.CancelFunc) {
+
+	// monitor for shutdown signal
+	osSignal := <-quit
+
+	log.Debugf("shutdownListener: Received shutdown signal: %v", osSignal)
+	log.Warn("shutdownListener: Cancelling context ...")
+
+	// Attempt to trigger a cancellation of the parent context
+	cancel()
+
+}
+
 // gracefullShutdown runs is intended to run as a goroutine and listen for a
 // shutdown signal. When this signal is received on a provided quit channel,
 // the http server is shutdown. Once the http server is shutdown, this
@@ -23,11 +36,10 @@ import (
 // channel.
 func gracefulShutdown(ctx context.Context, server *http.Server, quit <-chan os.Signal, done chan<- struct{}) {
 
-	// monitor for shutdown signal
-	osSignal := <-quit
+	// monitor for cancellation context
+	<-ctx.Done()
 
-	log.Warnf("system call:%+v", osSignal)
-	log.Warn("Received shutdown signal: %v")
+	log.Debugf("Context is done: %v", ctx.Err())
 	log.Warn("Server is shutting down, please wait ...")
 
 	// Disable HTTP keep-alives to prevent connections from persisting
