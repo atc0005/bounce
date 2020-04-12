@@ -41,7 +41,7 @@ func init() {
 	// goteamsnotify.EnableLogging()
 	// send2teams.EnableLogging()
 
-	goteamsnotify.EnableLogging()
+	goteamsnotify.DisableLogging()
 	send2teams.DisableLogging()
 }
 
