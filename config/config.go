@@ -40,6 +40,19 @@ const MyAppName string = "bounce"
 // MyAppURL is the location of the repo for this application
 const MyAppURL string = "https://github.com/atc0005/bounce"
 
+const (
+	portFlagHelp                = "TCP port that this application should listen on for incoming HTTP requests."
+	localIPAddressFlagHelp      = "Local IP Address that this application should listen on for incoming HTTP requests."
+	colorizedJSONFlagHelp       = "Whether JSON output should be colorized."
+	colorizedJSONIndentFlagHelp = "Number of spaces to use when indenting colorized JSON output. Has no effect unless colorized JSON mode is enabled."
+	logLevelFlagHelp            = "Log message priority filter. Log messages with a lower level are ignored."
+	logOutputFlagHelp           = "Log messages are written to this output target"
+	logFormatFlagHelp           = "Log messages are written in this format"
+	webhookURLFlagHelp          = "The Webhook URL provided by a preconfigured Connector. If specified, this application will attempt to send client request details to the Microsoft Teams channel associated with the webhook URL."
+	retriesFlagHelp             = "The number of attempts that this application will make to deliver messages before giving up."
+	retriesDelayFlagHelp        = "The number of seconds that this application will wait before making another delivery attempt."
+)
+
 // Default flag settings if not overridden by user input
 const (
 	defaultLocalTCPPort        int    = 8000
