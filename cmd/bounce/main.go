@@ -177,8 +177,11 @@ func main() {
 	ourRoutes.RegisterWithServeMux(mux)
 
 	// listen on specified port on ALL IP Addresses, block until app is terminated
-	log.Infof("%s listening on %s port %d",
+	log.Infof("%s is listening on %s port %d",
 		config.MyAppName, appConfig.LocalIPAddress, appConfig.LocalTCPPort)
+
+	log.Infof("Visit http://%s:%d in your web browser for details",
+		appConfig.LocalIPAddress, appConfig.LocalTCPPort)
 
 	// TODO: This can be handled in a cleaner fashion?
 	if err := httpServer.ListenAndServe(); err != nil {
@@ -202,6 +205,6 @@ func main() {
 	<-notifyDone
 	log.Debug("Received StartNotifyMgr completion signal")
 
-	log.Infof("Successfully shutdown %s", config.MyAppName)
+	log.Infof("%s successfully shutdown", config.MyAppName)
 
 }

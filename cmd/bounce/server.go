@@ -22,10 +22,11 @@ func shutdownListener(ctx context.Context, quit <-chan os.Signal, cancel context
 	osSignal := <-quit
 
 	log.Debugf("shutdownListener: Received shutdown signal: %v", osSignal)
-	log.Warn("shutdownListener: Cancelling context ...")
 
 	// Attempt to trigger a cancellation of the parent context
+	log.Debug("shutdownListener: Cancelling context ...")
 	cancel()
+	log.Debug("shutdownListener: context canceled")
 
 }
 
@@ -39,8 +40,8 @@ func gracefulShutdown(ctx context.Context, server *http.Server, quit <-chan os.S
 	// monitor for cancellation context
 	<-ctx.Done()
 
-	log.Debugf("Context is done: %v", ctx.Err())
-	log.Warn("Server is shutting down, please wait ...")
+	log.Debugf("gracefulShutdown: context is done: %v", ctx.Err())
+	log.Warnf("%s is shutting down, please wait ...", config.MyAppName)
 
 	// Disable HTTP keep-alives to prevent connections from persisting
 	server.SetKeepAlivesEnabled(false)

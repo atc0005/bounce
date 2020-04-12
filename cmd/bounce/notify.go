@@ -45,15 +45,19 @@ func teamsNotifier(
 
 			ctxErr := ctx.Err()
 			result := NotifyResult{
-				Err: fmt.Errorf("teamsNotifier: Received Done signal: %v, shutting down", ctxErr.Error()),
+				Val: fmt.Sprintf("teamsNotifier: Received Done signal: %v, shutting down", ctxErr.Error()),
 			}
-			log.Debug(result.Err.Error())
+			log.Debug(result.Val)
 
 			log.Debug("teamsNotifier: Sending back results")
 			notifyMgrResultQueue <- result
 
+			log.Debug("teamsNotifier: Closing notifyMgrResultQueue channel to signal shutdown")
+			close(notifyMgrResultQueue)
+
 			log.Debug("teamsNotifier: Closing done channel to signal shutdown")
 			close(done)
+			log.Debug("teamsNotifier: done channel closed, returning")
 			return
 
 		case responseDetails := <-incoming:
@@ -142,15 +146,19 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 
 			ctxErr := ctx.Err()
 			result := NotifyResult{
-				Err: fmt.Errorf("emailNotifier: Received Done signal: %v, shutting down", ctxErr.Error()),
+				Val: fmt.Sprintf("emailNotifier: Received Done signal: %v, shutting down", ctxErr.Error()),
 			}
-			log.Debug(result.Err.Error())
+			log.Debug(result.Val)
 
 			log.Debug("emailNotifier: Sending back results")
 			notifyMgrResultQueue <- result
 
+			log.Debug("emailNotifier: Closing notifyMgrResultQueue channel to signal shutdown")
+			close(notifyMgrResultQueue)
+
 			log.Debug("emailNotifier: Closing done channel to signal shutdown")
 			close(done)
+			log.Debug("emailNotifier: done channel closed, returning")
 			return
 
 		case responseDetails := <-incoming:
@@ -266,25 +274,40 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			evalResults := func(queueName string, result NotifyResult) {
 				if result.Err != nil {
 					log.Errorf("StartNotifyMgr: Error received from %s: %v", queueName, result.Err)
+					return
 				}
 				log.Debugf("StartNotifyMgr: OK: non-error status received on %s: %v", queueName, result.Val)
 			}
 
 			// Process any waiting results before blocking and waiting
 			// on final completion response from notifier goroutines
-			for result := range teamsNotifyResultQueue {
-				evalResults("teamsNotifyResultQueue", result)
-			}
-			for result := range emailNotifyResultQueue {
-				evalResults("teamsNotifyResultQueue", result)
+			if cfg.NotifyTeams() {
+				log.Debug("Ranging over teamsNotifyResultQueue")
+				for result := range teamsNotifyResultQueue {
+					evalResults("teamsNotifyResultQueue", result)
+				}
+
+				log.Debug("StartNotifyMgr: Waiting on teamsNotifyDone")
+				<-teamsNotifyDone
+				log.Debug("StartNotifyMgr: Received from teamsNotifyDone")
 			}
 
-			// Wait on child goroutines to complete before closing the done
-			// channel for the notification manager and returning
-			<-teamsNotifyDone
-			<-emailNotifyDone
+			if cfg.NotifyEmail() {
+				log.Debug("Email notifications are enabled")
+				log.Debug("Ranging over emailNotifyResultQueue")
+				for result := range emailNotifyResultQueue {
+					evalResults("emailNotifyResultQueue", result)
+				}
 
+				log.Debug("StartNotifyMgr: Waiting on emailNotifyDone")
+				<-emailNotifyDone
+				log.Debug("StartNotifyMgr: Received from emailNotifyDone")
+			}
+
+			log.Debug("StartNotifyMgr: Closing done channel")
 			close(done)
+
+			log.Debug("StartNotifyMgr: About to return")
 			return
 
 		case result := <-teamsNotifyResultQueue:
