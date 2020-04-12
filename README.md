@@ -448,6 +448,15 @@ and with colorized JSON output enabled:
   - <https://github.com/eddturtle/golangcode-site>
   - <https://stackoverflow.com/questions/22886598/how-to-handle-errors-in-goroutines>
     - <https://stackoverflow.com/a/22887491>
+  - <https://groups.google.com/forum/#!topic/golang-nuts/QEORIGKZO24>
+    - explains benefits of 1-deep buffered channels (asynchronous) vs
+      unbuffered (synchronous)
+      - Bakul Shah: *In general, synchronize only when you have to. Here the main thread
+        wants to know when the worker thread terminates but the worker thread
+        doesn't care when the main thread gets around to reading from "done".
+        Using a 1 deep buffer channel exactly captures this usage pattern.  An
+        unbuffered channel would make the worker thread "rendezvous" with the
+        main thread, which is unnecessary.*
 
 - Contexts
   - <https://gobyexample.com/context>
@@ -455,6 +464,7 @@ and with colorized JSON output enabled:
   - <https://golang.org/pkg/context/#WithCancel>
   - <https://groups.google.com/forum/#!topic/golang-nuts/IJXjldvpNQM>
   - <https://medium.com/@pinkudebnath/graceful-shutdown-of-golang-servers-using-context-and-os-signals-cc1fa2c55e97>
+  - <https://marcofranssen.nl/go-webserver-with-graceful-shutdown/>
 
 - Request body
   - <https://stackoverflow.com/questions/43021058/golang-read-request-body/43021236#43021236>
@@ -464,6 +474,8 @@ and with colorized JSON output enabled:
 - HTTP Server
   - <https://blog.simon-frey.eu/go-as-in-golang-standard-net-http-config-will-break-your-production/>
   - <https://medium.com/@nate510/don-t-use-go-s-default-http-client-4804cb19f779>
+  - <https://medium.com/@pinkudebnath/graceful-shutdown-of-golang-servers-using-context-and-os-signals-cc1fa2c55e97>
+  - <https://marcofranssen.nl/go-webserver-with-graceful-shutdown/>
 
 - Logging
   - <https://github.com/apex/log>

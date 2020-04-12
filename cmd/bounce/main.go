@@ -17,7 +17,6 @@ import (
 	"os"
 	"os/signal"
 	textTemplate "text/template"
-	"time"
 
 	"github.com/atc0005/bounce/config"
 	"github.com/atc0005/bounce/routes"
@@ -86,12 +85,24 @@ func main() {
 	// TODO: Is this defer needed if we cover the cases elsewhere?
 	defer cancel()
 
-	// Use signal.Notify() to send a message on dedicated when when Ctrl+C or
-	// other interrupt-related requests are received so that we can cleanly
-	// shutdown the application.
-	shutdownSignal := make(chan os.Signal, 1)
-	signal.Notify(shutdownSignal, os.Interrupt)
+	// Use signal.Notify() to send a message on dedicated channel when when
+	// interrupt is received (e.g., Ctrl+C) so that we can cleanly shutdown
+	// the application.
+	//
+	// Q: Why are these channels buffered?
+	// A: In order to make them asynchronous.
+	// Per Bakul Shah (golang-nuts/QEORIGKZO24): In general, synchronize only
+	// when you have to. Here the main thread wants to know when the worker
+	// thread terminates but the worker thread doesn't care when the main
+	// thread gets around to reading from "done". Using a 1 deep buffer
+	// channel exactly captures this usage pattern. An unbuffered channel
+	// would make the worker thread "rendezvous" with the main thread, which
+	// is unnecessary.
+	//
+	done := make(chan struct{}, 1)
+	quit := make(chan os.Signal, 1)
 
+	signal.Notify(quit, os.Interrupt)
 	// Where echoHandlerResponse values will be sent for processing. We use a
 	// buffered channel in an effort to reduce the delay for client requests
 	// as much as possible.
@@ -101,37 +112,9 @@ func main() {
 	// with select statement to process incoming notification requests.
 	go StartNotifyMgr(ctx, appConfig, notifyWorkQueue)
 
-	// monitor for shutdown signal, then issue cancel() call to safely
-	go func() {
-		osSignal := <-shutdownSignal
-		log.Debugf("system call:%+v", osSignal)
-		log.Info("Received shutdown signal: %v")
-		log.Info("Calling cancel() context to shutdown notifiers and http server")
-		cancel()
-	}()
-
-	// Setup "listener" to shutdown the running http server when a
-	// cancellation context is triggered
-	go func(ctx context.Context) {
-		<-ctx.Done()
-
-		ctxErr := ctx.Err()
-
-		log.Debugf("main: Received Done signal: %v, shutting down ...", ctxErr)
-
-		ctxShutDown, cancel := context.WithTimeout(ctx, 5*time.Second)
-
-		// what is this cancelling exactly?
-		defer cancel()
-
-		// Pass in a new timeout-based context to *force* shutdown if the
-		// normal shutdown process takes longer than expected.
-		err := httpServer.Shutdown(ctxShutDown)
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Errorf("main: error shutting down http server: %v", err)
-		}
-
-	}(ctx)
+	// Setup "listener" to shutdown the running http server when
+	// Signal.Notify() indicates that SIGINT has been received
+	go gracefulShutdown(ctx, httpServer, quit, done)
 
 	// Pre-process bundled templates in string/text format to Templates that
 	// our handlers can execute. Based on brief testing, this seems to provide
@@ -192,24 +175,19 @@ func main() {
 	// TODO: This can be handled in a cleaner fashion?
 	if err := httpServer.ListenAndServe(); err != nil {
 
+		// Calling Shutdown() will immediately return ErrServerClosed, but
+		// based on reading the docs it sounds like any errors from closing
+		// connections will instead overwrite this default error message with
+		// a real one, so receiving ErrServerClosed can be treated as a
+		// "successful shutdown" message of sorts.
 		if !errors.Is(err, http.ErrServerClosed) {
 			log.Errorf("error occurred while running httpServer: %v", err)
-		} else {
-
-			// Calling Shutdown() will immediately return ErrServerClosed, but
-			// based on reading the docs it sounds like any errors from
-			// closing connections will instead overwrite this default error
-			// message with a real one, so receiving ErrServerClosed can be
-			// treated as a "successful shutdown" message of sorts.
-			log.Debug("main: successfully shutdown httpServer")
+			os.Exit(1)
 		}
-
-		// the deferred cancel() from earlier should be sufficient to handle
-		// this task, but we call it explicitly just to be sure.
-		// TODO: Is this best practice? Is it safe to call cancel() multiple
-		// times?
-		log.Debug("Explicitly using cancel() to shutdown background tasks")
-		cancel()
 	}
+
+	// Waiting on gracefulShutdown to complete
+	<-done
+	log.Debug("main: successfully shutdown httpServer")
 
 }

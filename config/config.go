@@ -74,6 +74,9 @@ const (
 	HTTPServerWriteTimeout      time.Duration = 2 * time.Minute
 )
 
+// Used by the graceful shutdown process
+const HTTPServerShutdownTimeout time.Duration = 30 * time.Second
+
 // Timing-related settings (delays, timeouts) used by our notification manager
 // when using goroutines to concurrently process notification requests.
 const (
