@@ -25,11 +25,6 @@ import (
 	send2teams "github.com/atc0005/send2teams/teams"
 
 	"github.com/apex/log"
-	"github.com/apex/log/handlers/cli"
-	"github.com/apex/log/handlers/discard"
-	"github.com/apex/log/handlers/json"
-	"github.com/apex/log/handlers/logfmt"
-	"github.com/apex/log/handlers/text"
 )
 
 // for handler in cli discard es graylog json kinesis level logfmt memory
@@ -64,40 +59,6 @@ func main() {
 			os.Exit(0)
 		}
 		log.Fatalf("Failed to initialize application: %s", err)
-	}
-
-	var logOutput *os.File
-	switch appConfig.LogOutput {
-	case config.LogOutputStderr:
-		logOutput = os.Stderr
-	case config.LogOutputStdout:
-		logOutput = os.Stdout
-	}
-
-	switch appConfig.LogFormat {
-	case config.LogFormatCLI:
-		log.SetHandler(cli.New(logOutput))
-	case config.LogFormatJSON:
-		log.SetHandler(json.New(logOutput))
-	case config.LogFormatLogFmt:
-		log.SetHandler(logfmt.New(logOutput))
-	case config.LogFormatText:
-		log.SetHandler(text.New(logOutput))
-	case config.LogFormatDiscard:
-		log.SetHandler(discard.New())
-	}
-
-	switch appConfig.LogLevel {
-	case config.LogLevelFatal:
-		log.SetLevel(log.FatalLevel)
-	case config.LogLevelError:
-		log.SetLevel(log.ErrorLevel)
-	case config.LogLevelWarn:
-		log.SetLevel(log.WarnLevel)
-	case config.LogLevelInfo:
-		log.SetLevel(log.InfoLevel)
-	case config.LogLevelDebug:
-		log.SetLevel(log.DebugLevel)
 	}
 
 	log.Debugf("AppConfig: %+v", appConfig)

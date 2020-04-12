@@ -16,6 +16,11 @@ import (
 	"time"
 
 	"github.com/apex/log"
+	"github.com/apex/log/handlers/cli"
+	"github.com/apex/log/handlers/discard"
+	"github.com/apex/log/handlers/json"
+	"github.com/apex/log/handlers/logfmt"
+	"github.com/apex/log/handlers/text"
 
 	// use our fork for now until recent work can be submitted for inclusion
 	// in the upstream project
@@ -292,96 +297,60 @@ func NewConfig() (*Config, error) {
 
 	config := Config{}
 
-	mainFlagSet := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	config.handleFlagsConfig()
 
-	mainFlagSet.IntVar(
-		&config.LocalTCPPort,
-		"port",
-		defaultLocalTCPPort,
-		"TCP port that this application should listen on for incoming HTTP requests.",
-	)
-
-	mainFlagSet.StringVar(
-		&config.LocalIPAddress,
-		"ipaddr",
-		defaultLocalIP,
-		"Local IP Address that this application should listen on for incoming HTTP requests.",
-	)
-
-	mainFlagSet.BoolVar(
-		&config.ColorizedJSON,
-		"color",
-		defaultColorizedJSON,
-		"Whether JSON output should be colorized.",
-	)
-
-	mainFlagSet.IntVar(
-		&config.ColorizedJSONIndent,
-		"indent-lvl",
-		defaultColorizedJSONIntent,
-		"Number of spaces to use when indenting colorized JSON output. Has no effect unless colorized JSON mode is enabled.",
-	)
-
-	mainFlagSet.StringVar(
-		&config.LogLevel,
-		"log-lvl",
-		defaultLogLevel,
-		"Log message priority filter. Log messages with a lower level are ignored.",
-	)
-
-	mainFlagSet.StringVar(
-		&config.LogOutput,
-		"log-out",
-		defaultLogOutput,
-		"Log messages are written to this output target",
-	)
-
-	mainFlagSet.StringVar(
-		&config.LogFormat,
-		"log-fmt",
-		defaultLogFormat,
-		"Log messages are written in this format",
-	)
-
-	mainFlagSet.StringVar(
-		&config.WebhookURL,
-		"webhook-url",
-		defaultWebhookURL,
-		"The Webhook URL provided by a preconfigured Connector. If specified, this application will attempt to send client request details to the Microsoft Teams channel associated with the webhook URL.",
-	)
-
-	mainFlagSet.IntVar(
-		&config.Retries,
-		"retries",
-		defaultRetries,
-		"The number of attempts that this application will make to deliver messages before giving up.",
-	)
-
-	mainFlagSet.IntVar(
-		&config.RetriesDelay,
-		"retries-delay",
-		defaultRetriesDelay,
-		"The number of seconds that this application will wait before making another delivery attempt.",
-	)
-
-	mainFlagSet.Usage = Usage(mainFlagSet)
-	// FIXME: Is this needed for any reason since our mainFlagSet has already
-	// been parsed?
-	//flag.CommandLine = mainFlagSet
-	//flag.Parse()
-	if err := mainFlagSet.Parse(os.Args[1:]); err != nil {
-		return nil, err
-	}
+	// Apply initial logging settings based on any provided CLI flags
+	config.configureLogging()
 
 	// If no errors were encountered during parsing, proceed to validation of
 	// configuration settings (both user-specified and defaults)
 	if err := validate(config); err != nil {
-		mainFlagSet.Usage()
+		flag.Usage()
 		return nil, err
 	}
 
 	return &config, nil
 
+}
+
+// configureLogging is a wrapper function to enable setting requested logging
+// settings.
+func (c Config) configureLogging() {
+
+	var logOutput *os.File
+
+	switch c.LogOutput {
+	case LogOutputStderr:
+		logOutput = os.Stderr
+	case LogOutputStdout:
+		logOutput = os.Stdout
+	}
+
+	switch c.LogFormat {
+	case LogFormatCLI:
+		log.SetHandler(cli.New(logOutput))
+	case LogFormatJSON:
+		log.SetHandler(json.New(logOutput))
+	case LogFormatLogFmt:
+		log.SetHandler(logfmt.New(logOutput))
+	case LogFormatText:
+		log.SetHandler(text.New(logOutput))
+	case LogFormatDiscard:
+		log.SetHandler(discard.New())
+	}
+
+	switch c.LogLevel {
+	case LogLevelFatal:
+		log.SetLevel(log.FatalLevel)
+	case LogLevelError:
+		log.SetLevel(log.ErrorLevel)
+	case LogLevelWarn:
+		log.SetLevel(log.WarnLevel)
+	case LogLevelInfo:
+		log.SetLevel(log.InfoLevel)
+	case LogLevelDebug:
+		log.SetLevel(log.DebugLevel)
+	}
 }
 
 // validate confirms that all config struct fields have reasonable values
