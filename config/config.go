@@ -101,7 +101,7 @@ const (
 	// NotifyMgrTeamsNotificationDelay is the delay between Microsoft Teams
 	// notification attempts. This delay is intended to help prevent
 	// unintentional abuse of remote services.
-	NotifyMgrTeamsNotificationDelay time.Duration = 5 * time.Second
+	NotifyMgrTeamsNotificationDelay time.Duration = 60 * time.Second
 
 	// NotifyMgrEmailNotificationDelay is the delay between email notification
 	// attempts. This delay is intended to help prevent unintentional abuse of

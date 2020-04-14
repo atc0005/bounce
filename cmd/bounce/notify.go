@@ -268,6 +268,32 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 			log.Debug("StartNotifyMgr (qstats): Running")
 
+			queuesToMonitor := []struct {
+				Name  string
+				Queue interface{}
+			}{
+				{
+					Name:  "notifyWorkQueue",
+					Queue: notifyWorkQueue,
+				},
+				{
+					Name:  "emailNotifyWorkQueue",
+					Queue: emailNotifyWorkQueue,
+				},
+				{
+					Name:  "emailNotifyResultQueue",
+					Queue: emailNotifyResultQueue,
+				},
+				{
+					Name:  "teamsNotifyWorkQueue",
+					Queue: teamsNotifyWorkQueue,
+				},
+				{
+					Name:  "teamsNotifyResultQueue",
+					Queue: teamsNotifyResultQueue,
+				},
+			}
+
 			for {
 				select {
 				case <-ctx.Done():
@@ -279,36 +305,70 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 				// Show stats only for queues with content
 				case <-time.After(config.NotifyMgrStatsDelay):
 
-					queuedItems := false
+					var itemsFound bool
+					//log.Debugf("Length of queuesToMonitor: %d", len(queuesToMonitor))
+					for i := range queuesToMonitor {
 
-					if len(notifyWorkQueue) > 0 {
-						queuedItems = true
-						log.Warnf("StartNotifyMgr (qstats): %d items in notifyWorkQueue", len(notifyWorkQueue))
+						var queueLength int
+						switch queue := queuesToMonitor[i].Queue.(type) {
+
+						// FIXME: How can I match on either type?
+						case chan echoHandlerResponse:
+							queueLength = len(queue)
+
+						case <-chan echoHandlerResponse:
+							queueLength = len(queue)
+
+						case chan NotifyResult:
+							queueLength = len(queue)
+
+						default:
+							log.Warn("Default case triggered (this should not happen")
+							log.Warnf("Name of channel: %s", queuesToMonitor[i].Name)
+
+						}
+
+						if queueLength > 0 {
+							itemsFound = true
+							log.Warnf("StartNotifyMgr (qstats): %d items in %s",
+								queueLength, queuesToMonitor[i].Name)
+							continue
+						}
+
 					}
 
-					if len(emailNotifyWorkQueue) > 0 {
-						queuedItems = true
-						log.Warnf("StartNotifyMgr (qstats): %d items in emailNotifyWorkQueue", len(emailNotifyWorkQueue))
-					}
-
-					if len(emailNotifyResultQueue) > 0 {
-						queuedItems = true
-						log.Warnf("StartNotifyMgr (qstats): %d items in emailNotifyResultQueue", len(emailNotifyResultQueue))
-					}
-
-					if len(teamsNotifyWorkQueue) > 0 {
-						queuedItems = true
-						log.Warnf("StartNotifyMgr (qstats): %d items in teamsNotifyWorkQueue", len(teamsNotifyWorkQueue))
-					}
-
-					if len(teamsNotifyResultQueue) > 0 {
-						queuedItems = true
-						log.Warnf("StartNotifyMgr (qstats): %d items in teamsNotifyResultQueue", len(teamsNotifyResultQueue))
-					}
-
-					if !queuedItems {
+					if !itemsFound {
 						log.Warn("StartNotifyMgr (qstats): 0 items in any monitored queues")
 					}
+
+					// if len(notifyWorkQueue) > 0 {
+					// 	queuedItems = true
+					// 	log.Warnf("StartNotifyMgr (qstats): %d items in notifyWorkQueue", len(notifyWorkQueue))
+					// }
+
+					// if len(emailNotifyWorkQueue) > 0 {
+					// 	queuedItems = true
+					// 	log.Warnf("StartNotifyMgr (qstats): %d items in emailNotifyWorkQueue", len(emailNotifyWorkQueue))
+					// }
+
+					// if len(emailNotifyResultQueue) > 0 {
+					// 	queuedItems = true
+					// 	log.Warnf("StartNotifyMgr (qstats): %d items in emailNotifyResultQueue", len(emailNotifyResultQueue))
+					// }
+
+					// if len(teamsNotifyWorkQueue) > 0 {
+					// 	queuedItems = true
+					// 	log.Warnf("StartNotifyMgr (qstats): %d items in teamsNotifyWorkQueue", len(teamsNotifyWorkQueue))
+					// }
+
+					// if len(teamsNotifyResultQueue) > 0 {
+					// 	queuedItems = true
+					// 	log.Warnf("StartNotifyMgr (qstats): %d items in teamsNotifyResultQueue", len(teamsNotifyResultQueue))
+					// }
+
+					// if !queuedItems {
+					// 	log.Warn("StartNotifyMgr (qstats): 0 items in any monitored queues")
+					// }
 
 					// Show stats for all queues at a longer interval
 					// case <-time.After(config.NotifyMgrStatsDelay * time.Duration(2)):
