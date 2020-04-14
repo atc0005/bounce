@@ -67,6 +67,7 @@ func teamsNotifier(
 			// Wait for specified amount of time before attempting notification.
 			// This is done in an effort to prevent unintentional abuse of
 			// remote services
+			log.Debugf("teamsNotifier: Waiting for %v before processing new request", config.NotifyMgrTeamsNotificationDelay)
 			time.Sleep(config.NotifyMgrTeamsNotificationDelay)
 
 			// launch task in separate goroutine
@@ -212,17 +213,18 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 	log.Debug("StartNotifyMgr: Running")
 
-	// Create channels to hand-off echoHandlerResponse values for
-	// processing. Due to my ignorance of channels, I believe that I'll need
-	// separate channels for each service. E.g., one channel for Microsoft
-	// Teams outgoing notifications, another for email and so on.
-
-	teamsNotifyWorkQueue := make(chan echoHandlerResponse)
-	teamsNotifyResultQueue := make(chan NotifyResult)
+	// Create separate, buffered channels to hand-off echoHandlerResponse
+	// values for processing for each service, e.g., one channel for Microsoft
+	// Teams outgoing notifications, another for email and so on. Buffered
+	// channels are used both to enable async tasks and to provide a means of
+	// monitoring the number of items queued for each channel; unbuffered
+	// channels have a queue depth (and thus length) of 0.
+	teamsNotifyWorkQueue := make(chan echoHandlerResponse, 10)
+	teamsNotifyResultQueue := make(chan NotifyResult, 10)
 	teamsNotifyDone := make(chan struct{})
 
-	emailNotifyWorkQueue := make(chan echoHandlerResponse)
-	emailNotifyResultQueue := make(chan NotifyResult)
+	emailNotifyWorkQueue := make(chan echoHandlerResponse, 10)
+	emailNotifyResultQueue := make(chan NotifyResult, 10)
 	emailNotifyDone := make(chan struct{})
 
 	if !cfg.NotifyTeams() && !cfg.NotifyEmail() {
@@ -256,6 +258,69 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			emailNotifyResultQueue,
 			emailNotifyDone,
 		)
+	}
+
+	// Monitor queues and report stats for each
+	if cfg.NotifyEmail() || cfg.NotifyTeams() {
+
+		// print current queue items periodically
+		go func(ctx context.Context) {
+
+			log.Debug("StartNotifyMgr (qstats): Running")
+
+			for {
+				select {
+				case <-ctx.Done():
+					// returning not to leak the goroutine
+					ctxErr := ctx.Err()
+					log.Debugf("StartNotifyMgr (qstats): Received Done signal: %v, shutting down ...", ctxErr.Error())
+					return
+
+				// Show stats only for queues with content
+				case <-time.After(config.NotifyMgrStatsDelay):
+
+					queuedItems := false
+
+					if len(notifyWorkQueue) > 0 {
+						queuedItems = true
+						log.Warnf("StartNotifyMgr (qstats): %d items in notifyWorkQueue", len(notifyWorkQueue))
+					}
+
+					if len(emailNotifyWorkQueue) > 0 {
+						queuedItems = true
+						log.Warnf("StartNotifyMgr (qstats): %d items in emailNotifyWorkQueue", len(emailNotifyWorkQueue))
+					}
+
+					if len(emailNotifyResultQueue) > 0 {
+						queuedItems = true
+						log.Warnf("StartNotifyMgr (qstats): %d items in emailNotifyResultQueue", len(emailNotifyResultQueue))
+					}
+
+					if len(teamsNotifyWorkQueue) > 0 {
+						queuedItems = true
+						log.Warnf("StartNotifyMgr (qstats): %d items in teamsNotifyWorkQueue", len(teamsNotifyWorkQueue))
+					}
+
+					if len(teamsNotifyResultQueue) > 0 {
+						queuedItems = true
+						log.Warnf("StartNotifyMgr (qstats): %d items in teamsNotifyResultQueue", len(teamsNotifyResultQueue))
+					}
+
+					if !queuedItems {
+						log.Warn("StartNotifyMgr (qstats): 0 items in any monitored queues")
+					}
+
+					// Show stats for all queues at a longer interval
+					// case <-time.After(config.NotifyMgrStatsDelay * time.Duration(2)):
+
+					// 	log.Warnf("StartNotifyMgr (qstats): %d items in notifyWorkQueue", len(notifyWorkQueue))
+					// 	log.Warnf("StartNotifyMgr (qstats): %d items in emailNotifyWorkQueue", len(emailNotifyWorkQueue))
+					// 	log.Warnf("StartNotifyMgr (qstats): %d items in emailNotifyResultQueue", len(emailNotifyResultQueue))
+					// 	log.Warnf("StartNotifyMgr (qstats): %d items in teamsNotifyWorkQueue", len(teamsNotifyWorkQueue))
+					// 	log.Warnf("StartNotifyMgr (qstats): %d items in teamsNotifyResultQueue", len(teamsNotifyResultQueue))
+				}
+			}
+		}(ctx)
 	}
 
 	for {
@@ -340,14 +405,22 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			if cfg.NotifyTeams() {
 				log.Debug("StartNotifyMgr: Handing off responseDetails to teamsNotifyWorkQueue")
 				go func() {
+					log.Debugf("StartNotifyMgr: Existing items in teamsNotifyWorkQueue: %d", len(teamsNotifyWorkQueue))
+					log.Debug("StartNotifyMgr: Pending; placing responseDetails into teamsNotifyWorkQueue")
 					teamsNotifyWorkQueue <- responseDetails
+					log.Debug("StartNotifyMgr: Done; placed responseDetails into teamsNotifyWorkQueue")
+					log.Debugf("StartNotifyMgr: Items now in teamsNotifyWorkQueue: %d", len(teamsNotifyWorkQueue))
 				}()
 			}
 
 			if cfg.NotifyEmail() {
-				log.Debug("StartNotifyMgr: Handing off responseDetails to emailNotifyResultQueue")
+				log.Debug("StartNotifyMgr: Handing off responseDetails to emailNotifyWorkQueue")
 				go func() {
+					log.Debugf("StartNotifyMgr: Existing items in emailNotifyWorkQueue: %d", len(emailNotifyWorkQueue))
+					log.Debug("StartNotifyMgr: Pending; placing responseDetails into emailNotifyWorkQueue")
 					emailNotifyWorkQueue <- responseDetails
+					log.Debug("StartNotifyMgr: Done; placed responseDetails into emailNotifyWorkQueue")
+					log.Debugf("StartNotifyMgr: Items now in emailNotifyWorkQueue: %d", len(emailNotifyWorkQueue))
 				}()
 			}
 

@@ -93,6 +93,11 @@ const (
 	// stub entry to satisfy stub functionality for later use.
 	NotifyMgrEmailTimeout time.Duration = 30 * time.Second
 
+	// NotifyMgrStatsDelay limits stats logging to no more often than this
+	// duration. This limiter is to keep from logging the details so often
+	// that the information simply becomes noise.
+	NotifyMgrStatsDelay time.Duration = 5 * time.Second
+
 	// NotifyMgrTeamsNotificationDelay is the delay between Microsoft Teams
 	// notification attempts. This delay is intended to help prevent
 	// unintentional abuse of remote services.

@@ -457,6 +457,7 @@ and with colorized JSON output enabled:
         Using a 1 deep buffer channel exactly captures this usage pattern.  An
         unbuffered channel would make the worker thread "rendezvous" with the
         main thread, which is unnecessary.*
+  - <https://golang.org/ref/spec#Length_and_capacity>
 
 - Contexts
   - <https://gobyexample.com/context>
