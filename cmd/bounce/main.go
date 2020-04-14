@@ -107,6 +107,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 
 	signal.Notify(quit, os.Interrupt)
+
 	// Where echoHandlerResponse values will be sent for processing. We use a
 	// buffered channel in an effort to reduce the delay for client requests
 	// as much as possible.
@@ -122,7 +123,7 @@ func main() {
 
 	// Setup "listener" to shutdown the running http server when
 	// the parent context has been cancelled
-	go gracefulShutdown(ctx, httpServer, quit, httpDone)
+	go gracefulShutdown(ctx, httpServer, httpDone)
 
 	// Pre-process bundled templates in string/text format to Templates that
 	// our handlers can execute. Based on brief testing, this seems to provide
