@@ -84,7 +84,7 @@ func teamsNotifier(
 				}
 
 				// Success
-				result.Val = "teamsNotifier: Successfully sent message via Microsoft Teams"
+				result.Val = "teamsNotifier: Successfully sent message to Microsoft Teams"
 				log.Info(result.Val)
 				resultQueue <- result
 			}(ctx, webhookURL, responseDetails, ourResultQueue)

@@ -234,8 +234,8 @@ func sendMessage(webhookURL string, msgCard goteamsnotify.MessageCard, retries i
 		return errMsg
 	}
 
-	// Emit basic success message
-	log.Info("sendMessage: Message successfully sent to Microsoft Teams")
+	// Note success for potential troubleshootinge
+	log.Debug("sendMessage: Message successfully sent to Microsoft Teams")
 
 	return nil
 
