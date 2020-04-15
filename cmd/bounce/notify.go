@@ -145,54 +145,66 @@ func teamsNotifier(
 
 		case responseDetails := <-incoming:
 
-			log.Debugf("teamsNotifier: Request received: %#v", responseDetails)
+			log.Debugf("teamsNotifier: Request received at %v: %#v",
+				time.Now(), responseDetails)
 
-			// Wait for specified amount of time before attempting notification.
-			// This is done in an effort to prevent unintentional abuse of
-			// remote services
-			log.Debugf("teamsNotifier: Waiting for %v before processing new request", config.NotifyMgrTeamsNotificationDelay)
-			time.Sleep(config.NotifyMgrTeamsNotificationDelay)
+			log.Debugf("teamsNotifier: Waiting for %v before processing new request",
+				config.NotifyMgrTeamsNotificationDelay)
 
-			// launch task in separate goroutine
-			log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
-			go func(ctx context.Context, webhookURL string, responseDetails echoHandlerResponse, resultQueue chan<- NotifyResult) {
-				ourMessage := createMessage(responseDetails)
-				result := NotifyResult{}
-				if err := sendMessage(webhookURL, ourMessage, retries, retriesDelay); err != nil {
+			// We need to account for the artificial delay we are introducing
+			// between message submission attempts when we set a complete
+			// timeout for sending messages to Teams
+			timeoutValue := config.NotifyMgrTeamsTimeout + config.NotifyMgrTeamsNotificationDelay
+			timeoutTimer := time.NewTimer(timeoutValue)
+			defer timeoutTimer.Stop()
 
-					result = NotifyResult{
-						Err: fmt.Errorf("teamsNotifier: error occurred while trying to send message to Microsoft Teams: %w", err),
-					}
-
-					resultQueue <- result
-				}
-
-				// Success
-				result.Val = "teamsNotifier: Successfully sent message to Microsoft Teams"
-				log.Info(result.Val)
-				resultQueue <- result
-			}(ctx, webhookURL, responseDetails, ourResultQueue)
-
-			// Wait for either the timeout to occur OR a result to come back
-			// from the attempt to send a Teams message.
-
-			t := time.NewTimer(sendTimeout)
-			defer t.Stop()
+			notificationDelayTimer := time.NewTimer(config.NotifyMgrTeamsNotificationDelay)
 
 			select {
-			case <-t.C:
+
+			case <-timeoutTimer.C:
 
 				result := NotifyResult{
-					Err: fmt.Errorf("teamsNotifier: Timeout reached after %v for sending Microsoft Teams notification", sendTimeout),
+					Err: fmt.Errorf(
+						"teamsNotifier: Timeout reached at %v (%v) after %d attempt to send Microsoft Teams notification",
+						time.Now(),
+						sendTimeout,
+						retries+1,
+					),
 				}
 				log.Debug(result.Err.Error())
 				notifyMgrResultQueue <- result
 
-				// TODO
-				// Q: How to actually abandon the Teams message submission?
-				// A: Pass context on to sendMessage() function?
-				//    Update that function to use context?
-				//    Call cancel() and then use continue to loop back around?
+				// move on to the next message
+				continue
+
+			case <-notificationDelayTimer.C:
+				// Wait for specified amount of time before attempting notification.
+				// This is done in an effort to prevent unintentional abuse of
+				// remote services
+
+				// launch task in separate goroutine
+				log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
+				go func(ctx context.Context, webhookURL string, responseDetails echoHandlerResponse, resultQueue chan<- NotifyResult) {
+					ourMessage := createMessage(responseDetails)
+					result := NotifyResult{}
+					if err := sendMessage(ctx, webhookURL, ourMessage, retries, retriesDelay); err != nil {
+
+						result = NotifyResult{
+							Err: fmt.Errorf("teamsNotifier: error occurred while trying to send message to Microsoft Teams: %w", err),
+						}
+
+						resultQueue <- result
+					}
+
+					// Success
+					result.Val = "teamsNotifier: Successfully sent message to Microsoft Teams"
+					log.Info(result.Val)
+					resultQueue <- result
+				}(ctx, webhookURL, responseDetails, ourResultQueue)
+
+				// Wait for either the timeout to occur OR a result to come back
+				// from the attempt to send a Teams message.
 
 			case result := <-ourResultQueue:
 
@@ -207,6 +219,7 @@ func teamsNotifier(
 			}
 
 		}
+
 	}
 
 }
