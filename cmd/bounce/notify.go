@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/apex/log"
@@ -15,6 +16,82 @@ import (
 type NotifyResult struct {
 	Val string
 	Err error
+}
+
+// NotifyQueue represents a channel used to queue input data and responses
+// between the main application, the notifications manager and "notifiers".
+type NotifyQueue struct {
+	// The name of a queue. This is intended for display in log messages.
+	Name string
+
+	// Channel is a channel used to transport input data and responses.
+	Channel interface{}
+}
+
+// notifyQueueMonitor accepts a context and one or many NotifyQueue values to
+// monitor for items yet to be processed. notifyQueueMonitor is intended to be
+// run as a goroutine
+
+func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues ...NotifyQueue) {
+
+	if len(notifyQueues) == 0 {
+		log.Error("received empty list of notifyQueues to monitor, exiting")
+		return
+	}
+
+	log.Debug("notifyQueueMonitor: Running")
+
+	for {
+		select {
+		case <-ctx.Done():
+			// returning not to leak the goroutine
+			ctxErr := ctx.Err()
+			log.Debugf("notifyQueueMonitor: Received Done signal: %v, shutting down ...", ctxErr.Error())
+			return
+
+		// Show stats only for queues with content
+		case <-time.After(delay):
+
+			var itemsFound bool
+			//log.Debugf("Length of queues: %d", len(queues))
+			for _, notifyQueue := range notifyQueues {
+
+				var queueLength int
+				switch queue := notifyQueue.Channel.(type) {
+
+				// FIXME: Is there a generic way to match any channel type
+				// here in order to calculate the length?
+				case chan echoHandlerResponse:
+					queueLength = len(queue)
+
+				case <-chan echoHandlerResponse:
+					queueLength = len(queue)
+
+				case chan NotifyResult:
+					queueLength = len(queue)
+
+				default:
+					log.Warn("Default case triggered (this should not happen")
+					log.Warnf("Name of channel: %s", notifyQueue.Name)
+
+				}
+
+				if queueLength > 0 {
+					itemsFound = true
+					log.Warnf("notifyQueueMonitor: %d items in %s",
+						queueLength, notifyQueue.Name)
+					log.Warnf("%d goroutines running", runtime.NumGoroutine())
+					continue
+				}
+
+			}
+
+			if !itemsFound {
+				log.Warn("notifyQueueMonitor: 0 items in any monitored queues")
+			}
+		}
+	}
+
 }
 
 // teamsNotifier is a persistent goroutine used to receive incoming
@@ -269,124 +346,32 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 	// Monitor queues and report stats for each
 	if cfg.NotifyEmail() || cfg.NotifyTeams() {
 
+		queuesToMonitor := []NotifyQueue{
+			{
+				Name:    "notifyWorkQueue",
+				Channel: notifyWorkQueue,
+			},
+			{
+				Name:    "emailNotifyWorkQueue",
+				Channel: emailNotifyWorkQueue,
+			},
+			{
+				Name:    "emailNotifyResultQueue",
+				Channel: emailNotifyResultQueue,
+			},
+			{
+				Name:    "teamsNotifyWorkQueue",
+				Channel: teamsNotifyWorkQueue,
+			},
+			{
+				Name:    "teamsNotifyResultQueue",
+				Channel: teamsNotifyResultQueue,
+			},
+		}
+
 		// print current queue items periodically
-		go func(ctx context.Context) {
+		go notifyQueueMonitor(ctx, config.NotifyQueueMonitorDelay, queuesToMonitor...)
 
-			log.Debug("StartNotifyMgr (qstats): Running")
-
-			queuesToMonitor := []struct {
-				Name  string
-				Queue interface{}
-			}{
-				{
-					Name:  "notifyWorkQueue",
-					Queue: notifyWorkQueue,
-				},
-				{
-					Name:  "emailNotifyWorkQueue",
-					Queue: emailNotifyWorkQueue,
-				},
-				{
-					Name:  "emailNotifyResultQueue",
-					Queue: emailNotifyResultQueue,
-				},
-				{
-					Name:  "teamsNotifyWorkQueue",
-					Queue: teamsNotifyWorkQueue,
-				},
-				{
-					Name:  "teamsNotifyResultQueue",
-					Queue: teamsNotifyResultQueue,
-				},
-			}
-
-			for {
-				select {
-				case <-ctx.Done():
-					// returning not to leak the goroutine
-					ctxErr := ctx.Err()
-					log.Debugf("StartNotifyMgr (qstats): Received Done signal: %v, shutting down ...", ctxErr.Error())
-					return
-
-				// Show stats only for queues with content
-				case <-time.After(config.NotifyMgrStatsDelay):
-
-					var itemsFound bool
-					//log.Debugf("Length of queuesToMonitor: %d", len(queuesToMonitor))
-					for i := range queuesToMonitor {
-
-						var queueLength int
-						switch queue := queuesToMonitor[i].Queue.(type) {
-
-						// FIXME: How can I match on either type?
-						case chan echoHandlerResponse:
-							queueLength = len(queue)
-
-						case <-chan echoHandlerResponse:
-							queueLength = len(queue)
-
-						case chan NotifyResult:
-							queueLength = len(queue)
-
-						default:
-							log.Warn("Default case triggered (this should not happen")
-							log.Warnf("Name of channel: %s", queuesToMonitor[i].Name)
-
-						}
-
-						if queueLength > 0 {
-							itemsFound = true
-							log.Warnf("StartNotifyMgr (qstats): %d items in %s",
-								queueLength, queuesToMonitor[i].Name)
-							continue
-						}
-
-					}
-
-					if !itemsFound {
-						log.Warn("StartNotifyMgr (qstats): 0 items in any monitored queues")
-					}
-
-					// if len(notifyWorkQueue) > 0 {
-					// 	queuedItems = true
-					// 	log.Warnf("StartNotifyMgr (qstats): %d items in notifyWorkQueue", len(notifyWorkQueue))
-					// }
-
-					// if len(emailNotifyWorkQueue) > 0 {
-					// 	queuedItems = true
-					// 	log.Warnf("StartNotifyMgr (qstats): %d items in emailNotifyWorkQueue", len(emailNotifyWorkQueue))
-					// }
-
-					// if len(emailNotifyResultQueue) > 0 {
-					// 	queuedItems = true
-					// 	log.Warnf("StartNotifyMgr (qstats): %d items in emailNotifyResultQueue", len(emailNotifyResultQueue))
-					// }
-
-					// if len(teamsNotifyWorkQueue) > 0 {
-					// 	queuedItems = true
-					// 	log.Warnf("StartNotifyMgr (qstats): %d items in teamsNotifyWorkQueue", len(teamsNotifyWorkQueue))
-					// }
-
-					// if len(teamsNotifyResultQueue) > 0 {
-					// 	queuedItems = true
-					// 	log.Warnf("StartNotifyMgr (qstats): %d items in teamsNotifyResultQueue", len(teamsNotifyResultQueue))
-					// }
-
-					// if !queuedItems {
-					// 	log.Warn("StartNotifyMgr (qstats): 0 items in any monitored queues")
-					// }
-
-					// Show stats for all queues at a longer interval
-					// case <-time.After(config.NotifyMgrStatsDelay * time.Duration(2)):
-
-					// 	log.Warnf("StartNotifyMgr (qstats): %d items in notifyWorkQueue", len(notifyWorkQueue))
-					// 	log.Warnf("StartNotifyMgr (qstats): %d items in emailNotifyWorkQueue", len(emailNotifyWorkQueue))
-					// 	log.Warnf("StartNotifyMgr (qstats): %d items in emailNotifyResultQueue", len(emailNotifyResultQueue))
-					// 	log.Warnf("StartNotifyMgr (qstats): %d items in teamsNotifyWorkQueue", len(teamsNotifyWorkQueue))
-					// 	log.Warnf("StartNotifyMgr (qstats): %d items in teamsNotifyResultQueue", len(teamsNotifyResultQueue))
-				}
-			}
-		}(ctx)
 	}
 
 	for {
