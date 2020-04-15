@@ -41,6 +41,9 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 
 	log.Debug("notifyQueueMonitor: Running")
 
+	t := time.NewTimer(delay)
+	defer t.Stop()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -50,7 +53,7 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 			return
 
 		// Show stats only for queues with content
-		case <-time.After(delay):
+		case <-t.C:
 
 			var itemsFound bool
 			//log.Debugf("Length of queues: %d", len(queues))
@@ -263,9 +266,12 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 				resultQueue <- result
 			}(ourResultQueue)
 
+			t := time.NewTimer(sendTimeout)
+			defer t.Stop()
+
 			select {
 
-			case <-time.After(sendTimeout):
+			case <-t.C:
 
 				result := NotifyResult{
 					Err: fmt.Errorf("emailNotifier: Timeout reached after %v for sending email notification", sendTimeout),
