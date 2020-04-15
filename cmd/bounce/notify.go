@@ -173,8 +173,11 @@ func teamsNotifier(
 			// Wait for either the timeout to occur OR a result to come back
 			// from the attempt to send a Teams message.
 
+			t := time.NewTimer(sendTimeout)
+			defer t.Stop()
+
 			select {
-			case <-time.After(sendTimeout):
+			case <-t.C:
 
 				result := NotifyResult{
 					Err: fmt.Errorf("teamsNotifier: Timeout reached after %v for sending Microsoft Teams notification", sendTimeout),
