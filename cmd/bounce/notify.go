@@ -229,6 +229,12 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 	if !cfg.NotifyTeams() && !cfg.NotifyEmail() {
 		log.Debug("StartNotifyMgr: Teams and email notifications not requested, not starting notifier goroutines")
+		// NOTE: Do not return/exit here.
+		//
+		// We cannot return/exit the function here because StartNotifyMgr HAS
+		// to run in order to keep the notifyWorkQueue from filling up and
+		// blocking other parts of this application that send messages to this
+		// channel.
 	}
 
 	// If enabled, start persistent goroutine to process request details and
