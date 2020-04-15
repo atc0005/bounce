@@ -119,6 +119,15 @@ func teamsNotifier(
 	// used by goroutines called by this function to return results
 	ourResultQueue := make(chan NotifyResult)
 
+	// We need to account for the artificial delay we are introducing
+	// between message submission attempts when we set a complete
+	// timeout for sending messages to Teams
+	timeoutValue := config.NotifyMgrTeamsTimeout + config.NotifyMgrTeamsNotificationDelay
+	timeoutTimer := time.NewTimer(timeoutValue)
+	defer timeoutTimer.Stop()
+
+	notificationDelayTimer := time.NewTimer(config.NotifyMgrTeamsNotificationDelay)
+
 	for {
 
 		select {
@@ -150,15 +159,6 @@ func teamsNotifier(
 
 			log.Debugf("teamsNotifier: Waiting for %v before processing new request",
 				config.NotifyMgrTeamsNotificationDelay)
-
-			// We need to account for the artificial delay we are introducing
-			// between message submission attempts when we set a complete
-			// timeout for sending messages to Teams
-			timeoutValue := config.NotifyMgrTeamsTimeout + config.NotifyMgrTeamsNotificationDelay
-			timeoutTimer := time.NewTimer(timeoutValue)
-			defer timeoutTimer.Stop()
-
-			notificationDelayTimer := time.NewTimer(config.NotifyMgrTeamsNotificationDelay)
 
 			select {
 
