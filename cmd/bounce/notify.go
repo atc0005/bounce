@@ -170,6 +170,15 @@ func teamsNotifier(
 
 		case responseDetails := <-incoming:
 
+			// TODO: Do we need to also check context state here?
+			//
+			// i.e.g, if there is a message waiting *and* ctx.Done() case
+			// statements are both valid, either path could be taken. If this
+			// one is taken, then the message send timeout will be the only
+			// thing forcing the attempt to loop back around and trigger the
+			// ctx.Done() path, but only if this one isn't taken again by the
+			// random case selection logic
+
 			log.Debugf("teamsNotifier: Request received at %v: %#v",
 				time.Now(), responseDetails)
 

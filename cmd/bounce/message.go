@@ -225,6 +225,9 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 	}
 
 	t := time.NewTimer(time.Duration(retriesDelay) * time.Second)
+
+	// NOTE: Should be safe to call t.Stop() via defer vs also calling within
+	// <-ctx.Done() case statement.
 	defer t.Stop()
 
 	select {
@@ -236,6 +239,8 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 		return msg
 
 	// delay between message submission attempts
+	// FIXME: Are we delaying twice? This one will *always* delay, regardless
+	// of whether the attempt is the first one or not
 	case <-t.C:
 
 		// Submit message card, retry submission if needed up to specified number
