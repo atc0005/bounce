@@ -231,6 +231,8 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 	log.Debugf("sendMessage: notificationDelayTimer created with duration %v",
 		config.NotifyMgrTeamsNotificationDelay)
 
+	log.Debug("sendMessage: Waiting for either context or notificationDelayTimer to expire before sending notification")
+
 	select {
 	case <-ctx.Done():
 		// returning not to leak the goroutine
