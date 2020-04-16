@@ -214,6 +214,7 @@ func teamsNotifier(
 					}
 
 					resultQueue <- result
+					return
 				}
 
 				// Success
