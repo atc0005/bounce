@@ -10,6 +10,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/apex/log"
@@ -30,6 +31,27 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	const ClientRequestErrorsRecorded = "Errors recorded for client request"
 	const ClientRequestErrorsNotFound = "No errors recorded for client request"
+
+	// FIXME: Pull this out as a separate helper function?
+	// FIXME: Rework and offer upstream?
+	addFactPair := func(msg *goteamsnotify.MessageCard, section *goteamsnotify.MessageCardSection, key string, values ...string) {
+
+		if err := section.AddFactFromKeyValue(
+			key,
+			values...,
+		); err != nil {
+
+			// runtime.Caller(skip int) (pc uintptr, file string, line int, ok bool)
+			_, file, line, ok := runtime.Caller(0)
+			from := fmt.Sprintf("createMessage [file %s, line %d]:", file, line)
+			if !ok {
+				from = "createMessage:"
+			}
+			errMsg := fmt.Sprintf("%s error returned from attempt to add fact from key/value pair: %v", from, err)
+			log.Errorf("%s %s", from, errMsg)
+			msg.Text = msg.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
+		}
+	}
 
 	// build MessageCard for submission
 	msgCard := goteamsnotify.NewMessageCard()
@@ -65,25 +87,10 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	clientRequestSummarySection.Title = "## Client Request Summary"
 	clientRequestSummarySection.StartGroup = true
 
-	clientRequestSummarySection.AddFactFromKeyValue(
-		"Received at",
-		send2teams.TryToFormatAsCodeSnippet(responseDetails.Datestamp),
-	)
-
-	clientRequestSummarySection.AddFactFromKeyValue(
-		"Endpoint path",
-		send2teams.TryToFormatAsCodeSnippet(responseDetails.EndpointPath),
-	)
-
-	clientRequestSummarySection.AddFactFromKeyValue(
-		"HTTP Method",
-		send2teams.TryToFormatAsCodeSnippet(responseDetails.HTTPMethod),
-	)
-
-	clientRequestSummarySection.AddFactFromKeyValue(
-		"Client IP Address",
-		send2teams.TryToFormatAsCodeSnippet(responseDetails.ClientIPAddress),
-	)
+	addFactPair(&msgCard, clientRequestSummarySection, "Received at", responseDetails.Datestamp)
+	addFactPair(&msgCard, clientRequestSummarySection, "Endpoint path", responseDetails.EndpointPath)
+	addFactPair(&msgCard, clientRequestSummarySection, "HTTP Method", responseDetails.HTTPMethod)
+	addFactPair(&msgCard, clientRequestSummarySection, "Client IP Address", responseDetails.ClientIPAddress)
 
 	if err := msgCard.AddSection(clientRequestSummarySection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add clientRequestSummarySection: %v", err)
@@ -132,41 +139,27 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	// Don't add this section if there are no errors to show
 	if responseDetails.RequestError != "" {
-
 		responseErrorsSection.Text = ""
-		responseErrorsSection.AddFactFromKeyValue(
-			"RequestError",
-			//send2teams.TryToFormatAsCodeSnippet(responseDetails.RequestError),
-			send2teams.ConvertEOLToBreak(responseDetails.RequestError),
-		)
+		addFactPair(&msgCard, responseErrorsSection, "RequestError",
+			send2teams.ConvertEOLToBreak(responseDetails.RequestError))
 	}
 
 	if responseDetails.BodyError != "" {
-
 		responseErrorsSection.Text = ClientRequestErrorsRecorded
-		responseErrorsSection.AddFactFromKeyValue(
-			"BodyError",
-			send2teams.ConvertEOLToBreak(responseDetails.BodyError),
-		)
+		addFactPair(&msgCard, responseErrorsSection, "BodyError",
+			send2teams.ConvertEOLToBreak(responseDetails.BodyError))
 	}
 
 	if responseDetails.ContentTypeError != "" {
-
 		responseErrorsSection.Text = ClientRequestErrorsRecorded
-		responseErrorsSection.AddFactFromKeyValue(
-			"ContentTypeError",
-			send2teams.ConvertEOLToBreak(responseDetails.ContentTypeError),
-		)
+		addFactPair(&msgCard, responseErrorsSection, "ContentTypeError",
+			send2teams.ConvertEOLToBreak(responseDetails.ContentTypeError))
 	}
 
 	if responseDetails.FormattedBodyError != "" {
-
 		responseErrorsSection.Text = ClientRequestErrorsRecorded
-		responseErrorsSection.AddFactFromKeyValue(
-			"FormattedBodyError",
-			send2teams.ConvertEOLToBreak(responseDetails.FormattedBodyError),
-		)
-
+		addFactPair(&msgCard, responseErrorsSection, "FormattedBodyError",
+			send2teams.ConvertEOLToBreak(responseDetails.FormattedBodyError))
 	}
 
 	if err := msgCard.AddSection(responseErrorsSection); err != nil {
@@ -196,7 +189,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 			// the available index value
 			values[index] = send2teams.TryToFormatAsCodeSnippet(value)
 		}
-		clientRequestHeadersSection.AddFactFromKeyValue(header, values...)
+		addFactPair(&msgCard, clientRequestHeadersSection, header, values...)
 	}
 
 	if err := msgCard.AddSection(clientRequestHeadersSection); err != nil {
