@@ -134,17 +134,21 @@ func teamsNotifier(
 	// between message submission attempts when we set a complete
 	// timeout for sending messages to Teams
 	timeoutValue := config.NotifyMgrTeamsTimeout + config.NotifyMgrTeamsNotificationDelay
-	timeoutTimer := time.NewTimer(timeoutValue)
-	defer timeoutTimer.Stop()
-
-	notificationDelayTimer := time.NewTimer(config.NotifyMgrTeamsNotificationDelay)
-	defer notificationDelayTimer.Stop()
 
 	for {
+
+		// one-time events, have to recreate timer on each iteration
+		timeoutTimer := time.NewTimer(timeoutValue)
+		notificationDelayTimer := time.NewTimer(config.NotifyMgrTeamsNotificationDelay)
 
 		select {
 
 		case <-ctx.Done():
+
+			// stop timers
+			notificationDelayTimer.Stop()
+			timeoutTimer.Stop()
+
 			// returning not to leak the goroutine
 
 			ctxErr := ctx.Err()
