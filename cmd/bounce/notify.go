@@ -132,31 +132,38 @@ func teamsNotifier(
 	done chan<- struct{},
 ) {
 
+	// TODO: Replace config package constant references with function parameters?
+
 	log.Debug("teamsNotifier: Running")
 
 	// used by goroutines called by this function to return results
 	ourResultQueue := make(chan NotifyResult)
 
-	// We need to account for the artificial delay we are introducing
-	// between message submission attempts when we set a complete
-	// timeout for sending messages to Teams
-	timeoutValue := config.NotifyMgrTeamsTimeout + config.NotifyMgrTeamsNotificationDelay
+	// We need to account for multiple factors when we set a complete
+	// timeout for sending messages to Teams:
+	//
+	// - the base timeout value for a single message submission attempt
+	// - the delay we are enforcing between message submission attempts
+	// - the total number of retries allowed
+	// - the delay between retry attempts
+	timeoutValue := (config.NotifyMgrTeamsTimeout +
+		config.NotifyMgrTeamsNotificationDelay +
+		time.Duration(retriesDelay)) * time.Duration(retries)
 
 	for {
 
+		// FIXME: The timer handling needs additional testing (very little has been done so far)
+
 		// one-time events, have to recreate timer on each iteration
 		timeoutTimer := time.NewTimer(timeoutValue)
-		notificationDelayTimer := time.NewTimer(config.NotifyMgrTeamsNotificationDelay)
+		log.Debugf("teamsNotifier: timeoutTimer created with duration %v", timeoutValue)
 
 		select {
 
 		case <-ctx.Done():
 
-			// stop timers
-			notificationDelayTimer.Stop()
+			// stop all timers
 			timeoutTimer.Stop()
-
-			// returning not to leak the goroutine
 
 			ctxErr := ctx.Err()
 			result := NotifyResult{
@@ -193,35 +200,37 @@ func teamsNotifier(
 			log.Debugf("teamsNotifier: Waiting for %v before processing new request",
 				config.NotifyMgrTeamsNotificationDelay)
 
+			log.Debug("teamsNotifier: Checking context to determine whether we should proceed")
+			if ctx.Err() != nil {
+				log.Debug("teamsNotifier: context has been cancelled, aborting notification attempt")
+				continue
+			}
+			log.Debug("teamsNotifier: context not cancelled, proceeding with notification attempt")
+
+			// launch task in separate goroutine
+			log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
+			go func(ctx context.Context, webhookURL string, clientRequest clientRequestDetails, resultQueue chan<- NotifyResult) {
+				ourMessage := createMessage(clientRequest)
+				result := NotifyResult{}
+				if err := sendMessage(ctx, webhookURL, ourMessage, retries, retriesDelay); err != nil {
+
+					result = NotifyResult{
+						Err: fmt.Errorf("teamsNotifier: error occurred while trying to send message to Microsoft Teams: %w", err),
+					}
+
+					resultQueue <- result
+				}
+
+				// Success
+				result.Val = "teamsNotifier: Successfully sent message to Microsoft Teams"
+				log.Info(result.Val)
+				resultQueue <- result
+			}(ctx, webhookURL, clientRequest, ourResultQueue)
+
 			select {
 
-			/*****************************************************************
-				FIXME: Nested ctx.Done() case statement seems "wrong". This
-				nested and parent select block needs further review.
-			*****************************************************************/
-
-			case <-ctx.Done():
-				// returning not to leak the goroutine
-
-				log.Debug("FIXME: teamsNotifier: Within tested ctx.Done() case statement")
-
-				ctxErr := ctx.Err()
-				result := NotifyResult{
-					Val: fmt.Sprintf("teamsNotifier: Received Done signal: %v, shutting down", ctxErr.Error()),
-				}
-				log.Debug(result.Val)
-
-				log.Debug("teamsNotifier: Sending back results")
-				notifyMgrResultQueue <- result
-
-				log.Debug("teamsNotifier: Closing notifyMgrResultQueue channel to signal shutdown")
-				close(notifyMgrResultQueue)
-
-				log.Debug("teamsNotifier: Closing done channel to signal shutdown")
-				close(done)
-				log.Debug("teamsNotifier: done channel closed, returning")
-				return
-
+			// timeout for the entire message submission
+			// if this occurs we just move on to the next message
 			case <-timeoutTimer.C:
 
 				result := NotifyResult{
@@ -234,37 +243,7 @@ func teamsNotifier(
 				}
 				log.Debug(result.Err.Error())
 				notifyMgrResultQueue <- result
-
-				// move on to the next message
 				continue
-
-			case <-notificationDelayTimer.C:
-				// Wait for specified amount of time before attempting notification.
-				// This is done in an effort to prevent unintentional abuse of
-				// remote services
-
-				// launch task in separate goroutine
-				log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
-				go func(ctx context.Context, webhookURL string, clientRequest clientRequestDetails, resultQueue chan<- NotifyResult) {
-					ourMessage := createMessage(clientRequest)
-					result := NotifyResult{}
-					if err := sendMessage(ctx, webhookURL, ourMessage, retries, retriesDelay); err != nil {
-
-						result = NotifyResult{
-							Err: fmt.Errorf("teamsNotifier: error occurred while trying to send message to Microsoft Teams: %w", err),
-						}
-
-						resultQueue <- result
-					}
-
-					// Success
-					result.Val = "teamsNotifier: Successfully sent message to Microsoft Teams"
-					log.Info(result.Val)
-					resultQueue <- result
-				}(ctx, webhookURL, clientRequest, ourResultQueue)
-
-				// Wait for either the timeout to occur OR a result to come back
-				// from the attempt to send a Teams message.
 
 			case result := <-ourResultQueue:
 

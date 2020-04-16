@@ -224,11 +224,10 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 		return fmt.Errorf("webhookURL not defined, skipping message submission to Microsoft Teams channel")
 	}
 
-	t := time.NewTimer(time.Duration(retriesDelay) * time.Second)
-
-	// NOTE: Should be safe to call t.Stop() via defer vs also calling within
-	// <-ctx.Done() case statement.
-	defer t.Stop()
+	notificationDelayTimer := time.NewTimer(config.NotifyMgrTeamsNotificationDelay)
+	defer notificationDelayTimer.Stop()
+	log.Debugf("sendMessage: notificationDelayTimer created with duration %v",
+		config.NotifyMgrTeamsNotificationDelay)
 
 	select {
 	case <-ctx.Done():
@@ -238,10 +237,11 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 		log.Error(msg.Error())
 		return msg
 
-	// delay between message submission attempts
-	// FIXME: Are we delaying twice? This one will *always* delay, regardless
-	// of whether the attempt is the first one or not
-	case <-t.C:
+	// Delay between message submission attempts; this will *always*
+	// delay, regardless of whether the attempt is the first one or not
+	case <-notificationDelayTimer.C:
+
+		log.Debug("sendMessage: Waited %v before notification attempt")
 
 		// Submit message card, retry submission if needed up to specified number
 		// of retry attempts.
