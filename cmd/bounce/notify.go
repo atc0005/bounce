@@ -178,6 +178,33 @@ func teamsNotifier(
 
 			select {
 
+			/*****************************************************************
+				FIXME: Nested ctx.Done() case statement seems "wrong". This
+				nested and parent select block needs further review.
+			*****************************************************************/
+
+			case <-ctx.Done():
+				// returning not to leak the goroutine
+
+				log.Debug("FIXME: teamsNotifier: Within tested ctx.Done() case statement")
+
+				ctxErr := ctx.Err()
+				result := NotifyResult{
+					Val: fmt.Sprintf("teamsNotifier: Received Done signal: %v, shutting down", ctxErr.Error()),
+				}
+				log.Debug(result.Val)
+
+				log.Debug("teamsNotifier: Sending back results")
+				notifyMgrResultQueue <- result
+
+				log.Debug("teamsNotifier: Closing notifyMgrResultQueue channel to signal shutdown")
+				close(notifyMgrResultQueue)
+
+				log.Debug("teamsNotifier: Closing done channel to signal shutdown")
+				close(done)
+				log.Debug("teamsNotifier: done channel closed, returning")
+				return
+
 			case <-timeoutTimer.C:
 
 				result := NotifyResult{
