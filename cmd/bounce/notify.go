@@ -52,17 +52,18 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 
 		// log.Debug("notifyQueueMonitor: Starting loop")
 
+		// block until:
+		//	- context cancellation
+		//	- timer fires
 		select {
 		case <-ctx.Done():
-
 			t.Stop()
-
-			// returning not to leak the goroutine
-			ctxErr := ctx.Err()
-			log.Debugf("notifyQueueMonitor: Received Done signal: %v, shutting down ...", ctxErr.Error())
+			log.Debugf(
+				"notifyQueueMonitor: Received Done signal: %v, shutting down ...",
+				ctx.Err().Error(),
+			)
 			return
 
-		// Show stats only for queues with content
 		case <-t.C:
 
 			// log.Debug("notifyQueueMonitor: Timer fired")
@@ -96,6 +97,7 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 
 				}
 
+				// Show stats only for queues with content
 				if queueLength > 0 {
 					itemsFound = true
 					log.Warnf("notifyQueueMonitor: %d items in %s",
