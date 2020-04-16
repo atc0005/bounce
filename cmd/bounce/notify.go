@@ -100,10 +100,8 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 				// Show stats only for queues with content
 				if queueLength > 0 {
 					itemsFound = true
-					log.Debugf("notifyQueueMonitor: %d items in %s",
-						queueLength, notifyQueue.Name)
-					log.Debugf("notifyQueueMonitor: %d goroutines running",
-						runtime.NumGoroutine())
+					log.Debugf("notifyQueueMonitor: %d items in %s, %d goroutines running",
+						queueLength, notifyQueue.Name, runtime.NumGoroutine)
 					continue
 				}
 
