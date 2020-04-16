@@ -343,6 +343,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 	// If enabled, start persistent goroutine to process request details and
 	// submit messages to Microsoft Teams.
 	if cfg.NotifyTeams() {
+		log.Debug("StartNotifyMgr: Teams notifications enabled")
 		log.Debug("StartNotifyMgr: Starting up teamsNotifier")
 		go teamsNotifier(
 			ctx,
@@ -359,6 +360,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 	// If enabled, start persistent goroutine to process request details and
 	// submit messages by email.
 	if cfg.NotifyEmail() {
+		log.Debug("StartNotifyMgr: Email notifications enabled")
 		log.Debug("StartNotifyMgr: Starting up emailNotifier")
 		go emailNotifier(
 			ctx,
