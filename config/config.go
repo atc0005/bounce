@@ -89,7 +89,11 @@ const NotifyMgrServicesShutdownTimeout time.Duration = 2 * time.Second
 const (
 
 	// NotifyMgrTeamsTimeout is the timeout setting applied to each Microsoft
-	// Teams notification attempt.
+	// Teams notification attempt. This value does NOT take into account the
+	// number of configured retries and retry delays. The final value timeout
+	// applied to each notification attempt should be based on those
+	// calculations.
+	//
 	// FIXME: Look into propagating this to the teamsClient object used by
 	// the go-teams-notify package (both fork and upstream).
 	NotifyMgrTeamsTimeout time.Duration = 10 * time.Second
