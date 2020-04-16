@@ -295,11 +295,7 @@ func (c Config) NotifyTeams() bool {
 	// For now, use the same logic that validate() uses to determine whether
 	// validation checks should be run: Is c.WebhookURL set to a non-empty
 	// string.
-	if c.WebhookURL != "" {
-		return true
-	}
-
-	return false
+	return c.WebhookURL != ""
 
 }
 
