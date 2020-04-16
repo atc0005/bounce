@@ -192,10 +192,6 @@ func teamsNotifier(
 			log.Debugf("teamsNotifier: Request received at %v: %#v",
 				time.Now(), clientRequest)
 
-			// TODO: Move this to the location where the delay is enforced
-			log.Debugf("teamsNotifier: Waiting for %v before processing new request",
-				config.NotifyMgrTeamsNotificationDelay)
-
 			log.Debug("teamsNotifier: Checking context to determine whether we should proceed")
 			if ctx.Err() != nil {
 				log.Debug("teamsNotifier: context has been cancelled, aborting notification attempt")
