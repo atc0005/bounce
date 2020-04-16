@@ -152,18 +152,9 @@ func teamsNotifier(
 
 	for {
 
-		// FIXME: The timer handling needs additional testing (very little has been done so far)
-
-		// one-time events, have to recreate timer on each iteration
-		timeoutTimer := time.NewTimer(timeoutValue)
-		log.Debugf("teamsNotifier: timeoutTimer created with duration %v", timeoutValue)
-
 		select {
 
 		case <-ctx.Done():
-
-			// stop all timers
-			timeoutTimer.Stop()
 
 			ctxErr := ctx.Err()
 			result := NotifyResult{
@@ -184,6 +175,11 @@ func teamsNotifier(
 
 		case clientRequest := <-incoming:
 
+			// FIXME: The timer handling needs additional testing (very little has been done so far)
+			// one-time events, have to recreate timer on each iteration
+			timeoutTimer := time.NewTimer(timeoutValue)
+			log.Debugf("teamsNotifier: timeoutTimer created with duration %v", timeoutValue)
+
 			// TODO: Do we need to also check context state here?
 			//
 			// i.e.g, if there is a message waiting *and* ctx.Done() case
@@ -203,6 +199,9 @@ func teamsNotifier(
 			log.Debug("teamsNotifier: Checking context to determine whether we should proceed")
 			if ctx.Err() != nil {
 				log.Debug("teamsNotifier: context has been cancelled, aborting notification attempt")
+
+				// stop all timers
+				timeoutTimer.Stop()
 				continue
 			}
 			log.Debug("teamsNotifier: context not cancelled, proceeding with notification attempt")
