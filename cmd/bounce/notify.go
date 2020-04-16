@@ -207,7 +207,6 @@ func teamsNotifier(
 			go func(ctx context.Context, webhookURL string, clientRequest clientRequestDetails, resultQueue chan<- NotifyResult) {
 				ourMessage := createMessage(clientRequest)
 				resultQueue <- sendMessage(ctx, webhookURL, ourMessage, retries, retriesDelay)
-				return
 			}(ctx, webhookURL, clientRequest, ourResultQueue)
 
 			select {
