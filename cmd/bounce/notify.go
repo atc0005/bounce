@@ -485,6 +485,8 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			// Process any waiting results before blocking and waiting
 			// on final completion response from notifier goroutines
 			if cfg.NotifyTeams() {
+				log.Debug("Teams notifications are enabled, shutting down teamsNotifier")
+
 				log.Debug("Ranging over teamsNotifyResultQueue")
 				for result := range teamsNotifyResultQueue {
 					evalResults("teamsNotifyResultQueue", result)
@@ -502,7 +504,8 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			}
 
 			if cfg.NotifyEmail() {
-				log.Debug("Email notifications are enabled")
+				log.Debug("Email notifications are enabled, shutting down emailNotifier")
+
 				log.Debug("Ranging over emailNotifyResultQueue")
 				for result := range emailNotifyResultQueue {
 					evalResults("emailNotifyResultQueue", result)
