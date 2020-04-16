@@ -490,10 +490,15 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 					evalResults("teamsNotifyResultQueue", result)
 				}
 
-				// TODO: Use select block with timeout here?
 				log.Debug("StartNotifyMgr: Waiting on teamsNotifyDone")
-				<-teamsNotifyDone
-				log.Debug("StartNotifyMgr: Received from teamsNotifyDone")
+				select {
+				case <-teamsNotifyDone:
+					log.Debug("StartNotifyMgr: Received from teamsNotifyDone")
+				case <-time.After(config.NotifyMgrServicesShutdownTimeout):
+					log.Debug("StartNotifyMgr: Timeout occurred while waiting for teamsNotifyDone")
+					log.Debug("StartNotifyMgr: Proceeding with shutdown")
+				}
+
 			}
 
 			if cfg.NotifyEmail() {
@@ -503,10 +508,15 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 					evalResults("emailNotifyResultQueue", result)
 				}
 
-				// TODO: Use select block with timeout here?
 				log.Debug("StartNotifyMgr: Waiting on emailNotifyDone")
-				<-emailNotifyDone
-				log.Debug("StartNotifyMgr: Received from emailNotifyDone")
+				select {
+				case <-emailNotifyDone:
+					log.Debug("StartNotifyMgr: Received from emailNotifyDone")
+				case <-time.After(config.NotifyMgrServicesShutdownTimeout):
+					log.Debug("StartNotifyMgr: Timeout occurred while waiting for emailNotifyDone")
+					log.Debug("StartNotifyMgr: Proceeding with shutdown")
+				}
+
 			}
 
 			log.Debug("StartNotifyMgr: Closing done channel")

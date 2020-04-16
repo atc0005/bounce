@@ -79,6 +79,11 @@ const (
 // terminating.
 const HTTPServerShutdownTimeout time.Duration = 30 * time.Second
 
+// NotifyMgrServicesShutdownTimeout is used by the NotifyMgr to determine how
+// long it should wait for results from each notifier or notifier "service"
+// before continuing on with the shutdown process.
+const NotifyMgrServicesShutdownTimeout time.Duration = 2 * time.Second
+
 // Timing-related settings (delays, timeouts) used by our notification manager
 // when using goroutines to concurrently process notification requests.
 const (
