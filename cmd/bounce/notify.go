@@ -14,7 +14,13 @@ import (
 // inspect the status of various tasks so that we can take action on either
 // error or success conditions
 type NotifyResult struct {
+
+	// Val is the non-error condition message to return from a notification
+	// operation
 	Val string
+
+	// Err is the error condition message to return from a notification
+	// operation
 	Err error
 }
 
