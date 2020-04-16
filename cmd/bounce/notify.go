@@ -206,21 +206,8 @@ func teamsNotifier(
 			log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
 			go func(ctx context.Context, webhookURL string, clientRequest clientRequestDetails, resultQueue chan<- NotifyResult) {
 				ourMessage := createMessage(clientRequest)
-				result := NotifyResult{}
-				if err := sendMessage(ctx, webhookURL, ourMessage, retries, retriesDelay); err != nil {
-
-					result = NotifyResult{
-						Err: fmt.Errorf("teamsNotifier: error occurred while trying to send message to Microsoft Teams: %w", err),
-					}
-
-					resultQueue <- result
-					return
-				}
-
-				// Success
-				result.Val = "teamsNotifier: Successfully sent message to Microsoft Teams"
-				log.Info(result.Val)
-				resultQueue <- result
+				resultQueue <- sendMessage(ctx, webhookURL, ourMessage, retries, retriesDelay)
+				return
 			}(ctx, webhookURL, clientRequest, ourResultQueue)
 
 			select {

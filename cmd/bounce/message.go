@@ -215,13 +215,15 @@ func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard
 }
 
 // define function/wrapper for sending details to Microsoft Teams
-func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.MessageCard, retries int, retriesDelay int) error {
+func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.MessageCard, retries int, retriesDelay int) NotifyResult {
 
 	// Note: We already do validation elsewhere, and the library call does
 	// even more validation, but we can handle this obvious empty argument
 	// problem directly
 	if webhookURL == "" {
-		return fmt.Errorf("webhookURL not defined, skipping message submission to Microsoft Teams channel")
+		return NotifyResult{
+			Err: fmt.Errorf("sendMessage: webhookURL not defined, skipping message submission to Microsoft Teams channel"),
+		}
 	}
 
 	notificationDelayTimer := time.NewTimer(config.NotifyMgrTeamsNotificationDelay)
@@ -233,8 +235,10 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 	case <-ctx.Done():
 		// returning not to leak the goroutine
 		ctxErr := ctx.Err()
-		msg := fmt.Errorf("sendMessage: Received Done signal: %v, shutting down", ctxErr.Error())
-		log.Error(msg.Error())
+		msg := NotifyResult{
+			Val: fmt.Sprintf("sendMessage: Received Done signal: %v, shutting down", ctxErr.Error()),
+		}
+		log.Debug(msg.Val)
 		return msg
 
 	// Delay between message submission attempts; this will *always*
@@ -247,15 +251,19 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 		// Submit message card, retry submission if needed up to specified number
 		// of retry attempts.
 		if err := send2teams.SendMessage(webhookURL, msgCard, retries, retriesDelay); err != nil {
-			errMsg := fmt.Errorf("sendMessage: ERROR: Failed to submit message to Microsoft Teams: %v", err)
-			log.Error("sendMessage: " + errMsg.Error())
+			errMsg := NotifyResult{
+				Err: fmt.Errorf("sendMessage: ERROR: Failed to submit message to Microsoft Teams: %v", err),
+			}
+			log.Error("sendMessage: " + errMsg.Err.Error())
 			return errMsg
 		}
 
 		// Note success for potential troubleshootinge
 		log.Debug("sendMessage: Message successfully sent to Microsoft Teams")
 
-		return nil
+		return NotifyResult{
+			Val: "sendMessage: Message successfully sent to Microsoft Teams",
+		}
 
 	}
 
