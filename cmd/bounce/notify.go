@@ -189,6 +189,7 @@ func teamsNotifier(
 			log.Debugf("teamsNotifier: Request received at %v: %#v",
 				time.Now(), responseDetails)
 
+			// TODO: Move this to the location where the delay is enforced
 			log.Debugf("teamsNotifier: Waiting for %v before processing new request",
 				config.NotifyMgrTeamsNotificationDelay)
 
@@ -489,6 +490,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 					evalResults("teamsNotifyResultQueue", result)
 				}
 
+				// TODO: Use select block with timeout here?
 				log.Debug("StartNotifyMgr: Waiting on teamsNotifyDone")
 				<-teamsNotifyDone
 				log.Debug("StartNotifyMgr: Received from teamsNotifyDone")
@@ -501,6 +503,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 					evalResults("emailNotifyResultQueue", result)
 				}
 
+				// TODO: Use select block with timeout here?
 				log.Debug("StartNotifyMgr: Waiting on emailNotifyDone")
 				<-emailNotifyDone
 				log.Debug("StartNotifyMgr: Received from emailNotifyDone")
