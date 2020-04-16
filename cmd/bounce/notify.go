@@ -519,8 +519,8 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 			log.Debug("StartNotifyMgr: Input received from notifyWorkQueue")
 
-			// If we don't have *any* notifications enabled we will just pull
-			// the incoming item from the the channel and discard it
+			// If we don't have *any* notifications enabled we will just
+			// discard the item we have pulled from the channel
 			if !cfg.NotifyEmail() && !cfg.NotifyTeams() {
 				log.Debug("StartNotifyMgr: Notifications are not currently enabled; ignoring notification request")
 				continue
