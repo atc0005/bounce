@@ -527,7 +527,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			}
 
 			if cfg.NotifyTeams() {
-				log.Debug("StartNotifyMgr: Handing off clientRequest to teamsNotifyWorkQueue")
+				log.Debug("StartNotifyMgr: Creating new goroutine to place clientRequest into teamsNotifyWorkQueue")
 				go func() {
 					log.Debugf("StartNotifyMgr: Existing items in teamsNotifyWorkQueue: %d", len(teamsNotifyWorkQueue))
 					log.Debug("StartNotifyMgr: Pending; placing clientRequest into teamsNotifyWorkQueue")
@@ -538,7 +538,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			}
 
 			if cfg.NotifyEmail() {
-				log.Debug("StartNotifyMgr: Handing off clientRequest to emailNotifyWorkQueue")
+				log.Debug("StartNotifyMgr: Creating new goroutine to place clientRequest in emailNotifyWorkQueue")
 				go func() {
 					log.Debugf("StartNotifyMgr: Existing items in emailNotifyWorkQueue: %d", len(emailNotifyWorkQueue))
 					log.Debug("StartNotifyMgr: Pending; placing clientRequest into emailNotifyWorkQueue")
