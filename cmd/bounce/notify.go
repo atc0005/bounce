@@ -515,22 +515,6 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			log.Debug("StartNotifyMgr: About to return")
 			return
 
-		case result := <-teamsNotifyResultQueue:
-			if result.Err != nil {
-				log.Errorf("StartNotifyMgr: Error received from teamsNotifyResultQueue: %v", result.Err)
-				continue
-			}
-
-			log.Debugf("StartNotifyMgr: OK: non-error status received on teamsNotifyResultQueue: %v", result.Val)
-
-		case result := <-emailNotifyResultQueue:
-			if result.Err != nil {
-				log.Errorf("StartNotifyMgr: Error received from emailNotifyResultQueue: %v", result.Err)
-				continue
-			}
-
-			log.Debugf("StartNotifyMgr: non-error status received on teamsNotifyResultQueue: %v", result.Val)
-
 		case clientRequest := <-notifyWorkQueue:
 
 			log.Debug("StartNotifyMgr: Input received from notifyWorkQueue")
@@ -564,8 +548,22 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 				}()
 			}
 
-			// default:
-			// 	log.Debug("StartNotifyMgr: default case statement triggered")
+		case result := <-teamsNotifyResultQueue:
+			if result.Err != nil {
+				log.Errorf("StartNotifyMgr: Error received from teamsNotifyResultQueue: %v", result.Err)
+				continue
+			}
+
+			log.Debugf("StartNotifyMgr: OK: non-error status received on teamsNotifyResultQueue: %v", result.Val)
+
+		case result := <-emailNotifyResultQueue:
+			if result.Err != nil {
+				log.Errorf("StartNotifyMgr: Error received from emailNotifyResultQueue: %v", result.Err)
+				continue
+			}
+
+			log.Debugf("StartNotifyMgr: non-error status received on teamsNotifyResultQueue: %v", result.Val)
+
 		}
 
 	}
