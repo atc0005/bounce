@@ -31,7 +31,6 @@ type NotifyQueue struct {
 // notifyQueueMonitor accepts a context and one or many NotifyQueue values to
 // monitor for items yet to be processed. notifyQueueMonitor is intended to be
 // run as a goroutine
-
 func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues ...NotifyQueue) {
 
 	if len(notifyQueues) == 0 {
