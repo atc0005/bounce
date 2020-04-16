@@ -91,8 +91,7 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 			}
 
 			if !itemsFound {
-				log.Warn("notifyQueueMonitor: 0 items in any monitored queues")
-				log.Warnf("notifyQueueMonitor: %d goroutines running",
+				log.Warnf("notifyQueueMonitor: 0 items queued, %d goroutines running",
 					runtime.NumGoroutine())
 			}
 		}
