@@ -208,7 +208,7 @@ func Usage(flagSet *flag.FlagSet) func() {
 
 	return func() {
 
-		fmt.Fprintf(flag.CommandLine.Output(), Branding())
+		fmt.Fprint(flag.CommandLine.Output(), Branding())
 
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage of \"%s\":\n",
 			flagSet.Name(),
