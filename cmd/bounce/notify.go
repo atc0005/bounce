@@ -127,6 +127,7 @@ func teamsNotifier(
 	defer timeoutTimer.Stop()
 
 	notificationDelayTimer := time.NewTimer(config.NotifyMgrTeamsNotificationDelay)
+	defer notificationDelayTimer.Stop()
 
 	for {
 
