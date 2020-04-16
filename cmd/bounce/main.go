@@ -108,10 +108,10 @@ func main() {
 
 	signal.Notify(quit, os.Interrupt)
 
-	// Where echoHandlerResponse values will be sent for processing. We use a
+	// Where clientRequestDetails values will be sent for processing. We use a
 	// buffered channel in an effort to reduce the delay for client requests
 	// as much as possible.
-	notifyWorkQueue := make(chan echoHandlerResponse, 5)
+	notifyWorkQueue := make(chan clientRequestDetails, 5)
 
 	// Create "notifications manager" function that will start infinite loop
 	// with select statement to process incoming notification requests.

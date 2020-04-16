@@ -43,9 +43,9 @@ const (
 // TODO: Find a better location for this constant
 const MB int64 = 1048576
 
-// echoHandlerResponse is used to bundle various client request details for
+// clientRequestDetails is used to bundle various client request details for
 // processing by templates or notification functions.
-type echoHandlerResponse struct {
+type clientRequestDetails struct {
 	Datestamp          string
 	EndpointPath       string
 	HTTPMethod         string
@@ -116,14 +116,14 @@ func handleIndex(tmpl *htmlTemplate.Template, rs *routes.Routes) http.HandlerFun
 }
 
 // echoHandler echos back the HTTP request received by
-func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON bool, coloredJSONIndent int, notifyWorkQueue chan<- echoHandlerResponse) http.HandlerFunc {
+func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON bool, coloredJSONIndent int, notifyWorkQueue chan<- clientRequestDetails) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// For now, we generate plain text responses
 		//w.Header().Set("Content-Type", "text/plain")
 
-		ourResponse := echoHandlerResponse{}
+		ourResponse := clientRequestDetails{}
 
 		mw := io.MultiWriter(w, os.Stdout)
 

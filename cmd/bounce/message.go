@@ -23,11 +23,11 @@ import (
 	send2teams "github.com/atc0005/send2teams/teams"
 )
 
-func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCard {
+func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard {
 
 	// FIXME: This isn't an actual warning, just relying on color differences
 	// during dev work for now.
-	log.Debugf("createMessage: echoHandlerResponse received: %#v", responseDetails)
+	log.Debugf("createMessage: clientRequestDetails received: %#v", clientRequest)
 
 	const ClientRequestErrorsRecorded = "Errors recorded for client request"
 	const ClientRequestErrorsNotFound = "No errors recorded for client request"
@@ -58,8 +58,8 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	msgCard.Title = "Notification from " + config.MyAppName
 	msgCard.Text = fmt.Sprintf(
 		"%s request received on %s endpoint",
-		send2teams.TryToFormatAsCodeSnippet(responseDetails.HTTPMethod),
-		send2teams.TryToFormatAsCodeSnippet(responseDetails.EndpointPath),
+		send2teams.TryToFormatAsCodeSnippet(clientRequest.HTTPMethod),
+		send2teams.TryToFormatAsCodeSnippet(clientRequest.EndpointPath),
 	)
 
 	/*
@@ -87,10 +87,10 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	clientRequestSummarySection.Title = "## Client Request Summary"
 	clientRequestSummarySection.StartGroup = true
 
-	addFactPair(&msgCard, clientRequestSummarySection, "Received at", responseDetails.Datestamp)
-	addFactPair(&msgCard, clientRequestSummarySection, "Endpoint path", responseDetails.EndpointPath)
-	addFactPair(&msgCard, clientRequestSummarySection, "HTTP Method", responseDetails.HTTPMethod)
-	addFactPair(&msgCard, clientRequestSummarySection, "Client IP Address", responseDetails.ClientIPAddress)
+	addFactPair(&msgCard, clientRequestSummarySection, "Received at", clientRequest.Datestamp)
+	addFactPair(&msgCard, clientRequestSummarySection, "Endpoint path", clientRequest.EndpointPath)
+	addFactPair(&msgCard, clientRequestSummarySection, "HTTP Method", clientRequest.HTTPMethod)
+	addFactPair(&msgCard, clientRequestSummarySection, "Client IP Address", clientRequest.ClientIPAddress)
 
 	if err := msgCard.AddSection(clientRequestSummarySection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add clientRequestSummarySection: %v", err)
@@ -107,15 +107,15 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	clientPayloadSection.StartGroup = true
 
 	switch {
-	case responseDetails.Body == "":
+	case clientRequest.Body == "":
 		log.Debugf("createMessage: Body is NOT defined, cannot use it to generate code block")
 		clientPayloadSection.Text = send2teams.TryToFormatAsCodeSnippet("No request body was provided by client.")
-	case responseDetails.Body != "":
+	case clientRequest.Body != "":
 		log.Debugf("createMessage: Body is defined, using it to generate code block")
-		clientPayloadSection.Text = send2teams.TryToFormatAsCodeBlock(responseDetails.Body)
+		clientPayloadSection.Text = send2teams.TryToFormatAsCodeBlock(clientRequest.Body)
 	}
 
-	log.Debugf("createMessage: Body field contents: %v", responseDetails.Body)
+	log.Debugf("createMessage: Body field contents: %v", clientRequest.Body)
 
 	// FIXME: Remove this; only added for testing
 	//clientPayloadSection.Text = ""
@@ -138,28 +138,28 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	responseErrorsSection.Text = ClientRequestErrorsNotFound
 
 	// Don't add this section if there are no errors to show
-	if responseDetails.RequestError != "" {
+	if clientRequest.RequestError != "" {
 		responseErrorsSection.Text = ""
 		addFactPair(&msgCard, responseErrorsSection, "RequestError",
-			send2teams.ConvertEOLToBreak(responseDetails.RequestError))
+			send2teams.ConvertEOLToBreak(clientRequest.RequestError))
 	}
 
-	if responseDetails.BodyError != "" {
+	if clientRequest.BodyError != "" {
 		responseErrorsSection.Text = ClientRequestErrorsRecorded
 		addFactPair(&msgCard, responseErrorsSection, "BodyError",
-			send2teams.ConvertEOLToBreak(responseDetails.BodyError))
+			send2teams.ConvertEOLToBreak(clientRequest.BodyError))
 	}
 
-	if responseDetails.ContentTypeError != "" {
+	if clientRequest.ContentTypeError != "" {
 		responseErrorsSection.Text = ClientRequestErrorsRecorded
 		addFactPair(&msgCard, responseErrorsSection, "ContentTypeError",
-			send2teams.ConvertEOLToBreak(responseDetails.ContentTypeError))
+			send2teams.ConvertEOLToBreak(clientRequest.ContentTypeError))
 	}
 
-	if responseDetails.FormattedBodyError != "" {
+	if clientRequest.FormattedBodyError != "" {
 		responseErrorsSection.Text = ClientRequestErrorsRecorded
 		addFactPair(&msgCard, responseErrorsSection, "FormattedBodyError",
-			send2teams.ConvertEOLToBreak(responseDetails.FormattedBodyError))
+			send2teams.ConvertEOLToBreak(clientRequest.FormattedBodyError))
 	}
 
 	if err := msgCard.AddSection(responseErrorsSection); err != nil {
@@ -178,12 +178,12 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	clientRequestHeadersSection.Text = fmt.Sprintf(
 		"%d client request headers provided",
-		len(responseDetails.Headers),
+		len(clientRequest.Headers),
 	)
 
 	// process client request headers
 
-	for header, values := range responseDetails.Headers {
+	for header, values := range clientRequest.Headers {
 		for index, value := range values {
 			// update value with code snippet formatting, assign back using
 			// the available index value

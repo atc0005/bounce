@@ -82,10 +82,10 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 
 				// FIXME: Is there a generic way to match any channel type
 				// here in order to calculate the length?
-				case chan echoHandlerResponse:
+				case chan clientRequestDetails:
 					queueLength = len(queue)
 
-				case <-chan echoHandlerResponse:
+				case <-chan clientRequestDetails:
 					queueLength = len(queue)
 
 				case chan NotifyResult:
@@ -127,7 +127,7 @@ func teamsNotifier(
 	sendTimeout time.Duration,
 	retries int,
 	retriesDelay int,
-	incoming <-chan echoHandlerResponse,
+	incoming <-chan clientRequestDetails,
 	notifyMgrResultQueue chan<- NotifyResult,
 	done chan<- struct{},
 ) {
@@ -175,7 +175,7 @@ func teamsNotifier(
 			log.Debug("teamsNotifier: done channel closed, returning")
 			return
 
-		case responseDetails := <-incoming:
+		case clientRequest := <-incoming:
 
 			// TODO: Do we need to also check context state here?
 			//
@@ -187,7 +187,7 @@ func teamsNotifier(
 			// random case selection logic
 
 			log.Debugf("teamsNotifier: Request received at %v: %#v",
-				time.Now(), responseDetails)
+				time.Now(), clientRequest)
 
 			// TODO: Move this to the location where the delay is enforced
 			log.Debugf("teamsNotifier: Waiting for %v before processing new request",
@@ -245,8 +245,8 @@ func teamsNotifier(
 
 				// launch task in separate goroutine
 				log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
-				go func(ctx context.Context, webhookURL string, responseDetails echoHandlerResponse, resultQueue chan<- NotifyResult) {
-					ourMessage := createMessage(responseDetails)
+				go func(ctx context.Context, webhookURL string, clientRequest clientRequestDetails, resultQueue chan<- NotifyResult) {
+					ourMessage := createMessage(clientRequest)
 					result := NotifyResult{}
 					if err := sendMessage(ctx, webhookURL, ourMessage, retries, retriesDelay); err != nil {
 
@@ -261,7 +261,7 @@ func teamsNotifier(
 					result.Val = "teamsNotifier: Successfully sent message to Microsoft Teams"
 					log.Info(result.Val)
 					resultQueue <- result
-				}(ctx, webhookURL, responseDetails, ourResultQueue)
+				}(ctx, webhookURL, clientRequest, ourResultQueue)
 
 				// Wait for either the timeout to occur OR a result to come back
 				// from the attempt to send a Teams message.
@@ -290,7 +290,7 @@ func teamsNotifier(
 //
 // FIXME: Once the logic is worked out in teamsNotifier, update this function
 // to match it
-func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-chan echoHandlerResponse, notifyMgrResultQueue chan<- NotifyResult, done chan<- struct{}) {
+func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-chan clientRequestDetails, notifyMgrResultQueue chan<- NotifyResult, done chan<- struct{}) {
 
 	log.Debug("emailNotifier: Running")
 
@@ -321,9 +321,9 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 			log.Debug("emailNotifier: done channel closed, returning")
 			return
 
-		case responseDetails := <-incoming:
+		case clientRequest := <-incoming:
 
-			log.Debugf("emailNotifier: Request received: %#v", responseDetails)
+			log.Debugf("emailNotifier: Request received: %#v", clientRequest)
 
 			// Wait for specified amount of time before attempting notification.
 			// This is done in an effort to prevent unintentional abuse of
@@ -368,24 +368,24 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 
 }
 
-// StartNotifyMgr receives echoHandlerResponse values from a receive-only
-// incoming queue of echoHandlerResponse values and sends notifications to any
+// StartNotifyMgr receives clientRequestDetails values from a receive-only
+// incoming queue of clientRequestDetails values and sends notifications to any
 // enabled service (e.g., Microsoft Teams).
-func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-chan echoHandlerResponse, done chan<- struct{}) {
+func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-chan clientRequestDetails, done chan<- struct{}) {
 
 	log.Debug("StartNotifyMgr: Running")
 
-	// Create separate, buffered channels to hand-off echoHandlerResponse
+	// Create separate, buffered channels to hand-off clientRequestDetails
 	// values for processing for each service, e.g., one channel for Microsoft
 	// Teams outgoing notifications, another for email and so on. Buffered
 	// channels are used both to enable async tasks and to provide a means of
 	// monitoring the number of items queued for each channel; unbuffered
 	// channels have a queue depth (and thus length) of 0.
-	teamsNotifyWorkQueue := make(chan echoHandlerResponse, 5)
+	teamsNotifyWorkQueue := make(chan clientRequestDetails, 5)
 	teamsNotifyResultQueue := make(chan NotifyResult, 5)
 	teamsNotifyDone := make(chan struct{})
 
-	emailNotifyWorkQueue := make(chan echoHandlerResponse, 5)
+	emailNotifyWorkQueue := make(chan clientRequestDetails, 5)
 	emailNotifyResultQueue := make(chan NotifyResult, 5)
 	emailNotifyDone := make(chan struct{})
 
@@ -531,7 +531,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 			log.Debugf("StartNotifyMgr: non-error status received on teamsNotifyResultQueue: %v", result.Val)
 
-		case responseDetails := <-notifyWorkQueue:
+		case clientRequest := <-notifyWorkQueue:
 
 			log.Debug("StartNotifyMgr: Input received from notifyWorkQueue")
 
@@ -543,23 +543,23 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			}
 
 			if cfg.NotifyTeams() {
-				log.Debug("StartNotifyMgr: Handing off responseDetails to teamsNotifyWorkQueue")
+				log.Debug("StartNotifyMgr: Handing off clientRequest to teamsNotifyWorkQueue")
 				go func() {
 					log.Debugf("StartNotifyMgr: Existing items in teamsNotifyWorkQueue: %d", len(teamsNotifyWorkQueue))
-					log.Debug("StartNotifyMgr: Pending; placing responseDetails into teamsNotifyWorkQueue")
-					teamsNotifyWorkQueue <- responseDetails
-					log.Debug("StartNotifyMgr: Done; placed responseDetails into teamsNotifyWorkQueue")
+					log.Debug("StartNotifyMgr: Pending; placing clientRequest into teamsNotifyWorkQueue")
+					teamsNotifyWorkQueue <- clientRequest
+					log.Debug("StartNotifyMgr: Done; placed clientRequest into teamsNotifyWorkQueue")
 					log.Debugf("StartNotifyMgr: Items now in teamsNotifyWorkQueue: %d", len(teamsNotifyWorkQueue))
 				}()
 			}
 
 			if cfg.NotifyEmail() {
-				log.Debug("StartNotifyMgr: Handing off responseDetails to emailNotifyWorkQueue")
+				log.Debug("StartNotifyMgr: Handing off clientRequest to emailNotifyWorkQueue")
 				go func() {
 					log.Debugf("StartNotifyMgr: Existing items in emailNotifyWorkQueue: %d", len(emailNotifyWorkQueue))
-					log.Debug("StartNotifyMgr: Pending; placing responseDetails into emailNotifyWorkQueue")
-					emailNotifyWorkQueue <- responseDetails
-					log.Debug("StartNotifyMgr: Done; placed responseDetails into emailNotifyWorkQueue")
+					log.Debug("StartNotifyMgr: Pending; placing clientRequest into emailNotifyWorkQueue")
+					emailNotifyWorkQueue <- clientRequest
+					log.Debug("StartNotifyMgr: Done; placed clientRequest into emailNotifyWorkQueue")
 					log.Debugf("StartNotifyMgr: Items now in emailNotifyWorkQueue: %d", len(emailNotifyWorkQueue))
 				}()
 			}
