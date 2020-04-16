@@ -41,12 +41,17 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 
 	log.Debug("notifyQueueMonitor: Running")
 
-	t := time.NewTimer(delay)
-	defer t.Stop()
-
 	for {
+
+		t := time.NewTimer(delay)
+
+		// log.Debug("notifyQueueMonitor: Starting loop")
+
 		select {
 		case <-ctx.Done():
+
+			t.Stop()
+
 			// returning not to leak the goroutine
 			ctxErr := ctx.Err()
 			log.Debugf("notifyQueueMonitor: Received Done signal: %v, shutting down ...", ctxErr.Error())
@@ -54,6 +59,13 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 
 		// Show stats only for queues with content
 		case <-t.C:
+
+			// log.Debug("notifyQueueMonitor: Timer fired")
+
+			// NOTE: Not needed since the channel is already drained as a
+			// result of the case statement triggering and draining the
+			// channel
+			// t.Stop()
 
 			var itemsFound bool
 			//log.Debugf("Length of queues: %d", len(queues))
