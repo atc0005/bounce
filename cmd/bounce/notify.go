@@ -100,9 +100,9 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 				// Show stats only for queues with content
 				if queueLength > 0 {
 					itemsFound = true
-					log.Warnf("notifyQueueMonitor: %d items in %s",
+					log.Debugf("notifyQueueMonitor: %d items in %s",
 						queueLength, notifyQueue.Name)
-					log.Warnf("notifyQueueMonitor: %d goroutines running",
+					log.Debugf("notifyQueueMonitor: %d goroutines running",
 						runtime.NumGoroutine())
 					continue
 				}
@@ -110,7 +110,7 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 			}
 
 			if !itemsFound {
-				log.Warnf("notifyQueueMonitor: 0 items queued, %d goroutines running",
+				log.Debugf("notifyQueueMonitor: 0 items queued, %d goroutines running",
 					runtime.NumGoroutine())
 			}
 		}
