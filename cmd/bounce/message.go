@@ -241,7 +241,8 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 	// delay, regardless of whether the attempt is the first one or not
 	case <-notificationDelayTimer.C:
 
-		log.Debug("sendMessage: Waited %v before notification attempt")
+		log.Debugf("sendMessage: Waited %v before notification attempt",
+			config.NotifyMgrTeamsNotificationDelay)
 
 		// Submit message card, retry submission if needed up to specified number
 		// of retry attempts.
