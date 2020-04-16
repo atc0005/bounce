@@ -371,6 +371,7 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 // StartNotifyMgr receives clientRequestDetails values from a receive-only
 // incoming queue of clientRequestDetails values and sends notifications to any
 // enabled service (e.g., Microsoft Teams).
+// FIXME: Tweak the description for this function; it seems to have some stutter
 func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-chan clientRequestDetails, done chan<- struct{}) {
 
 	log.Debug("StartNotifyMgr: Running")
