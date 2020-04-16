@@ -74,7 +74,9 @@ const (
 	HTTPServerWriteTimeout      time.Duration = 2 * time.Minute
 )
 
-// Used by the graceful shutdown process
+// HTTPServerShutdownTimeout is used by the graceful shutdown process to
+// control how long the shutdown process should wait before forcefully
+// terminating.
 const HTTPServerShutdownTimeout time.Duration = 30 * time.Second
 
 // Timing-related settings (delays, timeouts) used by our notification manager
