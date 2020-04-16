@@ -28,6 +28,9 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	// during dev work for now.
 	log.Debugf("createMessage: echoHandlerResponse received: %#v", responseDetails)
 
+	const ClientRequestErrorsRecorded = "Errors recorded for client request"
+	const ClientRequestErrorsNotFound = "No errors recorded for client request"
+
 	// build MessageCard for submission
 	msgCard := goteamsnotify.NewMessageCard()
 	msgCard.Title = "Notification from " + config.MyAppName
@@ -125,7 +128,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 	responseErrorsSection.StartGroup = true
 
 	// Be optimistic to start with
-	responseErrorsSection.Text = "No errors recorded for client request."
+	responseErrorsSection.Text = ClientRequestErrorsNotFound
 
 	// Don't add this section if there are no errors to show
 	if responseDetails.RequestError != "" {
@@ -140,7 +143,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	if responseDetails.BodyError != "" {
 
-		responseErrorsSection.Text = "Errors recorded for client request"
+		responseErrorsSection.Text = ClientRequestErrorsRecorded
 		responseErrorsSection.AddFactFromKeyValue(
 			"BodyError",
 			send2teams.ConvertEOLToBreak(responseDetails.BodyError),
@@ -149,7 +152,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	if responseDetails.ContentTypeError != "" {
 
-		responseErrorsSection.Text = "Errors recorded for client request"
+		responseErrorsSection.Text = ClientRequestErrorsRecorded
 		responseErrorsSection.AddFactFromKeyValue(
 			"ContentTypeError",
 			send2teams.ConvertEOLToBreak(responseDetails.ContentTypeError),
@@ -158,7 +161,7 @@ func createMessage(responseDetails echoHandlerResponse) goteamsnotify.MessageCar
 
 	if responseDetails.FormattedBodyError != "" {
 
-		responseErrorsSection.Text = "Errors recorded for client request"
+		responseErrorsSection.Text = ClientRequestErrorsRecorded
 		responseErrorsSection.AddFactFromKeyValue(
 			"FormattedBodyError",
 			send2teams.ConvertEOLToBreak(responseDetails.FormattedBodyError),
