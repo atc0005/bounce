@@ -33,19 +33,12 @@ import (
 // see templates.go for the hard-coded HTML/CSS template used for the index
 // page
 
-func init() {
+func main() {
 
-	// Go ahead and enable debug logging from these library packages while we
-	// are actively working on the `i21-add-msteams-integration-2nd-attempt`
-	// branch
-	// goteamsnotify.EnableLogging()
-	// send2teams.EnableLogging()
-
+	// Toggle debug logging from library packages as needed to troubleshoot
+	// implementation work
 	goteamsnotify.DisableLogging()
 	send2teams.DisableLogging()
-}
-
-func main() {
 
 	// This will use default logging settings (level filter, destination)
 	// as the application hasn't "booted up" far enough to apply custom
