@@ -120,6 +120,17 @@ const (
 	NotifyMgrEmailNotificationDelay time.Duration = 5 * time.Second
 )
 
+// NotifyMgrQueueDepth is the number of items allowed into the queue/channel
+// at one time. Senders with items for the notification "pipeline" that do not
+// fit within the allocated space will block until space in the queue opens.
+// Best practice for channels advocates that a smaller number is better than a
+// larger one, so YMMV if this is set either too high or too low.
+//
+// Brief testing (as of this writing) shows that a depth as low as 1 works for
+// our purposes, but results in a greater number of stalled goroutines waiting
+// to place items into the queue.
+const NotifyMgrQueueDepth int = 5
+
 // ReadHeaderTimeout:
 
 // TCP port ranges

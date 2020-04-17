@@ -104,7 +104,7 @@ func main() {
 	// Where clientRequestDetails values will be sent for processing. We use a
 	// buffered channel in an effort to reduce the delay for client requests
 	// as much as possible.
-	notifyWorkQueue := make(chan clientRequestDetails, 5)
+	notifyWorkQueue := make(chan clientRequestDetails, config.NotifyMgrQueueDepth)
 
 	// Create "notifications manager" function that will start infinite loop
 	// with select statement to process incoming notification requests.

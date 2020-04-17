@@ -177,7 +177,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 				writeTemplate()
 
 				// Send to Notification Manager for further processing
-				notifyWorkQueue <- ourResponse
+				go func() { notifyWorkQueue <- ourResponse }()
 
 				return
 
@@ -196,7 +196,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 					writeTemplate()
 
 					// Send to Notification Manager for further processing
-					notifyWorkQueue <- ourResponse
+					go func() { notifyWorkQueue <- ourResponse }()
 
 					return
 				}
@@ -214,7 +214,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 				writeTemplate()
 
 				// Send to Notification Manager for further processing
-				notifyWorkQueue <- ourResponse
+				go func() { notifyWorkQueue <- ourResponse }()
 
 				return
 
@@ -228,7 +228,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 				writeTemplate()
 
 				// Send to Notification Manager for further processing
-				notifyWorkQueue <- ourResponse
+				go func() { notifyWorkQueue <- ourResponse }()
 
 				return
 			}
@@ -252,7 +252,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 				writeTemplate()
 
 				// Send to Notification Manager for further processing
-				notifyWorkQueue <- ourResponse
+				go func() { notifyWorkQueue <- ourResponse }()
 
 				return
 
@@ -278,7 +278,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 					writeTemplate()
 
 					// Send to Notification Manager for further processing
-					notifyWorkQueue <- ourResponse
+					go func() { notifyWorkQueue <- ourResponse }()
 
 					return
 				}
@@ -302,7 +302,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 							writeTemplate()
 
 							// Send to Notification Manager for further processing
-							notifyWorkQueue <- ourResponse
+							go func() { notifyWorkQueue <- ourResponse }()
 
 							return
 						}
@@ -315,7 +315,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 						writeTemplate()
 
 						// Send to Notification Manager for further processing
-						notifyWorkQueue <- ourResponse
+						go func() { notifyWorkQueue <- ourResponse }()
 
 						return
 					}
@@ -357,7 +357,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 				writeTemplate()
 
 				// Send to Notification Manager for further processing
-				notifyWorkQueue <- ourResponse
+				go func() { notifyWorkQueue <- ourResponse }()
 
 			default:
 				errorMsg := fmt.Sprintf("ERROR: Unsupported method %q received; please try again using %s method", r.Method, http.MethodPost)
@@ -368,7 +368,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 				writeTemplate()
 
 				// Send to Notification Manager for further processing
-				notifyWorkQueue <- ourResponse
+				go func() { notifyWorkQueue <- ourResponse }()
 
 				return
 			}
@@ -380,7 +380,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 			http.NotFound(w, r)
 
 			// Send to Notification Manager for further processing
-			notifyWorkQueue <- ourResponse
+			go func() { notifyWorkQueue <- ourResponse }()
 
 			return
 		}

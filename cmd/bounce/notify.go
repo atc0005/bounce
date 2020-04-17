@@ -354,12 +354,12 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 	// channels are used both to enable async tasks and to provide a means of
 	// monitoring the number of items queued for each channel; unbuffered
 	// channels have a queue depth (and thus length) of 0.
-	teamsNotifyWorkQueue := make(chan clientRequestDetails, 5)
-	teamsNotifyResultQueue := make(chan NotifyResult, 5)
+	teamsNotifyWorkQueue := make(chan clientRequestDetails, config.NotifyMgrQueueDepth)
+	teamsNotifyResultQueue := make(chan NotifyResult, config.NotifyMgrQueueDepth)
 	teamsNotifyDone := make(chan struct{})
 
-	emailNotifyWorkQueue := make(chan clientRequestDetails, 5)
-	emailNotifyResultQueue := make(chan NotifyResult, 5)
+	emailNotifyWorkQueue := make(chan clientRequestDetails, config.NotifyMgrQueueDepth)
+	emailNotifyResultQueue := make(chan NotifyResult, config.NotifyMgrQueueDepth)
 	emailNotifyDone := make(chan struct{})
 
 	if !cfg.NotifyTeams() && !cfg.NotifyEmail() {
