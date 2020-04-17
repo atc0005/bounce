@@ -32,6 +32,12 @@ type NotifyQueue struct {
 
 	// Channel is a channel used to transport input data and responses.
 	Channel interface{}
+
+	// Count is the numbered of items currently in the queue
+	Count int
+
+	// Capacity is the maximum number of items allowed in the queue
+	Capacity int
 }
 
 // notifyQueueMonitor accepts a context and one or many NotifyQueue values to
@@ -77,19 +83,21 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 			//log.Debugf("Length of queues: %d", len(queues))
 			for _, notifyQueue := range notifyQueues {
 
-				var queueLength int
 				switch queue := notifyQueue.Channel.(type) {
 
 				// FIXME: Is there a generic way to match any channel type
 				// here in order to calculate the length?
 				case chan clientRequestDetails:
-					queueLength = len(queue)
+					notifyQueue.Count = len(queue)
+					notifyQueue.Capacity = cap(queue)
 
 				case <-chan clientRequestDetails:
-					queueLength = len(queue)
+					notifyQueue.Count = len(queue)
+					notifyQueue.Capacity = cap(queue)
 
 				case chan NotifyResult:
-					queueLength = len(queue)
+					notifyQueue.Count = len(queue)
+					notifyQueue.Capacity = cap(queue)
 
 				default:
 					log.Warn("Default case triggered (this should not happen")
@@ -98,10 +106,15 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 				}
 
 				// Show stats only for queues with content
-				if queueLength > 0 {
+				if notifyQueue.Count > 0 {
 					itemsFound = true
-					log.Debugf("notifyQueueMonitor: %d items in %s, %d goroutines running",
-						queueLength, notifyQueue.Name, runtime.NumGoroutine())
+					log.Debugf(
+						"notifyQueueMonitor: %d/%d items in %s, %d goroutines running",
+						notifyQueue.Count,
+						notifyQueue.Capacity,
+						notifyQueue.Name,
+						runtime.NumGoroutine(),
+					)
 					continue
 				}
 
