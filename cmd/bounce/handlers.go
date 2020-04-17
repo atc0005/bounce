@@ -156,8 +156,9 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 
 		log.Debug("echoHandler: echoHandler endpoint hit")
 
-		// FIXME: Need to make sure this represents explicit UTC or localtime
-		ourResponse.Datestamp = time.Now().Format((time.RFC3339))
+		// Work around Teams choosing to ignore time.RFC3339 designation and
+		// display as localtime by explicitly converting to localtime
+		ourResponse.Datestamp = time.Now().Format("2006-01-02 15:04:05")
 		ourResponse.EndpointPath = r.URL.Path
 		ourResponse.HTTPMethod = r.Method
 		ourResponse.ClientIPAddress = GetIP(r)
