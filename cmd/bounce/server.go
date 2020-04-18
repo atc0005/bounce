@@ -52,6 +52,9 @@ func gracefulShutdown(ctx context.Context, server *http.Server, done chan<- stru
 	ctxShutdown, cancel := context.WithTimeout(ctx, config.HTTPServerShutdownTimeout)
 	defer cancel()
 
+	// From the docs:
+	// Shutdown returns the context's error, otherwise it returns any error
+	// returned from closing the Server's underlying Listener(s).
 	if err := server.Shutdown(ctxShutdown); err != nil {
 		log.Errorf("gracefulShutdown: could not gracefully shutdown the server: %v", err)
 	}
