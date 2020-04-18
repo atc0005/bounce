@@ -186,10 +186,16 @@ func teamsNotifier(
 
 		case clientRequest := <-incoming:
 
+			log.Debugf("teamsNotifier: child context created with timeout duration %v", timeoutValue)
+
+			ctx, cancel := context.WithTimeout(ctx, timeoutValue)
+			defer cancel()
+
 			// FIXME: The timer handling needs additional testing (very little has been done so far)
 			// one-time events, have to recreate timer on each iteration
-			timeoutTimer := time.NewTimer(timeoutValue)
-			log.Debugf("teamsNotifier: timeoutTimer created with duration %v", timeoutValue)
+			// timeoutTimer := time.NewTimer(timeoutValue)
+			//timeoutTimer := time.NewTimer(500 * time.Millisecond)
+			// log.Debugf("teamsNotifier: timeoutTimer created with duration %v", timeoutValue)
 
 			// TODO: Do we need to also check context state here?
 			//
@@ -208,7 +214,7 @@ func teamsNotifier(
 				log.Debug("teamsNotifier: context has been cancelled, aborting notification attempt")
 
 				// stop all timers
-				timeoutTimer.Stop()
+				// timeoutTimer.Stop()
 				continue
 			}
 			log.Debug("teamsNotifier: context not cancelled, proceeding with notification attempt")
@@ -224,22 +230,22 @@ func teamsNotifier(
 
 			// timeout for the entire message submission
 			// if this occurs we just move on to the next message
-			case <-timeoutTimer.C:
+			// case <-timeoutTimer.C:
 
-				// FIXME: The "after %d attempt" part is hard-coded and does
-				// not actually use a counter to determine how many attempts
-				// were tried.
-				result := NotifyResult{
-					Err: fmt.Errorf(
-						"teamsNotifier: Timeout reached at %v (%v) after %d attempt to send Microsoft Teams notification",
-						time.Now(),
-						sendTimeout,
-						retries+1,
-					),
-				}
-				log.Debug(result.Err.Error())
-				notifyMgrResultQueue <- result
-				continue
+			// 	// FIXME: The "after %d attempt" part is hard-coded and does
+			// 	// not actually use a counter to determine how many attempts
+			// 	// were tried.
+			// 	result := NotifyResult{
+			// 		Err: fmt.Errorf(
+			// 			"teamsNotifier: Timeout expired at %v after %v; %d attempts to send Microsoft Teams notification",
+			// 			time.Now().Format("15:04:05"),
+			// 			sendTimeout,
+			// 			retries+1,
+			// 		),
+			// 	}
+			// 	log.Debug(result.Err.Error())
+			// 	notifyMgrResultQueue <- result
+			// 	continue
 
 			case result := <-ourResultQueue:
 

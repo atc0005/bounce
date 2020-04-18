@@ -235,7 +235,6 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 
 	select {
 	case <-ctx.Done():
-		// returning not to leak the goroutine
 		ctxErr := ctx.Err()
 		msg := NotifyResult{
 			Val: fmt.Sprintf("sendMessage: Received Done signal: %v, shutting down", ctxErr.Error()),
@@ -249,6 +248,18 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 
 		log.Debugf("sendMessage: Waited %v before notification attempt",
 			config.NotifyMgrTeamsNotificationDelay)
+
+		// check to see if context has expired during our delay
+		if ctx.Err() != nil {
+
+			log.Warnf("sendMessage: context expired or cancelled: %v, shutting down", ctx.Err().Error())
+
+			// msg := NotifyResult{
+			// 	Val: fmt.Sprintf("sendMessage: context expired or cancelled: %v, shutting down", ctx.Err().Error()),
+			// }
+			// log.Debug(msg.Val)
+			// return msg
+		}
 
 		// Submit message card, retry submission if needed up to specified number
 		// of retry attempts.
