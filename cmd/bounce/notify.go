@@ -226,6 +226,9 @@ func teamsNotifier(
 			// if this occurs we just move on to the next message
 			case <-timeoutTimer.C:
 
+				// FIXME: The "after %d attempt" part is hard-coded and does
+				// not actually use a counter to determine how many attempts
+				// were tried.
 				result := NotifyResult{
 					Err: fmt.Errorf(
 						"teamsNotifier: Timeout reached at %v (%v) after %d attempt to send Microsoft Teams notification",
