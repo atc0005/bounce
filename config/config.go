@@ -96,6 +96,7 @@ const (
 	//
 	// FIXME: Look into propagating this to the teamsClient object used by
 	// the go-teams-notify package (both fork and upstream).
+	// https://github.com/dasrick/go-teams-notify/issues/19
 	NotifyMgrTeamsTimeout time.Duration = 10 * time.Second
 
 	// NotifyMgrEmailTimeout is the timeout setting applied to each email
