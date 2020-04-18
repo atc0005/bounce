@@ -252,7 +252,7 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 
 		// Submit message card, retry submission if needed up to specified number
 		// of retry attempts.
-		if err := send2teams.SendMessage(webhookURL, msgCard, retries, retriesDelay); err != nil {
+		if err := send2teams.SendMessage(ctx, webhookURL, msgCard, retries, retriesDelay); err != nil {
 			errMsg := NotifyResult{
 				Err: fmt.Errorf("sendMessage: ERROR: Failed to submit message to Microsoft Teams: %v", err),
 			}
