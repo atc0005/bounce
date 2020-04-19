@@ -10,8 +10,8 @@ github.com/aphistic/golf v0.0.0-20180712155816-02c07f170c5a/go.mod h1:3NqKYiepwy
 github.com/aphistic/sweet v0.2.0/go.mod h1:fWDlIh/isSE9n6EPsRmC0det+whmX6dJid3stzu0Xys=
 github.com/atc0005/go-teams-notify v1.3.1-0.20200418135531-d35cfbe04599 h1:f+omqXN+v8MTiYI7oWyeB9haEl4UTDAASK5FUa7MqoI=
 github.com/atc0005/go-teams-notify v1.3.1-0.20200418135531-d35cfbe04599/go.mod h1:zUADEXrhalWyaQvxzYgHswljBWycIpX1UAFrggjcdi4=
-github.com/atc0005/send2teams v0.3.2-0.20200419104218-0b51e9a4217a h1:uMXQs5MTClPN3BnsEOJUyRIX5A0tSTWMjGLDONL786w=
-github.com/atc0005/send2teams v0.3.2-0.20200419104218-0b51e9a4217a/go.mod h1:VP2QMT/4iEffD+j9Y/0c0RqcWhNId/V/ZSctTNFiva8=
+github.com/atc0005/send2teams v0.3.2-0.20200419120911-bc2659350f67 h1:/Fv9Tk+TTHQD+FSkt/f+uNw/2k3Jl+yCcgSAU20+Eo4=
+github.com/atc0005/send2teams v0.3.2-0.20200419120911-bc2659350f67/go.mod h1:VP2QMT/4iEffD+j9Y/0c0RqcWhNId/V/ZSctTNFiva8=
 github.com/aws/aws-sdk-go v1.20.6 h1:kmy4Gvdlyez1fV4kw5RYxZzWKVyuHZHgPWeU/YvRsV4=
 github.com/aws/aws-sdk-go v1.20.6/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/aybabtme/rgbterm v0.0.0-20170906152045-cc83f3b3ce59 h1:WWB576BN5zNSZc/M9d/10pqEx5VHNhaQ/yOVAkmj5Yo=
