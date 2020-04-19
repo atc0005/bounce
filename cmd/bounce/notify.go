@@ -150,16 +150,7 @@ func teamsNotifier(
 	// used by goroutines called by this function to return results
 	ourResultQueue := make(chan NotifyResult)
 
-	// We need to account for multiple factors when we set a complete
-	// timeout for sending messages to Teams:
-	//
-	// - the base timeout value for a single message submission attempt
-	// - the delay we are enforcing between message submission attempts
-	// - the total number of retries allowed
-	// - the delay between retry attempts
-	timeoutValue := (config.NotifyMgrTeamsTimeout +
-		config.NotifyMgrTeamsNotificationDelay +
-		time.Duration(retriesDelay)) * time.Duration(retries)
+	timeoutValue := config.TeamsTimeout(retries, retriesDelay)
 
 	for {
 
@@ -186,35 +177,23 @@ func teamsNotifier(
 
 		case clientRequest := <-incoming:
 
-			log.Debugf("teamsNotifier: child context created with timeout duration %v", timeoutValue)
+			log.Debugf("teamsNotifier: Request received at %v: %#v",
+				time.Now(), clientRequest)
 
 			ctx, cancel := context.WithTimeout(ctx, timeoutValue)
 			defer cancel()
 
-			// FIXME: The timer handling needs additional testing (very little has been done so far)
-			// one-time events, have to recreate timer on each iteration
-			// timeoutTimer := time.NewTimer(timeoutValue)
-			//timeoutTimer := time.NewTimer(500 * time.Millisecond)
-			// log.Debugf("teamsNotifier: timeoutTimer created with duration %v", timeoutValue)
+			log.Debugf("teamsNotifier: child context created with timeout duration %v", timeoutValue)
 
-			// TODO: Do we need to also check context state here?
-			//
-			// i.e.g, if there is a message waiting *and* ctx.Done() case
-			// statements are both valid, either path could be taken. If this
-			// one is taken, then the message send timeout will be the only
-			// thing forcing the attempt to loop back around and trigger the
+			// if there is a message waiting *and* ctx.Done() case statements
+			// are both valid, either path could be taken. If this one is
+			// taken, then the message send timeout will be the only thing
+			// forcing the attempt to loop back around and trigger the
 			// ctx.Done() path, but only if this one isn't taken again by the
 			// random case selection logic
-
-			log.Debugf("teamsNotifier: Request received at %v: %#v",
-				time.Now(), clientRequest)
-
 			log.Debug("teamsNotifier: Checking context to determine whether we should proceed")
 			if ctx.Err() != nil {
 				log.Debug("teamsNotifier: context has been cancelled, aborting notification attempt")
-
-				// stop all timers
-				// timeoutTimer.Stop()
 				continue
 			}
 			log.Debug("teamsNotifier: context not cancelled, proceeding with notification attempt")
@@ -226,38 +205,14 @@ func teamsNotifier(
 				resultQueue <- sendMessage(ctx, webhookURL, ourMessage, retries, retriesDelay)
 			}(ctx, webhookURL, clientRequest, ourResultQueue)
 
-			select {
-
-			// timeout for the entire message submission
-			// if this occurs we just move on to the next message
-			// case <-timeoutTimer.C:
-
-			// 	// FIXME: The "after %d attempt" part is hard-coded and does
-			// 	// not actually use a counter to determine how many attempts
-			// 	// were tried.
-			// 	result := NotifyResult{
-			// 		Err: fmt.Errorf(
-			// 			"teamsNotifier: Timeout expired at %v after %v; %d attempts to send Microsoft Teams notification",
-			// 			time.Now().Format("15:04:05"),
-			// 			sendTimeout,
-			// 			retries+1,
-			// 		),
-			// 	}
-			// 	log.Debug(result.Err.Error())
-			// 	notifyMgrResultQueue <- result
-			// 	continue
-
-			case result := <-ourResultQueue:
-
-				if result.Err != nil {
-					log.Errorf("teamsNotifier: Error received from ourResultQueue: %v", result.Err)
-				} else {
-					log.Debugf("teamsNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
-				}
-
-				notifyMgrResultQueue <- result
-
+		case result := <-ourResultQueue:
+			if result.Err != nil {
+				log.Errorf("teamsNotifier: Error received from ourResultQueue: %v", result.Err)
+			} else {
+				log.Debugf("teamsNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
 			}
+
+			notifyMgrResultQueue <- result
 
 		}
 

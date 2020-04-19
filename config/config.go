@@ -92,12 +92,10 @@ const (
 	// Teams notification attempt. This value does NOT take into account the
 	// number of configured retries and retry delays. The final value timeout
 	// applied to each notification attempt should be based on those
-	// calculations.
-	//
-	// FIXME: Look into propagating this to the teamsClient object used by
-	// the go-teams-notify package (both fork and upstream).
-	// https://github.com/dasrick/go-teams-notify/issues/19
+	// calculations. The TeamsTimeout method does just that.
 	NotifyMgrTeamsTimeout time.Duration = 10 * time.Second
+
+	// NotifyMgrTeamsSendAttemptTimeout
 
 	// NotifyMgrEmailTimeout is the timeout setting applied to each email
 	// notification attempt.
@@ -329,6 +327,23 @@ func (c Config) NotifyEmail() bool {
 	// written.
 	return false
 
+}
+
+// TeamsTimeout accepts the number of Microsoft Teams message submission
+// retries and the delay between each attempt and returns the timeout value
+// for the entire message submission process, including the initial attempt
+// and all retry attempts.
+//
+// This overall timeout value is computed using multiple values; (1) the base
+// timeout value for a single message submission attempt, (2) the delay we are
+// enforcing between message submission attempts, (3) the total number of
+// retries allowed, (4) the delay between retry attempts
+func TeamsTimeout(retries int, retriesDelay int) time.Duration {
+	timeoutValue := (NotifyMgrTeamsTimeout +
+		NotifyMgrTeamsNotificationDelay +
+		time.Duration(retriesDelay)) * time.Duration(retries)
+
+	return timeoutValue
 }
 
 // NewConfig is a factory function that produces a new Config object based

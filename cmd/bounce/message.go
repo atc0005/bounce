@@ -251,14 +251,16 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 
 		// check to see if context has expired during our delay
 		if ctx.Err() != nil {
+			msg := NotifyResult{
+				Val: fmt.Sprintf(
+					"sendMessage: context expired or cancelled: %v, attempting to abort message submission",
+					ctx.Err().Error(),
+				),
+			}
 
-			log.Warnf("sendMessage: context expired or cancelled: %v, shutting down", ctx.Err().Error())
+			log.Debug(msg.Val)
 
-			// msg := NotifyResult{
-			// 	Val: fmt.Sprintf("sendMessage: context expired or cancelled: %v, shutting down", ctx.Err().Error()),
-			// }
-			// log.Debug(msg.Val)
-			// return msg
+			return msg
 		}
 
 		// Submit message card, retry submission if needed up to specified number
@@ -271,12 +273,14 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 			return errMsg
 		}
 
-		// Note success for potential troubleshootinge
-		log.Debug("sendMessage: Message successfully sent to Microsoft Teams")
-
-		return NotifyResult{
+		successMsg := NotifyResult{
 			Val: "sendMessage: Message successfully sent to Microsoft Teams",
 		}
+
+		// Note success for potential troubleshooting
+		log.Debug(successMsg.Val)
+
+		return successMsg
 
 	}
 
