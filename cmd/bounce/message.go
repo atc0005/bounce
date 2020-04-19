@@ -276,7 +276,7 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 			errMsg := NotifyResult{
 				Err: fmt.Errorf("sendMessage: ERROR: Failed to submit message to Microsoft Teams: %v", err),
 			}
-			log.Error("sendMessage: " + errMsg.Err.Error())
+			log.Error(errMsg.Err.Error())
 			return errMsg
 		}
 
