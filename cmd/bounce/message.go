@@ -256,6 +256,11 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 			time.Now().Format("15:04:05"),
 		)
 
+		ctxExpires, ctxExpired := ctx.Deadline()
+		if ctxExpired {
+			log.Debugf("sendMessage: WaitTimeout context expires at: %v", ctxExpires.Format("15:04:05"))
+		}
+
 		// check to see if context has expired during our delay
 		if ctx.Err() != nil {
 			msg := NotifyResult{
