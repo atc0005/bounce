@@ -36,7 +36,7 @@ require (
 	// temporarily use our fork while developing changes for potential
 	// inclusion in the upstream project
 	github.com/atc0005/go-teams-notify v1.3.1-0.20200418135531-d35cfbe04599
-	github.com/atc0005/send2teams v0.3.2-0.20200418140807-fa57f318a342
+	github.com/atc0005/send2teams v0.3.2-0.20200419104218-0b51e9a4217a
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/golang/gddo v0.0.0-20200324184333-3c2cc9a6329d
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e // indirect
