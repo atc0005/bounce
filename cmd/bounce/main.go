@@ -37,8 +37,8 @@ func main() {
 
 	// Toggle debug logging from library packages as needed to troubleshoot
 	// implementation work
-	goteamsnotify.EnableLogging()
-	send2teams.EnableLogging()
+	goteamsnotify.DisableLogging()
+	send2teams.DisableLogging()
 
 	// This will use default logging settings (level filter, destination)
 	// as the application hasn't "booted up" far enough to apply custom
