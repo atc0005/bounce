@@ -339,15 +339,19 @@ func (c Config) NotifyEmail() bool {
 // enforcing between message submission attempts, (3) the total number of
 // retries allowed, (4) the delay between retry attempts
 func TeamsTimeout(retries int, retriesDelay int) time.Duration {
-	// timeoutValue := (NotifyMgrTeamsTimeout +
-	// 	NotifyMgrTeamsNotificationDelay +
-	// 	time.Duration(retriesDelay)) * time.Duration(retries)
+	timeoutValue := (NotifyMgrTeamsTimeout +
+		NotifyMgrTeamsNotificationDelay +
+		time.Duration(retriesDelay)) * time.Duration(retries)
 
-	// Note: This seems to allow the app to make it all the way to the
-	// goteamsnotify mstClient.SendWithContext() point before the context
-	// timeout is triggered and shuts everything down (i.e., a good test
-	// case).
-	timeoutValue := 6 * time.Second
+	// Note: This seems to allow the app to make it all the way to and execute
+	// goteamsnotify mstClient.SendWithContext() once before the context
+	// timeout is triggered and shuts everything down
+	// timeoutValue := 6000 * time.Millisecond
+
+	// ... to make it to
+	// "sendMessage: Waiting for either context or notificationDelayTimer"
+	// before the context expires (0 executions of SendWithContext()).
+	// timeoutValue := 5010 * time.Millisecond
 
 	return timeoutValue
 }
