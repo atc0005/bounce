@@ -228,8 +228,10 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 
 	notificationDelayTimer := time.NewTimer(config.NotifyMgrTeamsNotificationDelay)
 	defer notificationDelayTimer.Stop()
-	log.Debugf("sendMessage: notificationDelayTimer created with duration %v",
-		config.NotifyMgrTeamsNotificationDelay)
+	log.Debugf("sendMessage: notificationDelayTimer created at %v with duration %v",
+		time.Now().Format("15:04:05"),
+		config.NotifyMgrTeamsNotificationDelay,
+	)
 
 	log.Debug("sendMessage: Waiting for either context or notificationDelayTimer to expire before sending notification")
 
@@ -237,7 +239,10 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 	case <-ctx.Done():
 		ctxErr := ctx.Err()
 		msg := NotifyResult{
-			Val: fmt.Sprintf("sendMessage: Received Done signal: %v, shutting down", ctxErr.Error()),
+			Val: fmt.Sprintf("sendMessage: Received Done signal at %v: %v, shutting down",
+				time.Now().Format("15:04:05"),
+				ctxErr.Error(),
+			),
 		}
 		log.Debug(msg.Val)
 		return msg
@@ -246,8 +251,10 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 	// delay, regardless of whether the attempt is the first one or not
 	case <-notificationDelayTimer.C:
 
-		log.Debugf("sendMessage: Waited %v before notification attempt",
-			config.NotifyMgrTeamsNotificationDelay)
+		log.Debugf("sendMessage: Waited %v before notification attempt at %v",
+			config.NotifyMgrTeamsNotificationDelay,
+			time.Now().Format("15:04:05"),
+		)
 
 		// check to see if context has expired during our delay
 		if ctx.Err() != nil {
