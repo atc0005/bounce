@@ -233,6 +233,9 @@ func sendMessage(
 		}
 	}
 
+	log.Debugf("sendMessage: Time now is %v", time.Now())
+	log.Debugf("sendMessage: Notification scheduled for: %v", schedule)
+
 	// Take received schedule and use it to determine how long our timer
 	// should be before we make our first attempt at sending a message to
 	// Microsoft Teams

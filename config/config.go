@@ -329,19 +329,20 @@ func (c Config) NotifyEmail() bool {
 
 }
 
-// TeamsTimeout accepts the number of Microsoft Teams message submission
-// retries and the delay between each attempt and returns the timeout value
-// for the entire message submission process, including the initial attempt
-// and all retry attempts.
+// TeamsTimeout accepts the next scheduled notification, the number of
+// Microsoft Teams message submission retries and the delay between each
+// attempt and returns the timeout value for the entire message submission
+// process, including the initial attempt and all retry attempts.
 //
 // This overall timeout value is computed using multiple values; (1) the base
-// timeout value for a single message submission attempt, (2) the delay we are
-// enforcing between message submission attempts, (3) the total number of
+// timeout value for a single message submission attempt, (2) the next
+// scheduled notification (which was created using the configured delay we
+// wish to force between message submission attempts), (3) the total number of
 // retries allowed, (4) the delay between retry attempts
-func TeamsTimeout(retries int, retriesDelay int) time.Duration {
-	timeoutValue := (NotifyMgrTeamsTimeout +
-		NotifyMgrTeamsNotificationDelay +
-		time.Duration(retriesDelay)) * time.Duration(retries)
+func TeamsTimeout(schedule time.Time, retries int, retriesDelay int) time.Duration {
+
+	timeoutValue := (NotifyMgrTeamsTimeout + time.Until(schedule)) +
+		(time.Duration(retriesDelay) * time.Duration(retries))
 
 	// Note: This seems to allow the app to make it all the way to and execute
 	// goteamsnotify mstClient.SendWithContext() once before the context

@@ -166,8 +166,6 @@ func teamsNotifier(
 	// used by goroutines called by this function to return results
 	ourResultQueue := make(chan NotifyResult)
 
-	timeoutValue := config.TeamsTimeout(retries, retriesDelay)
-
 	// Setup new scheduler that we can use to add an intentional delay between
 	// Microsoft Teams notification attempts
 	// https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using
@@ -201,6 +199,14 @@ func teamsNotifier(
 			log.Debugf("teamsNotifier: Request received at %v: %#v",
 				time.Now(), clientRequest)
 
+			log.Debug("Calculating next scheduled notification")
+
+			nextScheduledNotification := notifyScheduler()
+
+			log.Debugf("Next scheduled notification: %v", nextScheduledNotification.Format("15:04:05"))
+
+			timeoutValue := config.TeamsTimeout(nextScheduledNotification, retries, retriesDelay)
+
 			ctx, cancel := context.WithTimeout(ctx, timeoutValue)
 			defer cancel()
 
@@ -218,8 +224,6 @@ func teamsNotifier(
 				continue
 			}
 			log.Debug("teamsNotifier: context not cancelled, proceeding with notification attempt")
-
-			nextScheduledNotification := notifyScheduler()
 
 			// launch task in separate goroutine, each with a scheduled delay
 			log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
