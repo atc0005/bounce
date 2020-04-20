@@ -40,6 +40,22 @@ type NotifyQueue struct {
 	Capacity int
 }
 
+// notifyScheduler takes a time.Duration value as a delay and returns a
+// function that can be used to generate a new notification schedule. Each
+// call to this function will produce a new schedule incremented by the
+// time.Duration delay value. The intent is to provide an easy to use
+// mechanism for delaying notifications to remote systems (e.g., in order to
+// note abuse API limits).
+func newNotifyScheduler(delay time.Duration) func() time.Time {
+	t := time.Now()
+	lastNotificationSchedule := t
+
+	return func() time.Time {
+		lastNotificationSchedule = lastNotificationSchedule.Add(delay)
+		return lastNotificationSchedule
+	}
+}
+
 // notifyQueueMonitor accepts a context and one or many NotifyQueue values to
 // monitor for items yet to be processed. notifyQueueMonitor is intended to be
 // run as a goroutine
@@ -152,6 +168,11 @@ func teamsNotifier(
 
 	timeoutValue := config.TeamsTimeout(retries, retriesDelay)
 
+	// Setup new scheduler that we can use to add an intentional delay between
+	// Microsoft Teams notification attempts
+	// https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using
+	notifyScheduler := newNotifyScheduler(config.NotifyMgrTeamsNotificationDelay)
+
 	for {
 
 		select {
@@ -198,12 +219,22 @@ func teamsNotifier(
 			}
 			log.Debug("teamsNotifier: context not cancelled, proceeding with notification attempt")
 
-			// launch task in separate goroutine
+			nextScheduledNotification := notifyScheduler()
+
+			// launch task in separate goroutine, each with a scheduled delay
 			log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
-			go func(ctx context.Context, webhookURL string, clientRequest clientRequestDetails, resultQueue chan<- NotifyResult) {
+
+			go func(
+				ctx context.Context,
+				webhookURL string,
+				clientRequest clientRequestDetails,
+				schedule time.Time,
+				numRetries int,
+				retryDelay int,
+				resultQueue chan<- NotifyResult) {
 				ourMessage := createMessage(clientRequest)
-				resultQueue <- sendMessage(ctx, webhookURL, ourMessage, retries, retriesDelay)
-			}(ctx, webhookURL, clientRequest, ourResultQueue)
+				resultQueue <- sendMessage(ctx, webhookURL, ourMessage, schedule, numRetries, retryDelay)
+			}(ctx, webhookURL, clientRequest, nextScheduledNotification, retries, retriesDelay, ourResultQueue)
 
 		case result := <-ourResultQueue:
 			if result.Err != nil {

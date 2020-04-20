@@ -215,7 +215,14 @@ func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard
 }
 
 // define function/wrapper for sending details to Microsoft Teams
-func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.MessageCard, retries int, retriesDelay int) NotifyResult {
+func sendMessage(
+	ctx context.Context,
+	webhookURL string,
+	msgCard goteamsnotify.MessageCard,
+	schedule time.Time,
+	retries int,
+	retriesDelay int,
+) NotifyResult {
 
 	// Note: We already do validation elsewhere, and the library call does
 	// even more validation, but we can handle this obvious empty argument
@@ -226,7 +233,12 @@ func sendMessage(ctx context.Context, webhookURL string, msgCard goteamsnotify.M
 		}
 	}
 
-	notificationDelayTimer := time.NewTimer(config.NotifyMgrTeamsNotificationDelay)
+	// Take received schedule and use it to determine how long our timer
+	// should be before we make our first attempt at sending a message to
+	// Microsoft Teams
+	nextSchedule := time.Until(schedule)
+
+	notificationDelayTimer := time.NewTimer(nextSchedule)
 	defer notificationDelayTimer.Stop()
 	log.Debugf("sendMessage: notificationDelayTimer created at %v with duration %v",
 		time.Now().Format("15:04:05"),

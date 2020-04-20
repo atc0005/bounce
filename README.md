@@ -458,6 +458,8 @@ and with colorized JSON output enabled:
         unbuffered channel would make the worker thread "rendezvous" with the
         main thread, which is unnecessary.*
   - <https://golang.org/ref/spec#Length_and_capacity>
+  - <https://gobyexample.com/closures>
+  - <https://golangr.com/closure/>
 
 - Contexts
   - <https://gobyexample.com/context>
@@ -489,6 +491,9 @@ and with colorized JSON output enabled:
 
 - Splunk / JSON payload
   - [Splunk Enterprise (v8.0.1) > Alerting Manual > Use a webhook alert action](https://docs.splunk.com/Documentation/Splunk/8.0.1/Alert/Webhooks)
+
+- Microsoft Teams
+  - <https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using#rate-limiting-for-connectors>
 
 <!-- Screenshot references for use within example section  -->
 [screenshot-uncolored-json-output]: media/v0.2.0/bounce-json-uncolored-output-2020-03-04.png "Uncolored JSON output example screenshot"
