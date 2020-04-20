@@ -236,13 +236,13 @@ func sendMessage(
 	// Take received schedule and use it to determine how long our timer
 	// should be before we make our first attempt at sending a message to
 	// Microsoft Teams
-	nextSchedule := time.Until(schedule)
+	notificationDelay := time.Until(schedule)
 
-	notificationDelayTimer := time.NewTimer(nextSchedule)
+	notificationDelayTimer := time.NewTimer(notificationDelay)
 	defer notificationDelayTimer.Stop()
 	log.Debugf("sendMessage: notificationDelayTimer created at %v with duration %v",
 		time.Now().Format("15:04:05"),
-		config.NotifyMgrTeamsNotificationDelay,
+		notificationDelay,
 	)
 
 	log.Debug("sendMessage: Waiting for either context or notificationDelayTimer to expire before sending notification")
@@ -264,7 +264,7 @@ func sendMessage(
 	case <-notificationDelayTimer.C:
 
 		log.Debugf("sendMessage: Waited %v before notification attempt at %v",
-			config.NotifyMgrTeamsNotificationDelay,
+			notificationDelay,
 			time.Now().Format("15:04:05"),
 		)
 
