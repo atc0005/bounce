@@ -280,7 +280,8 @@ func sendMessage(
 		if ctx.Err() != nil {
 			msg := NotifyResult{
 				Val: fmt.Sprintf(
-					"sendMessage: context expired or cancelled: %v, attempting to abort message submission",
+					"sendMessage: context expired or cancelled at %v: %v, attempting to abort message submission",
+					time.Now().Format("15:04:05"),
 					ctx.Err().Error(),
 				),
 			}
@@ -294,14 +295,21 @@ func sendMessage(
 		// of retry attempts.
 		if err := send2teams.SendMessage(ctx, webhookURL, msgCard, retries, retriesDelay); err != nil {
 			errMsg := NotifyResult{
-				Err: fmt.Errorf("sendMessage: ERROR: Failed to submit message to Microsoft Teams: %v", err),
+				Err: fmt.Errorf(
+					"sendMessage: ERROR: Failed to submit message to Microsoft Teams at %v: %v",
+					time.Now().Format("15:04:05"),
+					err,
+				),
 			}
 			log.Error(errMsg.Err.Error())
 			return errMsg
 		}
 
 		successMsg := NotifyResult{
-			Val: "sendMessage: Message successfully sent to Microsoft Teams",
+			Val: fmt.Sprintf(
+				"sendMessage: Message successfully sent to Microsoft Teams at %v",
+				time.Now().Format("15:04:05"),
+			),
 		}
 
 		// Note success for potential troubleshooting
