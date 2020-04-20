@@ -40,6 +40,15 @@ type NotifyQueue struct {
 	Capacity int
 }
 
+// NotifyStats is a collection of stats for Teams and Email notifications
+type NotifyStats struct {
+	IncomingMsgCountTotal int
+	TeamsMsgCountPending  int
+	TeamsMsgCountTotal    int
+	EmailMsgCountPending  int
+	EmailMsgCountTotal    int
+}
+
 // notifyScheduler takes a time.Duration value as a delay and returns a
 // function that can be used to generate a new notification schedule. Each
 // call to this function will produce a new schedule incremented by the
@@ -56,23 +65,27 @@ func newNotifyScheduler(delay time.Duration) func() time.Time {
 	}
 }
 
-// notifyQueueMonitor accepts a context and one or many NotifyQueue values to
-// monitor for items yet to be processed. notifyQueueMonitor is intended to be
+// notifyMonitor accepts a context and one or many NotifyQueue values to
+// monitor for items yet to be processed. notifyMonitor is intended to be
 // run as a goroutine
-func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues ...NotifyQueue) {
+func notifyMonitor(
+	ctx context.Context,
+	delay time.Duration,
+	statsQueue <-chan NotifyStats,
+	notifyQueues ...NotifyQueue) {
 
 	if len(notifyQueues) == 0 {
 		log.Error("received empty list of notifyQueues to monitor, exiting")
 		return
 	}
 
-	log.Debug("notifyQueueMonitor: Running")
+	log.Debug("notifyMonitor: Running")
 
 	for {
 
 		t := time.NewTimer(delay)
 
-		// log.Debug("notifyQueueMonitor: Starting loop")
+		// log.Debug("notifyMonitor: Starting loop")
 
 		// block until:
 		//	- context cancellation
@@ -81,19 +94,22 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 		case <-ctx.Done():
 			t.Stop()
 			log.Debugf(
-				"notifyQueueMonitor: Received Done signal: %v, shutting down ...",
+				"notifyMonitor: Received Done signal: %v, shutting down ...",
 				ctx.Err().Error(),
 			)
 			return
 
 		case <-t.C:
 
-			// log.Debug("notifyQueueMonitor: Timer fired")
+			// log.Debug("notifyMonitor: Timer fired")
 
 			// NOTE: Not needed since the channel is already drained as a
 			// result of the case statement triggering and draining the
 			// channel
 			// t.Stop()
+
+			// Attempt to receive message count updates, proceed without them
+			// if they're not available
 
 			var itemsFound bool
 			//log.Debugf("Length of queues: %d", len(queues))
@@ -115,6 +131,26 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 					notifyQueue.Count = len(queue)
 					notifyQueue.Capacity = cap(queue)
 
+				case chan NotifyStats:
+					notifyQueue.Count = len(queue)
+					notifyQueue.Capacity = cap(queue)
+
+					if notifyQueue.Count > 0 {
+
+						// sufficient to prevent blocking here?
+						stats := <-queue
+
+						// go ahead and note the details
+						log.Debugf(
+							"notifyMonitor: notifyTotal: %d, teams: [%d pending, %d total], email: [%d pending, %d total]",
+							stats.IncomingMsgCountTotal,
+							stats.TeamsMsgCountPending,
+							stats.TeamsMsgCountTotal,
+							stats.EmailMsgCountPending,
+							stats.EmailMsgCountTotal,
+						)
+					}
+
 				default:
 					log.Warn("Default case triggered (this should not happen")
 					log.Warnf("Name of channel: %s", notifyQueue.Name)
@@ -125,7 +161,7 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 				if notifyQueue.Count > 0 {
 					itemsFound = true
 					log.Debugf(
-						"notifyQueueMonitor: %d/%d items in %s, %d goroutines running",
+						"notifyMonitor: %d/%d items in %s, %d goroutines running",
 						notifyQueue.Count,
 						notifyQueue.Capacity,
 						notifyQueue.Name,
@@ -137,12 +173,11 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 			}
 
 			if !itemsFound {
-				log.Debugf("notifyQueueMonitor: 0 items queued, %d goroutines running",
+				log.Debugf("notifyMonitor: 0 items queued, %d goroutines running",
 					runtime.NumGoroutine())
 			}
 		}
 	}
-
 }
 
 // teamsNotifier is a persistent goroutine used to receive incoming
@@ -361,6 +396,8 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 	emailNotifyResultQueue := make(chan NotifyResult, config.NotifyMgrQueueDepth)
 	emailNotifyDone := make(chan struct{})
 
+	notifyStatsQueue := make(chan NotifyStats, 1)
+
 	if !cfg.NotifyTeams() && !cfg.NotifyEmail() {
 		log.Debug("StartNotifyMgr: Teams and email notifications not requested, not starting notifier goroutines")
 		// NOTE: Do not return/exit here.
@@ -426,12 +463,24 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 				Name:    "teamsNotifyResultQueue",
 				Channel: teamsNotifyResultQueue,
 			},
+			{
+				Name:    "notifyStatsQueue",
+				Channel: notifyStatsQueue,
+			},
 		}
 
-		// print current queue items periodically
-		go notifyQueueMonitor(ctx, config.NotifyQueueMonitorDelay, queuesToMonitor...)
+		// periodically print pending notifications and current queue items
+		go notifyMonitor(
+			ctx,
+			config.NotifyMonitorDelay,
+			notifyStatsQueue,
+			queuesToMonitor...,
+		)
 
 	}
+
+	// Counters for Teams and Email notifications
+	stats := NotifyStats{}
 
 	for {
 
@@ -503,6 +552,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 		case clientRequest := <-notifyWorkQueue:
 
 			log.Debug("StartNotifyMgr: Input received from notifyWorkQueue")
+			stats.IncomingMsgCountTotal++
 
 			// If we don't have *any* notifications enabled we will just
 			// discard the item we have pulled from the channel
@@ -513,6 +563,8 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 			if cfg.NotifyTeams() {
 				log.Debug("StartNotifyMgr: Creating new goroutine to place clientRequest into teamsNotifyWorkQueue")
+				stats.TeamsMsgCountTotal++
+				stats.TeamsMsgCountPending++
 				go func() {
 					log.Debugf("StartNotifyMgr: Existing items in teamsNotifyWorkQueue: %d", len(teamsNotifyWorkQueue))
 					log.Debug("StartNotifyMgr: Pending; placing clientRequest into teamsNotifyWorkQueue")
@@ -524,6 +576,8 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 			if cfg.NotifyEmail() {
 				log.Debug("StartNotifyMgr: Creating new goroutine to place clientRequest in emailNotifyWorkQueue")
+				stats.EmailMsgCountTotal++
+				stats.EmailMsgCountPending++
 				go func() {
 					log.Debugf("StartNotifyMgr: Existing items in emailNotifyWorkQueue: %d", len(emailNotifyWorkQueue))
 					log.Debug("StartNotifyMgr: Pending; placing clientRequest into emailNotifyWorkQueue")
@@ -534,6 +588,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			}
 
 		case result := <-teamsNotifyResultQueue:
+			stats.TeamsMsgCountPending--
 			if result.Err != nil {
 				log.Errorf("StartNotifyMgr: Error received from teamsNotifyResultQueue: %v", result.Err)
 				continue
@@ -543,6 +598,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			log.Infof("StartNotifyMgr: %v", result.Val)
 
 		case result := <-emailNotifyResultQueue:
+			stats.EmailMsgCountPending--
 			if result.Err != nil {
 				log.Errorf("StartNotifyMgr: Error received from emailNotifyResultQueue: %v", result.Err)
 				continue
