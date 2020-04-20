@@ -184,7 +184,8 @@ func main() {
 		// based on reading the docs it sounds like any errors from closing
 		// connections will instead overwrite this default error message with
 		// a real one, so receiving ErrServerClosed can be treated as a
-		// "successful shutdown" message of sorts.
+		// "successful shutdown" message of sorts, so ignore it and look for
+		// any other error message.
 		if !errors.Is(err, http.ErrServerClosed) {
 			log.Errorf("error occurred while running httpServer: %v", err)
 			os.Exit(1)
