@@ -607,6 +607,14 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			log.Debugf("StartNotifyMgr: non-error status received on teamsNotifyResultQueue: %v", result.Val)
 			log.Infof("StartNotifyMgr: %v", result.Val)
 
+		// FIXME: Is this a good place to hook in delivering stats?
+		case notifyStatsQueue <- stats:
+
+			log.Debugf(
+				"Stats delivered to notifyStatsQueue at %v",
+				time.Now().Format("15:04:05"),
+			)
+
 		}
 
 	}
