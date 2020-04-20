@@ -51,16 +51,12 @@ type NotifyStats struct {
 	EmailMsgSent        int
 	EmailMsgSuccess     int
 	EmailMsgFailure     int
-}
 
-// NotifyStatsPending is a collection of calculated stats values based on an
-// accumulation of NotifyStats values.
-type NotifyStatsPending struct {
 	// These fields are calculated from collected field values
 	// FIXME: Separate type?
-	Total    int
-	TeamsMsg int
-	EmailMsg int
+	PendingMsgTotal int
+	TeamsMsgPending int
+	EmailMsgPending int
 }
 
 // newNotifyScheduler takes a time.Duration value as a delay and returns a
@@ -107,26 +103,53 @@ func notifyStatsMonitor(ctx context.Context, delay time.Duration, statsQueue <-c
 
 			return
 
+		// emit stats summary here
 		case <-t.C:
 
-			// emit stats summary here
+			// TODO:
+			// totals, then teams, then email
+			// pending, success, failure
 
 			// FIXME: Using Warn level while developing this
-			log.Warnf("notifyStatsMonitor: TODO - emitting stats here")
-
-			// go ahead and note the details
-			log.Debugf(
-				"notifyStatsMonitor: Total: %d, teams: [%d pending, %d total], email: [%d pending, %d total]",
-				stats.IncomingMsgCountTotal,
-				stats.TeamsMsgCountPending,
-				stats.TeamsMsgCountTotal,
-				stats.EmailMsgCountPending,
-				stats.EmailMsgCountTotal,
+			log.Warnf(
+				"notifyStatsMonitor: Total: %d, teams: [%d pending, %d success, %d failed, %d total], email: [%d pending, %d success, %d fail, %d total]",
+				stats.IncomingMsgReceived,
+				stats.TeamsMsgPending,
+				stats.TeamsMsgSuccess,
+				stats.TeamsMsgFailure,
+				stats.TeamsMsgSent,
+				stats.EmailMsgPending,
+				stats.EmailMsgSuccess,
+				stats.EmailMsgFailure,
+				stats.EmailMsgSent,
+			)
+			log.Warnf(
+				"notifyStatsMonitor: Total: %d, teams: [%d pending, %d success, %d failed, %d total], email: [%d pending, %d success, %d fail, %d total]",
+				stats.IncomingMsgReceived,
+				stats.TeamsMsgPending,
+				stats.TeamsMsgSuccess,
+				stats.TeamsMsgFailure,
+				stats.TeamsMsgSent,
+				stats.EmailMsgPending,
+				stats.EmailMsgSuccess,
+				stats.EmailMsgFailure,
+				stats.EmailMsgSent,
+			)
+			log.Warnf(
+				"notifyStatsMonitor: Total: %d, teams: [%d pending, %d success, %d failed, %d total], email: [%d pending, %d success, %d fail, %d total]",
+				stats.IncomingMsgReceived,
+				stats.TeamsMsgPending,
+				stats.TeamsMsgSuccess,
+				stats.TeamsMsgFailure,
+				stats.TeamsMsgSent,
+				stats.EmailMsgPending,
+				stats.EmailMsgSuccess,
+				stats.EmailMsgFailure,
+				stats.EmailMsgSent,
 			)
 
+		// received stats update; update our totals
 		case statsUpdate := <-statsQueue:
-
-			// received stats update; update our totals
 
 			stats.IncomingMsgReceived += statsUpdate.IncomingMsgReceived
 
@@ -139,10 +162,6 @@ func notifyStatsMonitor(ctx context.Context, delay time.Duration, statsQueue <-c
 			stats.EmailMsgFailure += statsUpdate.EmailMsgFailure
 
 			// calculate non-collected stats here
-			// - pending
-			// - total
-			// - ... and any other values not calculated
-
 			stats.TeamsMsgPending = stats.TeamsMsgSent -
 				(stats.TeamsMsgSuccess + stats.TeamsMsgFailure)
 
