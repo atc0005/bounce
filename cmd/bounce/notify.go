@@ -53,7 +53,6 @@ type NotifyStats struct {
 	EmailMsgFailure     int
 
 	// These fields are calculated from collected field values
-	// FIXME: Separate type?
 	PendingMsgTotal int
 	TeamsMsgPending int
 	EmailMsgPending int
@@ -112,12 +111,13 @@ func notifyStatsMonitor(ctx context.Context, delay time.Duration, statsQueue <-c
 
 			// FIXME: Using Warn level while developing this
 
-			log.Warnf(
+			log.WithField("timestamp", time.Now().Format("15:04:05")).Infof(
 				"notifyStatsMonitor: "+
-					"Total: [%d received, %d teams, %d email], "+
+					"Total: [%d received, %d pending, %d teams, %d email], "+
 					"Teams: [%d pending, %d success, %d failure], "+
 					"Email: [%d pending, %d success, %d failure]",
 				stats.IncomingMsgReceived,
+				stats.TeamsMsgPending+stats.EmailMsgPending,
 				stats.TeamsMsgPending,
 				stats.TeamsMsgSuccess,
 				stats.TeamsMsgFailure,
@@ -128,28 +128,29 @@ func notifyStatsMonitor(ctx context.Context, delay time.Duration, statsQueue <-c
 				stats.EmailMsgSent,
 			)
 
-			log.Warnf(
-				"notifyStatsMonitor: Total: [%d received, %d teams, %d email]",
-				stats.IncomingMsgReceived,
-				stats.TeamsMsgSent,
-				stats.EmailMsgSent,
-			)
+			// log.WithField("timestamp", time.Now().Format("15:04:05")).Infof(
+			// 	"notifyStatsMonitor: Total: [%d received, %d pending, %d teams, %d email]",
+			// 	stats.IncomingMsgReceived,
+			// 	stats.TeamsMsgPending+stats.EmailMsgPending,
+			// 	stats.TeamsMsgSent,
+			// 	stats.EmailMsgSent,
+			// )
 
-			log.Warnf(
-				"notifyStatsMonitor: Teams: [%d total, %d pending, %d success, %d failure]",
-				stats.TeamsMsgSent,
-				stats.TeamsMsgPending,
-				stats.TeamsMsgSuccess,
-				stats.TeamsMsgFailure,
-			)
+			// log.WithField("timestamp", time.Now().Format("15:04:05")).Infof(
+			// 	"notifyStatsMonitor: Teams: [%d total, %d pending, %d success, %d failure]",
+			// 	stats.TeamsMsgSent,
+			// 	stats.TeamsMsgPending,
+			// 	stats.TeamsMsgSuccess,
+			// 	stats.TeamsMsgFailure,
+			// )
 
-			log.Warnf(
-				"notifyStatsMonitor: Email: [%d total, %d pending, %d success, %d failure]",
-				stats.EmailMsgSent,
-				stats.EmailMsgPending,
-				stats.EmailMsgSuccess,
-				stats.EmailMsgFailure,
-			)
+			// log.WithField("timestamp", time.Now().Format("15:04:05")).Infof(
+			// 	"notifyStatsMonitor: Email: [%d total, %d pending, %d success, %d failure]",
+			// 	stats.EmailMsgSent,
+			// 	stats.EmailMsgPending,
+			// 	stats.EmailMsgSuccess,
+			// 	stats.EmailMsgFailure,
+			// )
 
 		// received stats update; update our totals
 		case statsUpdate := <-statsQueue:
@@ -253,7 +254,8 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 				// Show stats only for queues with content
 				if notifyQueue.Count > 0 {
 					itemsFound = true
-					log.Debugf(
+
+					log.WithField("timestamp", time.Now().Format("15:04:05")).Debugf(
 						"notifyQueueMonitor: %d/%d items in %s, %d goroutines running",
 						notifyQueue.Count,
 						notifyQueue.Capacity,
@@ -266,7 +268,8 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 			}
 
 			if !itemsFound {
-				log.Debugf("notifyQueueMonitor: 0 items queued, %d goroutines running",
+				log.WithField("timestamp", time.Now().Format("15:04:05")).Debugf(
+					"notifyQueueMonitor: 0 items queued, %d goroutines running",
 					runtime.NumGoroutine())
 			}
 		}
