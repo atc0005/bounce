@@ -111,8 +111,12 @@ func notifyStatsMonitor(ctx context.Context, delay time.Duration, statsQueue <-c
 			// pending, success, failure
 
 			// FIXME: Using Warn level while developing this
+
 			log.Warnf(
-				"notifyStatsMonitor: Total: %d, teams: [%d pending, %d success, %d failed, %d total], email: [%d pending, %d success, %d fail, %d total]",
+				"notifyStatsMonitor: "+
+					"Total: [%d received, %d teams, %d email], "+
+					"Teams: [%d pending, %d success, %d failure], "+
+					"Email: [%d pending, %d success, %d failure]",
 				stats.IncomingMsgReceived,
 				stats.TeamsMsgPending,
 				stats.TeamsMsgSuccess,
@@ -123,29 +127,28 @@ func notifyStatsMonitor(ctx context.Context, delay time.Duration, statsQueue <-c
 				stats.EmailMsgFailure,
 				stats.EmailMsgSent,
 			)
+
 			log.Warnf(
-				"notifyStatsMonitor: Total: %d, teams: [%d pending, %d success, %d failed, %d total], email: [%d pending, %d success, %d fail, %d total]",
+				"notifyStatsMonitor: Total: [%d received, %d teams, %d email]",
 				stats.IncomingMsgReceived,
-				stats.TeamsMsgPending,
-				stats.TeamsMsgSuccess,
-				stats.TeamsMsgFailure,
 				stats.TeamsMsgSent,
-				stats.EmailMsgPending,
-				stats.EmailMsgSuccess,
-				stats.EmailMsgFailure,
 				stats.EmailMsgSent,
 			)
+
 			log.Warnf(
-				"notifyStatsMonitor: Total: %d, teams: [%d pending, %d success, %d failed, %d total], email: [%d pending, %d success, %d fail, %d total]",
-				stats.IncomingMsgReceived,
+				"notifyStatsMonitor: Teams: [%d total, %d pending, %d success, %d failure]",
+				stats.TeamsMsgSent,
 				stats.TeamsMsgPending,
 				stats.TeamsMsgSuccess,
 				stats.TeamsMsgFailure,
-				stats.TeamsMsgSent,
+			)
+
+			log.Warnf(
+				"notifyStatsMonitor: Email: [%d total, %d pending, %d success, %d failure]",
+				stats.EmailMsgSent,
 				stats.EmailMsgPending,
 				stats.EmailMsgSuccess,
 				stats.EmailMsgFailure,
-				stats.EmailMsgSent,
 			)
 
 		// received stats update; update our totals
@@ -644,7 +647,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 			go func() {
 				notifyStatsQueue <- NotifyStats{
-					IncomingMsg: 1,
+					IncomingMsgReceived: 1,
 				}
 			}()
 
@@ -660,7 +663,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 				go func() {
 					notifyStatsQueue <- NotifyStats{
-						TeamsMsg: 1,
+						TeamsMsgSent: 1,
 					}
 				}()
 
@@ -678,7 +681,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 				go func() {
 					notifyStatsQueue <- NotifyStats{
-						EmailMsg: 1,
+						EmailMsgSent: 1,
 					}
 				}()
 
