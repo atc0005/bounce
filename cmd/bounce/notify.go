@@ -170,8 +170,8 @@ func notifyStatsMonitor(ctx context.Context, delay time.Duration, statsQueue <-c
 			stats.IncomingMsgReceived += statsUpdate.IncomingMsgReceived
 
 			stats.TeamsMsgSent += statsUpdate.TeamsMsgSent
-			stats.TeamsMsgSuccess += stats.TeamsMsgSuccess
-			stats.TeamsMsgFailure += stats.TeamsMsgFailure
+			stats.TeamsMsgSuccess += statsUpdate.TeamsMsgSuccess
+			stats.TeamsMsgFailure += statsUpdate.TeamsMsgFailure
 
 			stats.EmailMsgSent += statsUpdate.EmailMsgSent
 			stats.EmailMsgSuccess += statsUpdate.EmailMsgSuccess
@@ -742,6 +742,8 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 				log.Infof("StartNotifyMgr: %v", result.Val)
 				statsUpdate.TeamsMsgSuccess = 1
 			}
+
+			//log.Debugf("statsUpdate: %#v", statsUpdate)
 
 			go func() {
 				notifyStatsQueue <- statsUpdate
