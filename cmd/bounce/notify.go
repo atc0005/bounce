@@ -73,8 +73,7 @@ type NotifyStats struct {
 // mechanism for delaying notifications to remote systems (e.g., in order to
 // note abuse API limits).
 func newNotifyScheduler(delay time.Duration) func() time.Time {
-	t := time.Now()
-	lastNotificationSchedule := t
+	lastNotificationSchedule := time.Now()
 
 	return func() time.Time {
 		lastNotificationSchedule = lastNotificationSchedule.Add(delay)
@@ -347,7 +346,10 @@ func teamsNotifier(
 
 			nextScheduledNotification := notifyScheduler()
 
-			log.Debugf("Next scheduled notification: %v", nextScheduledNotification.Format("15:04:05"))
+			log.Debugf("Now: %v, Next scheduled notification: %v",
+				time.Now().Format("15:04:05"),
+				nextScheduledNotification.Format("15:04:05"),
+			)
 
 			timeoutValue := config.TeamsTimeout(nextScheduledNotification, retries, retriesDelay)
 
