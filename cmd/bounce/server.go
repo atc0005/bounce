@@ -40,7 +40,7 @@ func shutdownListener(ctx context.Context, quit <-chan os.Signal, parentContextC
 // This function is intended to be run as a goroutine.
 func gracefulShutdown(ctx context.Context, server *http.Server, done chan<- struct{}) {
 
-	log.Warn("gracefulShutdown: called; now waiting on <-ctx.Done()")
+	log.Debug("gracefulShutdown: called; now waiting on <-ctx.Done()")
 
 	// monitor for cancellation context
 	<-ctx.Done()
