@@ -229,7 +229,8 @@ func sendMessage(
 	// problem directly
 	if webhookURL == "" {
 		return NotifyResult{
-			Err: fmt.Errorf("sendMessage: webhookURL not defined, skipping message submission to Microsoft Teams channel"),
+			Err:     fmt.Errorf("sendMessage: webhookURL not defined, skipping message submission to Microsoft Teams channel"),
+			Success: false,
 		}
 	}
 
@@ -258,6 +259,7 @@ func sendMessage(
 				time.Now().Format("15:04:05"),
 				ctxErr.Error(),
 			),
+			Success: false,
 		}
 		log.Debug(msg.Val)
 		return msg
@@ -284,6 +286,7 @@ func sendMessage(
 					time.Now().Format("15:04:05"),
 					ctx.Err().Error(),
 				),
+				Success: false,
 			}
 
 			log.Debug(msg.Val)
@@ -300,6 +303,7 @@ func sendMessage(
 					time.Now().Format("15:04:05"),
 					err,
 				),
+				Success: false,
 			}
 			log.Error(errMsg.Err.Error())
 			return errMsg
@@ -310,6 +314,7 @@ func sendMessage(
 				"sendMessage: Message successfully sent to Microsoft Teams at %v",
 				time.Now().Format("15:04:05"),
 			),
+			Success: true,
 		}
 
 		// Note success for potential troubleshooting

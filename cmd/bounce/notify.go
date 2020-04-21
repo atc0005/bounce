@@ -22,6 +22,11 @@ type NotifyResult struct {
 	// Err is the error condition message to return from a notification
 	// operation
 	Err error
+
+	// Success indicates whether the notification attempt succeeded or if it
+	// failed for one reason or another (remote API, timeout, cancellation,
+	// etc)
+	Success bool
 }
 
 // NotifyQueue represents a channel used to queue input data and responses
@@ -53,9 +58,12 @@ type NotifyStats struct {
 	EmailMsgFailure     int
 
 	// These fields are calculated from collected field values
-	PendingMsgTotal int
 	TeamsMsgPending int
 	EmailMsgPending int
+
+	TotalPendingMsg int
+	TotalSuccessMsg int
+	TotalFailureMsg int
 }
 
 // newNotifyScheduler takes a time.Duration value as a delay and returns a
@@ -113,19 +121,23 @@ func notifyStatsMonitor(ctx context.Context, delay time.Duration, statsQueue <-c
 
 			log.WithField("timestamp", time.Now().Format("15:04:05")).Infof(
 				"notifyStatsMonitor: "+
-					"Total: [%d received, %d pending, %d teams, %d email], "+
-					"Teams: [%d pending, %d success, %d failure], "+
-					"Email: [%d pending, %d success, %d failure]",
+					"Total: [%d received, %d pending, %d success, %d failure], "+
+					"Teams: [%d total, %d pending, %d success, %d failure], "+
+					"Email: [%d total, %d pending, %d success, %d failure]",
 				stats.IncomingMsgReceived,
-				stats.TeamsMsgPending+stats.EmailMsgPending,
+				stats.TotalPendingMsg,
+				stats.TotalSuccessMsg,
+				stats.TotalFailureMsg,
+
+				stats.TeamsMsgSent,
 				stats.TeamsMsgPending,
 				stats.TeamsMsgSuccess,
 				stats.TeamsMsgFailure,
-				stats.TeamsMsgSent,
+
+				stats.EmailMsgSent,
 				stats.EmailMsgPending,
 				stats.EmailMsgSuccess,
 				stats.EmailMsgFailure,
-				stats.EmailMsgSent,
 			)
 
 			// log.WithField("timestamp", time.Now().Format("15:04:05")).Infof(
@@ -172,8 +184,9 @@ func notifyStatsMonitor(ctx context.Context, delay time.Duration, statsQueue <-c
 			stats.EmailMsgPending = stats.EmailMsgSent -
 				(stats.EmailMsgSuccess + stats.EmailMsgFailure)
 
-			// FIXME: Is this really needed?
-			stats.PendingMsgTotal = stats.EmailMsgPending + stats.TeamsMsgPending
+			stats.TotalPendingMsg = stats.EmailMsgPending + stats.TeamsMsgPending
+			stats.TotalFailureMsg = stats.EmailMsgFailure + stats.TeamsMsgFailure
+			stats.TotalSuccessMsg = stats.EmailMsgSuccess + stats.TeamsMsgSuccess
 
 		}
 	}
@@ -351,9 +364,15 @@ func teamsNotifier(
 			// random case selection logic
 			log.Debug("teamsNotifier: Checking context to determine whether we should proceed")
 			if ctx.Err() != nil {
-				log.Debug("teamsNotifier: context has been cancelled, aborting notification attempt")
+				result := NotifyResult{
+					Success: false,
+					Val:     "teamsNotifier: context has been cancelled, aborting notification attempt",
+				}
+				log.Debug(result.Val)
+				notifyMgrResultQueue <- result
 				continue
 			}
+
 			log.Debug("teamsNotifier: context not cancelled, proceeding with notification attempt")
 
 			// launch task in separate goroutine, each with a scheduled delay
@@ -703,45 +722,56 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 		case result := <-teamsNotifyResultQueue:
 
-			if result.Err != nil {
-				log.Errorf("StartNotifyMgr: Error received from teamsNotifyResultQueue: %v", result.Err)
-
-				go func() {
-					notifyStatsQueue <- NotifyStats{
-						TeamsMsgFailure: 1,
-					}
-				}()
-				continue
+			statsUpdate := NotifyStats{
+				TeamsMsgPending: -1,
 			}
 
-			log.Debugf("StartNotifyMgr: OK: non-error status received on teamsNotifyResultQueue: %v", result.Val)
-			log.Infof("StartNotifyMgr: %v", result.Val)
+			// NOTE: Only consider explicit success, not a non-error condition
+			// because cancellations and timeouts are (currently) treated as
+			// non-error, but they're not successful notifications.
+
+			if !result.Success {
+				if result.Err != nil {
+					log.Errorf("StartNotifyMgr: Error received from teamsNotifyResultQueue: %v", result.Err)
+				}
+				statsUpdate.TeamsMsgFailure = 1
+			}
+
+			if result.Success {
+				log.Debugf("StartNotifyMgr: OK: non-error status received on teamsNotifyResultQueue: %v", result.Val)
+				log.Infof("StartNotifyMgr: %v", result.Val)
+				statsUpdate.TeamsMsgSuccess = 1
+			}
 
 			go func() {
-				notifyStatsQueue <- NotifyStats{
-					TeamsMsgSuccess: 1,
-				}
+				notifyStatsQueue <- statsUpdate
 			}()
 
 		case result := <-emailNotifyResultQueue:
-			if result.Err != nil {
-				log.Errorf("StartNotifyMgr: Error received from emailNotifyResultQueue: %v", result.Err)
 
-				go func() {
-					notifyStatsQueue <- NotifyStats{
-						EmailMsgFailure: 1,
-					}
-				}()
-				continue
+			statsUpdate := NotifyStats{
+				EmailMsgPending: -1,
 			}
 
-			log.Debugf("StartNotifyMgr: non-error status received on emailNotifyResultQueue: %v", result.Val)
-			log.Infof("StartNotifyMgr: %v", result.Val)
+			// NOTE: Only consider explicit success, not a non-error condition
+			// because cancellations and timeouts are (currently) treated as
+			// non-error, but they're not successful notifications.
+
+			if !result.Success {
+				if result.Err != nil {
+					log.Errorf("StartNotifyMgr: Error received from emailNotifyResultQueue: %v", result.Err)
+				}
+				statsUpdate.EmailMsgFailure = 1
+			}
+
+			if result.Success {
+				log.Debugf("StartNotifyMgr: non-error status received on emailNotifyResultQueue: %v", result.Val)
+				log.Infof("StartNotifyMgr: %v", result.Val)
+				statsUpdate.EmailMsgSuccess = 1
+			}
 
 			go func() {
-				notifyStatsQueue <- NotifyStats{
-					EmailMsgSuccess: 1,
-				}
+				notifyStatsQueue <- statsUpdate
 			}()
 
 		}
