@@ -240,6 +240,10 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 					notifyQueue.Count = len(queue)
 					notifyQueue.Capacity = cap(queue)
 
+				case chan NotifyStats:
+					notifyQueue.Count = len(queue)
+					notifyQueue.Capacity = cap(queue)
+
 				default:
 					log.Warn("Default case triggered (this should not happen")
 					log.Warnf("Name of channel: %s", notifyQueue.Name)
