@@ -99,7 +99,7 @@ func newNotifyScheduler(delay time.Duration) func() time.Time {
 
 			log.Debugf(
 				"Replace expired schedule (%v) by resetting the schedule to now (%v) + delay (%v): %v",
-				expiredSchedule,
+				expiredSchedule.Format("15:04:05"),
 				time.Now().Format("15:04:05"),
 				delay,
 				replacementSchedule.Format("15:04:05"),
