@@ -156,56 +156,55 @@ func notifyStatsMonitor(ctx context.Context, delay time.Duration, statsQueue <-c
 		// emit stats summary here
 		case <-t.C:
 
-			// TODO:
-			// totals, then teams, then email
-			// pending, success, failure
+			ctxLog := log.WithFields(log.Fields{
+				"timestamp":  time.Now().Format("15:04:05"),
+				"emit_stats": delay,
+			})
 
-			// FIXME: Using Warn level while developing this
-
-			log.WithField("timestamp", time.Now().Format("15:04:05")).Infof(
-				"notifyStatsMonitor: "+
-					"Total: [%d received, %d pending, %d success, %d failure], "+
-					"Teams: [%d total, %d pending, %d success, %d failure], "+
-					"Email: [%d total, %d pending, %d success, %d failure]",
-				stats.IncomingMsgReceived,
-				stats.TotalPendingMsg,
-				stats.TotalSuccessMsg,
-				stats.TotalFailureMsg,
-
-				stats.TeamsMsgSent,
-				stats.TeamsMsgPending,
-				stats.TeamsMsgSuccess,
-				stats.TeamsMsgFailure,
-
-				stats.EmailMsgSent,
-				stats.EmailMsgPending,
-				stats.EmailMsgSuccess,
-				stats.EmailMsgFailure,
-			)
-
-			// log.WithField("timestamp", time.Now().Format("15:04:05")).Infof(
-			// 	"notifyStatsMonitor: Total: [%d received, %d pending, %d teams, %d email]",
+			// ctxLog.Infof(
+			// 	"notifyStatsMonitor: "+
+			// 		"Total: [%d received, %d pending, %d success, %d failure], "+
+			// 		"Teams: [%d total, %d pending, %d success, %d failure], "+
+			// 		"Email: [%d total, %d pending, %d success, %d failure]",
 			// 	stats.IncomingMsgReceived,
-			// 	stats.TeamsMsgPending+stats.EmailMsgPending,
-			// 	stats.TeamsMsgSent,
-			// 	stats.EmailMsgSent,
-			// )
+			// 	stats.TotalPendingMsg,
+			// 	stats.TotalSuccessMsg,
+			// 	stats.TotalFailureMsg,
 
-			// log.WithField("timestamp", time.Now().Format("15:04:05")).Infof(
-			// 	"notifyStatsMonitor: Teams: [%d total, %d pending, %d success, %d failure]",
 			// 	stats.TeamsMsgSent,
 			// 	stats.TeamsMsgPending,
 			// 	stats.TeamsMsgSuccess,
 			// 	stats.TeamsMsgFailure,
-			// )
 
-			// log.WithField("timestamp", time.Now().Format("15:04:05")).Infof(
-			// 	"notifyStatsMonitor: Email: [%d total, %d pending, %d success, %d failure]",
 			// 	stats.EmailMsgSent,
 			// 	stats.EmailMsgPending,
 			// 	stats.EmailMsgSuccess,
 			// 	stats.EmailMsgFailure,
 			// )
+
+			ctxLog.Infof(
+				"notifyStatsMonitor: Total: [%d received, %d pending, %d success, %d failure]",
+				stats.IncomingMsgReceived,
+				stats.TotalPendingMsg,
+				stats.TotalSuccessMsg,
+				stats.TotalFailureMsg,
+			)
+
+			ctxLog.Infof(
+				"notifyStatsMonitor: Teams: [%d total, %d pending, %d success, %d failure]",
+				stats.TeamsMsgSent,
+				stats.TeamsMsgPending,
+				stats.TeamsMsgSuccess,
+				stats.TeamsMsgFailure,
+			)
+
+			ctxLog.Infof(
+				"notifyStatsMonitor: Email: [%d total, %d pending, %d success, %d failure]",
+				stats.EmailMsgSent,
+				stats.EmailMsgPending,
+				stats.EmailMsgSuccess,
+				stats.EmailMsgFailure,
+			)
 
 		// received stats update; update our totals
 		case statsUpdate := <-statsQueue:
