@@ -92,15 +92,16 @@ const (
 	// Teams notification attempt. This value does NOT take into account the
 	// number of configured retries and retry delays. The final value timeout
 	// applied to each notification attempt should be based on those
-	// calculations. The TeamsTimeout method does just that.
+	// calculations. The GetTimeout method does just that.
 	NotifyMgrTeamsTimeout time.Duration = 10 * time.Second
 
 	// NotifyMgrTeamsSendAttemptTimeout
 
 	// NotifyMgrEmailTimeout is the timeout setting applied to each email
-	// notification attempt.
-	// TODO: Email support is not (as of this writing) available. This is a
-	// stub entry to satisfy stub functionality for later use.
+	// notification attempt. This value does NOT take into account the number
+	// of configured retries and retry delays. The final value timeout applied
+	// to each notification attempt should be based on those calculations. The
+	// GetTimeout method does just that.
 	NotifyMgrEmailTimeout time.Duration = 30 * time.Second
 
 	// NotifyStatsMonitorDelay limits notification stats logging to no more
@@ -340,8 +341,8 @@ func (c Config) NotifyEmail() bool {
 
 }
 
-// TeamsTimeout accepts the next scheduled notification, the number of
-// Microsoft Teams message submission retries and the delay between each
+// GetTimeout accepts the next scheduled notification, the number of
+// message submission retries and the delay between each
 // attempt and returns the timeout value for the entire message submission
 // process, including the initial attempt and all retry attempts.
 //
@@ -350,9 +351,9 @@ func (c Config) NotifyEmail() bool {
 // scheduled notification (which was created using the configured delay we
 // wish to force between message submission attempts), (3) the total number of
 // retries allowed, (4) the delay between retry attempts
-func TeamsTimeout(schedule time.Time, retries int, retriesDelay int) time.Duration {
+func GetTimeout(baseTimeout time.Duration, schedule time.Time, retries int, retriesDelay int) time.Duration {
 
-	timeoutValue := (NotifyMgrTeamsTimeout + time.Until(schedule)) +
+	timeoutValue := (baseTimeout + time.Until(schedule)) +
 		(time.Duration(retriesDelay) * time.Duration(retries))
 
 	// Note: This seems to allow the app to make it all the way to and execute

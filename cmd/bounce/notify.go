@@ -395,7 +395,12 @@ func teamsNotifier(
 				nextScheduledNotification.Format("15:04:05"),
 			)
 
-			timeoutValue := config.TeamsTimeout(nextScheduledNotification, retries, retriesDelay)
+			timeoutValue := config.GetTimeout(
+				sendTimeout,
+				nextScheduledNotification,
+				retries,
+				retriesDelay,
+			)
 
 			ctx, cancel := context.WithTimeout(ctx, timeoutValue)
 			defer cancel()
@@ -457,19 +462,27 @@ func teamsNotifier(
 //
 // FIXME: Once the logic is worked out in teamsNotifier, update this function
 // to match it
-func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-chan clientRequestDetails, notifyMgrResultQueue chan<- NotifyResult, done chan<- struct{}) {
+func emailNotifier(
+	ctx context.Context,
+	sendTimeout time.Duration,
+	incoming <-chan clientRequestDetails,
+	notifyMgrResultQueue chan<- NotifyResult, done chan<- struct{}
+	) {
 
 	log.Debug("emailNotifier: Running")
 
 	// used by goroutines called by this function to return results
 	ourResultQueue := make(chan NotifyResult)
 
+	// Setup new scheduler that we can use to add an intentional delay between
+	// email notification attempts
+	notifyScheduler := newNotifyScheduler(config.NotifyMgrTeamsNotificationDelay)
+
 	for {
 
 		select {
 
 		case <-ctx.Done():
-			// returning not to leak the goroutine
 
 			ctxErr := ctx.Err()
 			result := NotifyResult{
@@ -490,12 +503,30 @@ func emailNotifier(ctx context.Context, sendTimeout time.Duration, incoming <-ch
 
 		case clientRequest := <-incoming:
 
-			log.Debugf("emailNotifier: Request received: %#v", clientRequest)
+			log.Debugf("emailNotifier: Request received at %v: %#v",
+				time.Now(), clientRequest)
 
-			// Wait for specified amount of time before attempting notification.
-			// This is done in an effort to prevent unintentional abuse of
-			// remote services
-			time.Sleep(config.NotifyMgrEmailNotificationDelay)
+			log.Debug("Calculating next scheduled notification")
+
+			nextScheduledNotification := notifyScheduler()
+
+			log.Debugf("Now: %v, Next scheduled notification: %v",
+				time.Now().Format("15:04:05"),
+				nextScheduledNotification.Format("15:04:05"),
+			)
+
+			timeoutValue := config.GetTimeout(
+				sendTimeout,
+				nextScheduledNotification,
+				retries,
+				retriesDelay,
+			)
+
+			ctx, cancel := context.WithTimeout(ctx, timeoutValue)
+			defer cancel()
+
+			log.Debugf("emailNotifier: child context created with timeout duration %v", timeoutValue)
+
 
 			// launch task in a separate goroutine
 			go func(resultQueue chan<- NotifyResult) {
