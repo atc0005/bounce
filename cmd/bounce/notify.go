@@ -72,7 +72,7 @@ type NotifyStats struct {
 // call to this function will produce a new schedule incremented by the
 // time.Duration delay value. The intent is to provide an easy to use
 // mechanism for delaying notifications to remote systems (e.g., in order to
-// note abuse API limits).
+// respect remote API limits).
 func newNotifyScheduler(delay time.Duration) func() time.Time {
 
 	log.Debugf("newNotifyScheduler: Initializing lastNotificationSchedule at %s",
