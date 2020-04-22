@@ -90,17 +90,17 @@ func newNotifyScheduler(delay time.Duration) func() time.Time {
 
 			log.Debugf(
 				"Expired next schedule: [Now: %v, Last: %v, Next: %v]",
-				time.Now().Format("15:04:05"),
-				lastNotificationSchedule.Format("15.04:05"),
-				expiredSchedule.Format("15:04:05"),
+				time.Now().Format("15:04:05.000"),
+				lastNotificationSchedule.Format("15.04:05.000"),
+				expiredSchedule.Format("15:04:05.000"),
 			)
 
 			replacementSchedule := time.Now().Add(delay)
 
 			log.Debugf(
 				"Replace expired schedule (%v) by resetting the schedule to now (%v) + delay (%v): %v",
-				expiredSchedule.Format("15:04:05"),
-				time.Now().Format("15:04:05"),
+				expiredSchedule.Format("15:04:05.000"),
+				time.Now().Format("15:04:05.000"),
 				delay,
 				replacementSchedule.Format("15:04:05"),
 			)
