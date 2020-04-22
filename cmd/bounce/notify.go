@@ -73,11 +73,55 @@ type NotifyStats struct {
 // mechanism for delaying notifications to remote systems (e.g., in order to
 // note abuse API limits).
 func newNotifyScheduler(delay time.Duration) func() time.Time {
+
+	log.Debugf("newNotifyScheduler: Initializing lastNotificationSchedule at %s",
+		time.Now().Format("15:04:05"),
+	)
 	lastNotificationSchedule := time.Now()
 
 	return func() time.Time {
-		lastNotificationSchedule = lastNotificationSchedule.Add(delay)
-		return lastNotificationSchedule
+
+		// if we haven't sent a message in a while we should make ensure
+		// that we do not return a "next schedule" that has already passed
+		//
+		if lastNotificationSchedule.After(time.Now()) {
+
+			expiredSchedule := lastNotificationSchedule.Add(delay)
+
+			log.Debugf(
+				"Expired next schedule: [Now: %v, Last: %v, Next: %v]",
+				time.Now().Format("15:04:05"),
+				lastNotificationSchedule,
+				expiredSchedule.Format("15:04:05"),
+			)
+
+			replacementSchedule := time.Now().Add(delay)
+
+			log.Debugf(
+				"Replace expired schedule (%v) by resetting the schedule to now (%v) + delay (%v): %v",
+				expiredSchedule,
+				time.Now().Format("15:04:05"),
+				delay,
+				replacementSchedule.Format("15:04:05"),
+			)
+
+			lastNotificationSchedule = replacementSchedule
+
+			return replacementSchedule
+		}
+
+		nextSchedule := lastNotificationSchedule.Add(delay)
+
+		log.Debugf(
+			"Next schedule not expired: [Last: %v, Now: %v, Next: %v]",
+			lastNotificationSchedule,
+			time.Now().Format("15:04:05"),
+			nextSchedule.Format("15:04:05"),
+		)
+
+		lastNotificationSchedule = nextSchedule
+
+		return nextSchedule
 	}
 }
 
