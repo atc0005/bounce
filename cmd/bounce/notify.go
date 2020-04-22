@@ -32,13 +32,14 @@ type NotifyResult struct {
 // NotifyQueue represents a channel used to queue input data and responses
 // between the main application, the notifications manager and "notifiers".
 type NotifyQueue struct {
-	// The name of a queue. This is intended for display in log messages.
+	// The name of a queue. This is intended for display in log messages or
+	// other output to identify queues with pending items.
 	Name string
 
 	// Channel is a channel used to transport input data and responses.
 	Channel interface{}
 
-	// Count is the numbered of items currently in the queue
+	// Count is the number of items currently in the queue
 	Count int
 
 	// Capacity is the maximum number of items allowed in the queue

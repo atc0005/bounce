@@ -25,8 +25,6 @@ import (
 
 func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard {
 
-	// FIXME: This isn't an actual warning, just relying on color differences
-	// during dev work for now.
 	log.Debugf("createMessage: clientRequestDetails received: %#v", clientRequest)
 
 	const ClientRequestErrorsRecorded = "Errors recorded for client request"
@@ -61,23 +59,6 @@ func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard
 		send2teams.TryToFormatAsCodeSnippet(clientRequest.HTTPMethod),
 		send2teams.TryToFormatAsCodeSnippet(clientRequest.EndpointPath),
 	)
-
-	/*
-		Main Message Section
-	*/
-
-	// TODO: Is this needed?
-
-	// mainMsgSection := goteamsnotify.NewMessageCardSection()
-	// mainMsgSection.Title = "## Client request received"
-
-	// if err := msgCard.AddSection(mainMsgSection); err != nil {
-	// 	errMsg := fmt.Sprintf("\nError returned from attempt to add mainMsgSection: %v", err)
-	// 	log.Error("createMessage: " + errMsg)
-	// 	msgCard.Text = msgCard.Text + "\n\n" + send2teams.TryToFormatAsCodeSnippet(errMsg)
-	// }
-
-	// log.Info("This should show if the function is still running")
 
 	/*
 		Client Request Summary Section - General client request details
@@ -116,9 +97,6 @@ func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard
 	}
 
 	log.Debugf("createMessage: Body field contents: %v", clientRequest.Body)
-
-	// FIXME: Remove this; only added for testing
-	//clientPayloadSection.Text = ""
 
 	if err := msgCard.AddSection(clientPayloadSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add clientPayloadSection: %v", err)
