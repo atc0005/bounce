@@ -69,6 +69,10 @@ $ ./bounce.exe -h
             Log messages are written to this output target (default "stdout")
     -port int
             TCP port that this application should listen on for incoming HTTP requests. (default 8000)
+    -retries int
+            The number of attempts that this application will make to deliver messages before giving up. (default 2)
+    -retries-delay int
+            The number of seconds that this application will wait before making another delivery attempt. (default 2)
     -webhook-url string
             The Webhook URL provided by a preconfigured Connector. If specified, this application will attempt to send client request details to the Microsoft Teams channel associated with the webhook URL.
 
