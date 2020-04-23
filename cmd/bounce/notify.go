@@ -465,9 +465,6 @@ func teamsNotifier(
 // emailNotifier is a persistent goroutine used to receive incoming
 // notification requests and spin off goroutines to create and send email
 // messages.
-//
-// FIXME: Once the logic is worked out in teamsNotifier, update this function
-// to match it
 func emailNotifier(
 	ctx context.Context,
 	sendTimeout time.Duration,
