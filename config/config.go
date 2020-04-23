@@ -85,7 +85,7 @@ const HTTPServerShutdownTimeout time.Duration = 30 * time.Second
 const NotifyMgrServicesShutdownTimeout time.Duration = 2 * time.Second
 
 // Timing-related settings (delays, timeouts) used by our notification manager
-// when using goroutines to concurrently process notification requests.
+// and child goroutines to concurrently process notification requests.
 const (
 
 	// NotifyMgrTeamsTimeout is the timeout setting applied to each Microsoft
