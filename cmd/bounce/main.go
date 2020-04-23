@@ -170,7 +170,7 @@ func main() {
 
 	ourRoutes.RegisterWithServeMux(mux)
 
-	// listen on specified port on ALL IP Addresses, block until app is terminated
+	// listen on specified port and IP Address, block until app is terminated
 	log.Infof("%s is listening on %s port %d",
 		config.MyAppName, appConfig.LocalIPAddress, appConfig.LocalTCPPort)
 
