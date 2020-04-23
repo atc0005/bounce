@@ -302,7 +302,16 @@ type Config struct {
 
 func (c *Config) String() string {
 	return fmt.Sprintf(
-		"LocalTCPPort: %d, LocalIPAddress: %s, ColorizedJSON: %t, ColorizedJSONIndent: %d, LogLevel: %s, LogOutput: %s, LogFormat: %s, WebhookURL: %s",
+		"LocalTCPPort: %d, "+
+			"LocalIPAddress: %s, "+
+			"ColorizedJSON: %t, "+
+			"ColorizedJSONIndent: %d, "+
+			"LogLevel: %s, "+
+			"LogOutput: %s, "+
+			"LogFormat: %s, "+
+			"WebhookURL: %s, "+
+			"Retries: %d, "+
+			"RetriesDelay: %d",
 		c.LocalTCPPort,
 		c.LocalIPAddress,
 		c.ColorizedJSON,
@@ -311,6 +320,8 @@ func (c *Config) String() string {
 		c.LogOutput,
 		c.LogFormat,
 		c.WebhookURL,
+		c.Retries,
+		c.RetriesDelay,
 	)
 }
 
