@@ -11,6 +11,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/apex/log"
 	"github.com/atc0005/bounce/config"
@@ -38,7 +39,7 @@ func shutdownListener(ctx context.Context, quit <-chan os.Signal, parentContextC
 // the running http server. Once the http server is shutdown, this function
 // signals back that work is complete by closing the provided done channel.
 // This function is intended to be run as a goroutine.
-func gracefulShutdown(ctx context.Context, server *http.Server, done chan<- struct{}) {
+func gracefulShutdown(ctx context.Context, server *http.Server, timeout time.Duration, done chan<- struct{}) {
 
 	log.Debug("gracefulShutdown: started; now waiting on <-ctx.Done()")
 
@@ -51,7 +52,7 @@ func gracefulShutdown(ctx context.Context, server *http.Server, done chan<- stru
 	// Disable HTTP keep-alives to prevent connections from persisting
 	server.SetKeepAlivesEnabled(false)
 
-	ctxShutdown, cancel := context.WithTimeout(ctx, config.HTTPServerShutdownTimeout)
+	ctxShutdown, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	// From the docs:
