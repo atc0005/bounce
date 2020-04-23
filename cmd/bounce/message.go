@@ -214,9 +214,9 @@ func sendMessage(
 	log.Debugf("sendMessage: Time now is %v", time.Now().Format("15:04:05"))
 	log.Debugf("sendMessage: Notification scheduled for: %v", schedule.Format("15:04:05"))
 
-	// Take received schedule and use it to determine how long our timer
-	// should be before we make our first attempt at sending a message to
-	// Microsoft Teams
+	// Set delay timer to meet received notification schedule. This helps
+	// ensure that we delay the appropriate amount of time before we make our
+	// first attempt at sending a message to Microsoft Teams.
 	notificationDelay := time.Until(schedule)
 
 	notificationDelayTimer := time.NewTimer(notificationDelay)
