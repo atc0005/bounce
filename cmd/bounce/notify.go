@@ -557,7 +557,7 @@ func emailNotifier(
 
 			log.Debug("emailNotifier: context not cancelled, proceeding with notification attempt")
 
-			// launch task in separate goroutine, each with a scheduled delay
+			// launch task in separate goroutine, each with its own schedule
 			log.Debug("emailNotifier: Launching message creation/submission in separate goroutine")
 
 			// launch task in a separate goroutine
