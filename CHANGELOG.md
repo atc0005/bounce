@@ -32,11 +32,7 @@ The following types of changes will be recorded in this file:
     - currently hard-coded, but will likely expose this as a flag in a future
       release
 
-- Add monitoring/reporting of "queue" statistics
-  - total
-  - pending
-  - success
-  - failure
+- Add monitoring/reporting of notification channels with pending items
 
 - Add monitoring/reporting of notification statistics
   - total
@@ -45,6 +41,30 @@ The following types of changes will be recorded in this file:
   - failure
 
 - Capture `Ctrl+C` and attempt graceful shutdown
+
+- Plumbed `context` throughout majority of application for cancellation and
+  timeout functionality
+  - still learning proper use of this package, so likely many mistakes that
+    will need to be fixed in a future release
+
+- Logging
+  - add *many* more debug statements to help with troubleshooting
+
+### Changed
+
+- Dependencies
+  - Use `atc0005/go-teams-notify` package
+    - fork of original package with current features and some additional
+      changes not yet accepted upstream
+  - Use `atc0005/send2teams` package
+    - provides wrapper for upstream functionality with message retry, delay
+      functionality
+    - provides formatting helper functions
+    - provides additional webhook URL validation
+  - Drop indirect dependency
+  - Update `golang/gddo`
+  - Add commented entries to have Go use local copies of packages for fast
+    prototyping work
 
 ### Fixed
 
@@ -57,6 +77,9 @@ The following types of changes will be recorded in this file:
 
 - Manually flush `http.ResponseWriter` to (massively) speed up response time
   for client requests
+
+- Move template parsing to `main()` in an effort to speed up endpoint response
+  time for client requests
 
 ## [v0.3.3] - 2020-03-14
 
