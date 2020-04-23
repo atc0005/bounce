@@ -10,9 +10,9 @@ import (
 	"github.com/atc0005/bounce/config"
 )
 
-// NotifyResult wraps the results of notification goroutine operations to make
-// it easier to inspect the status of various tasks so that we can take action
-// on either error or success conditions
+// NotifyResult wraps the results of notification operations to make it easier
+// to inspect the status of various tasks so that we can take action on either
+// error or success conditions
 type NotifyResult struct {
 
 	// Val is the non-error condition message to return from a notification
