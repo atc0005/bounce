@@ -465,9 +465,12 @@ func teamsNotifier(
 func emailNotifier(
 	ctx context.Context,
 	sendTimeout time.Duration,
+	retries int,
+	retriesDelay int,
 	incoming <-chan clientRequestDetails,
-	notifyMgrResultQueue chan<- NotifyResult, done chan<- struct{}
-	) {
+	notifyMgrResultQueue chan<- NotifyResult,
+	done chan<- struct{},
+) {
 
 	log.Debug("emailNotifier: Running")
 
@@ -527,8 +530,33 @@ func emailNotifier(
 
 			log.Debugf("emailNotifier: child context created with timeout duration %v", timeoutValue)
 
+			// if there is a message waiting *and* ctx.Done() case statements
+			// are both valid, either path could be taken. If this one is
+			// taken, then the message send timeout will be the only thing
+			// forcing the attempt to loop back around and trigger the
+			// ctx.Done() path, but only if this one isn't taken again by the
+			// random case selection logic
+			log.Debug("emailNotifier: Checking context to determine whether we should proceed")
+
+			if ctx.Err() != nil {
+				result := NotifyResult{
+					Success: false,
+					Val:     "emailNotifier: context has been cancelled, aborting notification attempt",
+				}
+				log.Debug(result.Val)
+				notifyMgrResultQueue <- result
+
+				continue
+			}
+
+			log.Debug("emailNotifier: context not cancelled, proceeding with notification attempt")
+
+			// launch task in separate goroutine, each with a scheduled delay
+			log.Debug("emailNotifier: Launching message creation/submission in separate goroutine")
 
 			// launch task in a separate goroutine
+			// FIXME: Implement most of the same parameters here as with the
+			// goroutine in teamsNotifier, pass ctx for email function to use.
 			go func(resultQueue chan<- NotifyResult) {
 				result := NotifyResult{
 					Err: fmt.Errorf("emailNotifier: Sending email is not currently enabled"),
@@ -537,30 +565,16 @@ func emailNotifier(
 				resultQueue <- result
 			}(ourResultQueue)
 
-			t := time.NewTimer(sendTimeout)
-			defer t.Stop()
+		case result := <-ourResultQueue:
 
-			select {
-
-			case <-t.C:
-
-				result := NotifyResult{
-					Err: fmt.Errorf("emailNotifier: Timeout reached after %v for sending email notification", sendTimeout),
-				}
-				log.Debug(result.Err.Error())
-				notifyMgrResultQueue <- result
-
-			case result := <-ourResultQueue:
-
-				if result.Err != nil {
-					log.Errorf("emailNotifier: Error received from ourResultQueue: %v", result.Err)
-				} else {
-					log.Debugf("emailNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
-				}
-
-				notifyMgrResultQueue <- result
-
+			if result.Err != nil {
+				log.Errorf("emailNotifier: Error received from ourResultQueue: %v", result.Err)
+			} else {
+				log.Debugf("emailNotifier: OK: non-error status received on ourResultQueue: %v", result.Val)
 			}
+
+			notifyMgrResultQueue <- result
+
 		}
 	}
 
@@ -625,6 +639,8 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 		go emailNotifier(
 			ctx,
 			config.NotifyMgrEmailTimeout,
+			cfg.Retries,
+			cfg.RetriesDelay,
 			emailNotifyWorkQueue,
 			emailNotifyResultQueue,
 			emailNotifyDone,
