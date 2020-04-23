@@ -114,7 +114,7 @@ func newNotifyScheduler(delay time.Duration) func() time.Time {
 
 		log.Debugf(
 			"Next schedule not expired: [Last: %v, Now: %v, Next: %v]",
-			lastNotificationSchedule,
+			lastNotificationSchedule.Format("15:04:05"),
 			time.Now().Format("15:04:05"),
 			nextSchedule.Format("15:04:05"),
 		)
