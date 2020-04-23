@@ -441,8 +441,10 @@ func teamsNotifier(
 				numRetries int,
 				retryDelay int,
 				resultQueue chan<- NotifyResult) {
+
 				ourMessage := createMessage(clientRequest)
 				resultQueue <- sendMessage(ctx, webhookURL, ourMessage, schedule, numRetries, retryDelay)
+
 			}(ctx, webhookURL, clientRequest, nextScheduledNotification, retries, retriesDelay, ourResultQueue)
 
 		case result := <-ourResultQueue:
