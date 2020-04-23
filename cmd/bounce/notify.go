@@ -430,7 +430,7 @@ func teamsNotifier(
 
 			log.Debug("teamsNotifier: context not cancelled, proceeding with notification attempt")
 
-			// launch task in separate goroutine, each with a scheduled delay
+			// launch task in separate goroutine, each with its own schedule
 			log.Debug("teamsNotifier: Launching message creation/submission in separate goroutine")
 
 			go func(
