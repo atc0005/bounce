@@ -183,7 +183,8 @@ func notifyStatsMonitor(ctx context.Context, delay time.Duration, statsQueue <-c
 			// )
 
 			ctxLog.Infof(
-				"notifyStatsMonitor: Total: [%d received, %d pending, %d success, %d failure]",
+				"notifyStatsMonitor: Total: "+
+					"[%d received, %d pending, %d success, %d failure]",
 				stats.IncomingMsgReceived,
 				stats.TotalPendingMsg,
 				stats.TotalSuccessMsg,
@@ -191,7 +192,8 @@ func notifyStatsMonitor(ctx context.Context, delay time.Duration, statsQueue <-c
 			)
 
 			ctxLog.Infof(
-				"notifyStatsMonitor: Teams: [%d total, %d pending, %d success, %d failure]",
+				"notifyStatsMonitor: Teams: "+
+					"[%d total, %d pending, %d success, %d failure]",
 				stats.TeamsMsgSent,
 				stats.TeamsMsgPending,
 				stats.TeamsMsgSuccess,
@@ -199,7 +201,8 @@ func notifyStatsMonitor(ctx context.Context, delay time.Duration, statsQueue <-c
 			)
 
 			ctxLog.Infof(
-				"notifyStatsMonitor: Email: [%d total, %d pending, %d success, %d failure]",
+				"notifyStatsMonitor: Email: "+
+					"[%d total, %d pending, %d success, %d failure]",
 				stats.EmailMsgSent,
 				stats.EmailMsgPending,
 				stats.EmailMsgSuccess,
