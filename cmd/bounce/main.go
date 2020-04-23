@@ -106,11 +106,11 @@ func main() {
 	// as much as possible.
 	notifyWorkQueue := make(chan clientRequestDetails, config.NotifyMgrQueueDepth)
 
-	// Create "notifications manager" function that will start infinite loop
-	// with select statement to process incoming notification requests.
+	// Create "notifications manager" function as persistent goroutine to
+	// process incoming notification requests.
 	go StartNotifyMgr(ctx, appConfig, notifyWorkQueue, notifyDone)
 
-	// Setup "listener" to cancel the parent contextwhen Signal.Notify()
+	// Setup "listener" to cancel the parent context when Signal.Notify()
 	// indicates that SIGINT has been received
 	go shutdownListener(ctx, quit, cancel)
 
