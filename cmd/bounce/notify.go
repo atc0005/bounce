@@ -344,6 +344,7 @@ func teamsNotifier(
 	ctx context.Context,
 	webhookURL string,
 	sendTimeout time.Duration,
+	sendDelay time.Duration,
 	retries int,
 	retriesDelay int,
 	incoming <-chan clientRequestDetails,
@@ -361,7 +362,7 @@ func teamsNotifier(
 	// Setup new scheduler that we can use to add an intentional delay between
 	// Microsoft Teams notification attempts
 	// https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using
-	notifyScheduler := newNotifyScheduler(config.NotifyMgrTeamsNotificationDelay)
+	notifyScheduler := newNotifyScheduler(sendDelay)
 
 	for {
 
@@ -470,6 +471,7 @@ func teamsNotifier(
 func emailNotifier(
 	ctx context.Context,
 	sendTimeout time.Duration,
+	sendDelay time.Duration,
 	retries int,
 	retriesDelay int,
 	incoming <-chan clientRequestDetails,
@@ -484,7 +486,7 @@ func emailNotifier(
 
 	// Setup new scheduler that we can use to add an intentional delay between
 	// email notification attempts
-	notifyScheduler := newNotifyScheduler(config.NotifyMgrTeamsNotificationDelay)
+	notifyScheduler := newNotifyScheduler(sendDelay)
 
 	for {
 
@@ -628,6 +630,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			ctx,
 			cfg.WebhookURL,
 			config.NotifyMgrTeamsTimeout,
+			config.NotifyMgrTeamsNotificationDelay,
 			cfg.Retries,
 			cfg.RetriesDelay,
 			teamsNotifyWorkQueue,
@@ -644,6 +647,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 		go emailNotifier(
 			ctx,
 			config.NotifyMgrEmailTimeout,
+			config.NotifyMgrEmailNotificationDelay,
 			cfg.Retries,
 			cfg.RetriesDelay,
 			emailNotifyWorkQueue,
