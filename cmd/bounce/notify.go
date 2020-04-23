@@ -305,7 +305,10 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 
 				default:
 					log.Warn("Default case triggered (this should not happen")
-					log.Warnf("Name of channel: %s", notifyQueue.Name)
+					log.Warnf(
+						"Unhandled channel: [Name: %s, Type: %T]",
+						notifyQueue.Name, notifyQueue,
+					)
 
 				}
 
