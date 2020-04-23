@@ -136,8 +136,7 @@ func main() {
 		Description:    "Main page, fallback for unspecified routes",
 		Pattern:        "/",
 		AllowedMethods: []string{http.MethodGet},
-		// TODO: Do we need to pass in a context here?
-		HandlerFunc: handleIndex(indexPageHandleTemplate, &ourRoutes),
+		HandlerFunc:    handleIndex(indexPageHandleTemplate, &ourRoutes),
 	})
 
 	ourRoutes.Add(routes.Route{
