@@ -24,7 +24,39 @@ The following types of changes will be recorded in this file:
 
 ## [Unreleased]
 
-- placeholder
+### Added
+
+- Add support for Microsoft Teams notifications
+  - configurable retry, retry delay settings
+  - rate-limited submissions to help prevent unintentional abuse of remote API
+    - currently hard-coded, but will likely expose this as a flag in a future
+      release
+
+- Add monitoring/reporting of "queue" statistics
+  - total
+  - pending
+  - success
+  - failure
+
+- Add monitoring/reporting of notification statistics
+  - total
+  - pending
+  - success
+  - failure
+
+- Capture `Ctrl+C` and attempt graceful shutdown
+
+### Fixed
+
+- GoDoc formatting
+  - remove forced line-wrap which resulted in unintentional code block
+    formatting of non-code content
+
+- Refactor logging, flag handling
+  - not user visible, so not recording as a "change"
+
+- Manually flush `http.ResponseWriter` to (massively) speed up response time
+  for client requests
 
 ## [v0.3.3] - 2020-03-14
 
