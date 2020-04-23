@@ -711,7 +711,6 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 		// requests will likely hang, likely until client/server timeout
 		// settings are reached
 		case <-ctx.Done():
-			// returning not to leak the goroutine
 			ctxErr := ctx.Err()
 			log.Debugf("StartNotifyMgr: Received Done signal: %v, shutting down ...", ctxErr.Error())
 
