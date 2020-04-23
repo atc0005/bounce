@@ -657,51 +657,50 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 		)
 	}
 
-	// Monitor queues and report stats for each
-	if cfg.NotifyEmail() || cfg.NotifyTeams() {
-
-		queuesToMonitor := []NotifyQueue{
-			{
-				Name:    "notifyWorkQueue",
-				Channel: notifyWorkQueue,
-			},
-			{
-				Name:    "emailNotifyWorkQueue",
-				Channel: emailNotifyWorkQueue,
-			},
-			{
-				Name:    "emailNotifyResultQueue",
-				Channel: emailNotifyResultQueue,
-			},
-			{
-				Name:    "teamsNotifyWorkQueue",
-				Channel: teamsNotifyWorkQueue,
-			},
-			{
-				Name:    "teamsNotifyResultQueue",
-				Channel: teamsNotifyResultQueue,
-			},
-			{
-				Name:    "notifyStatsQueue",
-				Channel: notifyStatsQueue,
-			},
-		}
-
-		// periodically print current queue items
-		go notifyQueueMonitor(
-			ctx,
-			config.NotifyQueueMonitorDelay,
-			queuesToMonitor...,
-		)
-
-		// collect and periodically emit summary of notification details
-		go notifyStatsMonitor(
-			ctx,
-			config.NotifyStatsMonitorDelay,
-			notifyStatsQueue,
-		)
-
+	// Monitor queues and report stats for each, even if the user has not
+	// opted to use notifications. This is done since we are tracking at least
+	// one queue (notifyStatsQueue) which is active even with notifiers
+	// disabled.
+	queuesToMonitor := []NotifyQueue{
+		{
+			Name:    "notifyWorkQueue",
+			Channel: notifyWorkQueue,
+		},
+		{
+			Name:    "emailNotifyWorkQueue",
+			Channel: emailNotifyWorkQueue,
+		},
+		{
+			Name:    "emailNotifyResultQueue",
+			Channel: emailNotifyResultQueue,
+		},
+		{
+			Name:    "teamsNotifyWorkQueue",
+			Channel: teamsNotifyWorkQueue,
+		},
+		{
+			Name:    "teamsNotifyResultQueue",
+			Channel: teamsNotifyResultQueue,
+		},
+		{
+			Name:    "notifyStatsQueue",
+			Channel: notifyStatsQueue,
+		},
 	}
+
+	// periodically print current queue items
+	go notifyQueueMonitor(
+		ctx,
+		config.NotifyQueueMonitorDelay,
+		queuesToMonitor...,
+	)
+
+	// collect and periodically emit summary of notification details
+	go notifyStatsMonitor(
+		ctx,
+		config.NotifyStatsMonitorDelay,
+		notifyStatsQueue,
+	)
 
 	for {
 
