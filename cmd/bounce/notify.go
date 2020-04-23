@@ -84,7 +84,6 @@ func newNotifyScheduler(delay time.Duration) func() time.Time {
 
 		// if we haven't sent a message in a while we should make ensure
 		// that we do not return a "next schedule" that has already passed
-		//
 		if !lastNotificationSchedule.After(time.Now()) {
 
 			expiredSchedule := lastNotificationSchedule.Add(delay)
