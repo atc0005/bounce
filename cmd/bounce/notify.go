@@ -788,6 +788,11 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			if cfg.NotifyTeams() {
 				log.Debug("StartNotifyMgr: Creating new goroutine to place clientRequest into teamsNotifyWorkQueue")
 
+				// TODO: Perhaps record this *after* sending the clientRequest
+				// down the teamsNotifyWorkQueue channel? See other cases
+				// where we're using the same "record stat, then do it"
+				// approach.
+
 				go func() {
 					notifyStatsQueue <- NotifyStats{
 						TeamsMsgSent: 1,
