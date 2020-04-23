@@ -418,6 +418,7 @@ func teamsNotifier(
 			// ctx.Done() path, but only if this one isn't taken again by the
 			// random case selection logic
 			log.Debug("teamsNotifier: Checking context to determine whether we should proceed")
+
 			if ctx.Err() != nil {
 				result := NotifyResult{
 					Success: false,
@@ -425,6 +426,7 @@ func teamsNotifier(
 				}
 				log.Debug(result.Val)
 				notifyMgrResultQueue <- result
+
 				continue
 			}
 
