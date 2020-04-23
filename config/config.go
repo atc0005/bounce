@@ -16,6 +16,16 @@ import (
 	"time"
 
 	"github.com/apex/log"
+	"github.com/apex/log/handlers/cli"
+	"github.com/apex/log/handlers/discard"
+	"github.com/apex/log/handlers/json"
+	"github.com/apex/log/handlers/logfmt"
+	"github.com/apex/log/handlers/text"
+
+	// use our fork for now until recent work can be submitted for inclusion
+	// in the upstream project
+	goteamsnotify "github.com/atc0005/go-teams-notify"
+	send2teams "github.com/atc0005/send2teams/teams"
 )
 
 // version is updated via Makefile builds by referencing the fully-qualified
@@ -24,8 +34,24 @@ import (
 // non-Makefile builds.
 var version string = "x.y.z"
 
-const myAppName string = "bounce"
-const myAppURL string = "https://github.com/atc0005/bounce"
+// MyAppName is the public name of this application
+const MyAppName string = "bounce"
+
+// MyAppURL is the location of the repo for this application
+const MyAppURL string = "https://github.com/atc0005/bounce"
+
+const (
+	portFlagHelp                = "TCP port that this application should listen on for incoming HTTP requests."
+	localIPAddressFlagHelp      = "Local IP Address that this application should listen on for incoming HTTP requests."
+	colorizedJSONFlagHelp       = "Whether JSON output should be colorized."
+	colorizedJSONIndentFlagHelp = "Number of spaces to use when indenting colorized JSON output. Has no effect unless colorized JSON mode is enabled."
+	logLevelFlagHelp            = "Log message priority filter. Log messages with a lower level are ignored."
+	logOutputFlagHelp           = "Log messages are written to this output target"
+	logFormatFlagHelp           = "Log messages are written in this format"
+	webhookURLFlagHelp          = "The Webhook URL provided by a preconfigured Connector. If specified, this application will attempt to send client request details to the Microsoft Teams channel associated with the webhook URL."
+	retriesFlagHelp             = "The number of attempts that this application will make to deliver messages before giving up."
+	retriesDelayFlagHelp        = "The number of seconds that this application will wait before making another delivery attempt."
+)
 
 // Default flag settings if not overridden by user input
 const (
@@ -36,6 +62,9 @@ const (
 	defaultLogLevel            string = "info"
 	defaultLogOutput           string = "stdout"
 	defaultLogFormat           string = "text"
+	defaultWebhookURL          string = ""
+	defaultRetries             int    = 2
+	defaultRetriesDelay        int    = 2
 )
 
 // Timeout settings applied to our instance of http.Server
@@ -44,6 +73,68 @@ const (
 	HTTPServerReadTimeout       time.Duration = 1 * time.Minute
 	HTTPServerWriteTimeout      time.Duration = 2 * time.Minute
 )
+
+// HTTPServerShutdownTimeout is used by the graceful shutdown process to
+// control how long the shutdown process should wait before forcefully
+// terminating.
+const HTTPServerShutdownTimeout time.Duration = 30 * time.Second
+
+// NotifyMgrServicesShutdownTimeout is used by the NotifyMgr to determine how
+// long it should wait for results from each notifier or notifier "service"
+// before continuing on with the shutdown process.
+const NotifyMgrServicesShutdownTimeout time.Duration = 2 * time.Second
+
+// Timing-related settings (delays, timeouts) used by our notification manager
+// and child goroutines to concurrently process notification requests.
+const (
+
+	// NotifyMgrTeamsTimeout is the timeout setting applied to each Microsoft
+	// Teams notification attempt. This value does NOT take into account the
+	// number of configured retries and retry delays. The final value timeout
+	// applied to each notification attempt should be based on those
+	// calculations. The GetTimeout method does just that.
+	NotifyMgrTeamsTimeout time.Duration = 10 * time.Second
+
+	// NotifyMgrTeamsSendAttemptTimeout
+
+	// NotifyMgrEmailTimeout is the timeout setting applied to each email
+	// notification attempt. This value does NOT take into account the number
+	// of configured retries and retry delays. The final value timeout applied
+	// to each notification attempt should be based on those calculations. The
+	// GetTimeout method does just that.
+	NotifyMgrEmailTimeout time.Duration = 30 * time.Second
+
+	// NotifyStatsMonitorDelay limits notification stats logging to no more
+	// often than this duration. This limiter is to keep from logging the
+	// details so often that the information simply becomes noise.
+	NotifyStatsMonitorDelay time.Duration = 120 * time.Second
+
+	// NotifyQueueMonitorDelay limits notification queue stats logging to no
+	// more often than this duration. This limiter is to keep from logging the
+	// details so often that the information simply becomes noise.
+	NotifyQueueMonitorDelay time.Duration = 15 * time.Second
+
+	// NotifyMgrTeamsNotificationDelay is the delay between Microsoft Teams
+	// notification attempts. This delay is intended to help prevent
+	// unintentional abuse of remote services.
+	NotifyMgrTeamsNotificationDelay time.Duration = 5 * time.Second
+
+	// NotifyMgrEmailNotificationDelay is the delay between email notification
+	// attempts. This delay is intended to help prevent unintentional abuse of
+	// remote services.
+	NotifyMgrEmailNotificationDelay time.Duration = 5 * time.Second
+)
+
+// NotifyMgrQueueDepth is the number of items allowed into the queue/channel
+// at one time. Senders with items for the notification "pipeline" that do not
+// fit within the allocated space will block until space in the queue opens.
+// Best practice for channels advocates that a smaller number is better than a
+// larger one, so YMMV if this is set either too high or too low.
+//
+// Brief testing (as of this writing) shows that a depth as low as 1 works for
+// our purposes, but results in a greater number of stalled goroutines waiting
+// to place items into the queue.
+const NotifyMgrQueueDepth int = 5
 
 // ReadHeaderTimeout:
 
@@ -125,9 +216,20 @@ const (
 	LogOutputStderr string = "stderr"
 )
 
+// MessageTrailer generates a branded "footer" for use with notifications.
+func MessageTrailer() string {
+	return fmt.Sprintf(
+		"Message generated by [%s](%s) (%s) at %s",
+		MyAppName,
+		MyAppURL,
+		version,
+		time.Now().Format(time.RFC3339),
+	)
+}
+
 // Branding is responsible for emitting application name, version and origin
-func Branding() {
-	fmt.Fprintf(flag.CommandLine.Output(), "\n%s %s\n%s\n\n", myAppName, version, myAppURL)
+func Branding() string {
+	return fmt.Sprintf("\n%s %s\n%s\n\n", MyAppName, version, MyAppURL)
 }
 
 // Usage is a custom override for the default Help text provided by
@@ -137,7 +239,7 @@ func Usage(flagSet *flag.FlagSet) func() {
 
 	return func() {
 
-		Branding()
+		fmt.Fprint(flag.CommandLine.Output(), Branding())
 
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage of \"%s\":\n",
 			flagSet.Name(),
@@ -150,6 +252,13 @@ func Usage(flagSet *flag.FlagSet) func() {
 // Config represents the application configuration as specified via
 // command-line flags
 type Config struct {
+
+	// Retries is the number of attempts that this application will make
+	// to deliver messages before giving up.
+	Retries int
+
+	// RetriesDelay is the number of seconds to wait between retry attempts.
+	RetriesDelay int
 
 	// LocalTCPPort is the TCP port that this application should listen on for
 	// incoming requests
@@ -181,11 +290,28 @@ type Config struct {
 	// of the formats supported by the third-party leveled-logging package
 	// used by this application.
 	LogFormat string
+
+	// WebhookURL is the full URL used to submit messages to the Teams channel
+	// This URL is in the form of https://outlook.office.com/webhook/xxx or
+	// https://outlook.office365.com/webhook/xxx. This URL is REQUIRED in
+	// order for this application to function and needs to be created in
+	// advance by adding/configuring a Webhook Connector in a Microsoft Teams
+	// channel that you wish to submit messages to using this application.
+	WebhookURL string
 }
 
 func (c *Config) String() string {
 	return fmt.Sprintf(
-		"LocalTCPPort: %d, LocalIPAddress: %s, ColorizedJSON: %t, ColorizedJSONIndent: %d, LogLevel: %s, LogOutput: %s, LogFormat: %s",
+		"LocalTCPPort: %d, "+
+			"LocalIPAddress: %s, "+
+			"ColorizedJSON: %t, "+
+			"ColorizedJSONIndent: %d, "+
+			"LogLevel: %s, "+
+			"LogOutput: %s, "+
+			"LogFormat: %s, "+
+			"WebhookURL: %s, "+
+			"Retries: %d, "+
+			"RetriesDelay: %d",
 		c.LocalTCPPort,
 		c.LocalIPAddress,
 		c.ColorizedJSON,
@@ -193,7 +319,65 @@ func (c *Config) String() string {
 		c.LogLevel,
 		c.LogOutput,
 		c.LogFormat,
+		c.WebhookURL,
+		c.Retries,
+		c.RetriesDelay,
 	)
+}
+
+// NotifyTeams indicates whether or not notifications should be sent to a
+// Microsoft Teams channel.
+func (c Config) NotifyTeams() bool {
+
+	// Assumption: config.validate() has already been called for the existing
+	// instance of the Config type and this method is now being called by
+	// later stages of the codebase to determine only whether an attempt
+	// should be made to send a message to Teams.
+
+	// For now, use the same logic that validate() uses to determine whether
+	// validation checks should be run: Is c.WebhookURL set to a non-empty
+	// string.
+	return c.WebhookURL != ""
+
+}
+
+// NotifyEmail indicates whether or not notifications should be generated and
+// sent via email to specified recipients.
+func (c Config) NotifyEmail() bool {
+
+	// TODO: Add support for email notifications. For now, this method is a
+	// placeholder to allow logic for future notification support to be
+	// written.
+	return false
+
+}
+
+// GetTimeout accepts the next scheduled notification, the number of
+// message submission retries and the delay between each
+// attempt and returns the timeout value for the entire message submission
+// process, including the initial attempt and all retry attempts.
+//
+// This overall timeout value is computed using multiple values; (1) the base
+// timeout value for a single message submission attempt, (2) the next
+// scheduled notification (which was created using the configured delay we
+// wish to force between message submission attempts), (3) the total number of
+// retries allowed, (4) the delay between retry attempts
+func GetTimeout(baseTimeout time.Duration, schedule time.Time, retries int, retriesDelay int) time.Duration {
+
+	timeoutValue := (baseTimeout + time.Until(schedule)) +
+		(time.Duration(retriesDelay) * time.Duration(retries))
+
+	// Note: This seems to allow the app to make it all the way to and execute
+	// goteamsnotify mstClient.SendWithContext() once before the context
+	// timeout is triggered and shuts everything down
+	// timeoutValue := 6000 * time.Millisecond
+
+	// ... to make it to
+	// "sendMessage: Waiting for either context or notificationDelayTimer"
+	// before the context expires (0 executions of SendWithContext()).
+	// timeoutValue := 5010 * time.Millisecond
+
+	return timeoutValue
 }
 
 // NewConfig is a factory function that produces a new Config object based
@@ -202,74 +386,62 @@ func NewConfig() (*Config, error) {
 
 	config := Config{}
 
-	mainFlagSet := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
-
-	mainFlagSet.IntVar(
-		&config.LocalTCPPort,
-		"port",
-		defaultLocalTCPPort,
-		"TCP port that this application should listen on for incoming HTTP requests.",
-	)
-
-	mainFlagSet.StringVar(
-		&config.LocalIPAddress,
-		"ipaddr",
-		defaultLocalIP,
-		"Local IP Address that this application should listen on for incoming HTTP requests.",
-	)
-
-	mainFlagSet.BoolVar(
-		&config.ColorizedJSON,
-		"color",
-		defaultColorizedJSON,
-		"Whether JSON output should be colorized.",
-	)
-
-	mainFlagSet.IntVar(
-		&config.ColorizedJSONIndent,
-		"indent-lvl",
-		defaultColorizedJSONIntent,
-		"Number of spaces to use when indenting colorized JSON output. Has no effect unless colorized JSON mode is enabled.",
-	)
-
-	mainFlagSet.StringVar(
-		&config.LogLevel,
-		"log-lvl",
-		defaultLogLevel,
-		"Log message priority filter. Log messages with a lower level are ignored.",
-	)
-
-	mainFlagSet.StringVar(
-		&config.LogOutput,
-		"log-out",
-		defaultLogOutput,
-		"Log messages are written to this output target",
-	)
-
-	mainFlagSet.StringVar(
-		&config.LogFormat,
-		"log-fmt",
-		defaultLogFormat,
-		"Log messages are written in this format",
-	)
-
-	mainFlagSet.Usage = Usage(mainFlagSet)
-	// FIXME: Is this needed for any reason since our mainFlagSet has already
-	// been parsed?
-	//flag.CommandLine = mainFlagSet
-	//flag.Parse()
-	if err := mainFlagSet.Parse(os.Args[1:]); err != nil {
-		return nil, err
+	if err := config.handleFlagsConfig(); err != nil {
+		return nil, fmt.Errorf("error encountered configuring flags: %w", err)
 	}
+
+	// Apply initial logging settings based on any provided CLI flags
+	config.configureLogging()
 
 	// If no errors were encountered during parsing, proceed to validation of
 	// configuration settings (both user-specified and defaults)
 	if err := validate(config); err != nil {
+		flag.Usage()
 		return nil, err
 	}
 
 	return &config, nil
 
+}
+
+// configureLogging is a wrapper function to enable setting requested logging
+// settings.
+func (c Config) configureLogging() {
+
+	var logOutput *os.File
+
+	switch c.LogOutput {
+	case LogOutputStderr:
+		logOutput = os.Stderr
+	case LogOutputStdout:
+		logOutput = os.Stdout
+	}
+
+	switch c.LogFormat {
+	case LogFormatCLI:
+		log.SetHandler(cli.New(logOutput))
+	case LogFormatJSON:
+		log.SetHandler(json.New(logOutput))
+	case LogFormatLogFmt:
+		log.SetHandler(logfmt.New(logOutput))
+	case LogFormatText:
+		log.SetHandler(text.New(logOutput))
+	case LogFormatDiscard:
+		log.SetHandler(discard.New())
+	}
+
+	switch c.LogLevel {
+	case LogLevelFatal:
+		log.SetLevel(log.FatalLevel)
+	case LogLevelError:
+		log.SetLevel(log.ErrorLevel)
+	case LogLevelWarn:
+		log.SetLevel(log.WarnLevel)
+	case LogLevelInfo:
+		log.SetLevel(log.InfoLevel)
+	case LogLevelDebug:
+		log.SetLevel(log.DebugLevel)
+	}
 }
 
 // validate confirms that all config struct fields have reasonable values
@@ -366,6 +538,21 @@ func validate(c Config) error {
 	}
 
 	// LogFormat
+
+	// Not having a webhook URL is a valid choice. Perform validation if value
+	// is provided.
+	if c.WebhookURL != "" {
+
+		// TODO: Do we really need both of these?
+		if ok, err := goteamsnotify.IsValidWebhookURL(c.WebhookURL); !ok {
+			return err
+		}
+
+		if err := send2teams.ValidateWebhook(c.WebhookURL); err != nil {
+			return err
+		}
+
+	}
 
 	// if we made it this far then we signal all is well
 	return nil
