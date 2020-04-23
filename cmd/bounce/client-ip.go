@@ -18,8 +18,8 @@ import (
 	"github.com/apex/log"
 )
 
-// GetIP gets a requests IP address by reading off the forwarded-for
-// header (for proxies) and falls back to use the remote address.
+// GetIP gets a request's IP address by reading off the forwarded-for
+// header (for proxies) and falls back to using the remote address.
 func GetIP(r *http.Request) string {
 	forwarded := r.Header.Get("X-FORWARDED-FOR")
 	log.WithFields(log.Fields{
