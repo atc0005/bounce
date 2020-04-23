@@ -567,7 +567,7 @@ func emailNotifier(
 			// goroutine in teamsNotifier, pass ctx for email function to use.
 			go func(resultQueue chan<- NotifyResult) {
 				result := NotifyResult{
-					Err: fmt.Errorf("emailNotifier: Sending email is not currently enabled"),
+					Err: fmt.Errorf("emailNotifier: Sending email is not currently supported"),
 				}
 				log.Error(result.Err.Error())
 				resultQueue <- result
