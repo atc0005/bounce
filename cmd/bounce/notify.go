@@ -340,6 +340,7 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 // teamsNotifier is a persistent goroutine used to receive incoming
 // notification requests and spin off goroutines to create and send Microsoft
 // Teams messages.
+// TODO: Refactor per GH-37
 func teamsNotifier(
 	ctx context.Context,
 	webhookURL string,
@@ -467,6 +468,7 @@ func teamsNotifier(
 // emailNotifier is a persistent goroutine used to receive incoming
 // notification requests and spin off goroutines to create and send email
 // messages.
+// TODO: Refactor per GH-37
 func emailNotifier(
 	ctx context.Context,
 	sendTimeout time.Duration,
