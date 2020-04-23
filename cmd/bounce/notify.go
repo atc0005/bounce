@@ -352,8 +352,6 @@ func teamsNotifier(
 	done chan<- struct{},
 ) {
 
-	// TODO: Replace config package constant references with function parameters?
-
 	log.Debug("teamsNotifier: Running")
 
 	// used by goroutines called by this function to return results
