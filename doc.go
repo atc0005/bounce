@@ -21,14 +21,15 @@ FEATURES
 
 • minimal configuration
 
-• Optional submission of client request details to a user-specified Microsoft
-  Teams channel (by providing a webhook URL)
+• Optional submission of client request details to a user-specified Microsoft Teams channel (by providing a webhook URL)
 
 • index page automatically generated listing currently supported routes
 
-• request body and associated metadata is echoed to stdout and back to client
-  as unformatted request body and automatic formatting of JSON payloads when
-  sent to the /api/v1/echo/json endpoint
+• request body and associated metadata are echoed to stdout and back to client
+
+• echoed request details are provided as-is/unformatted when sent to the /api/v1/echo/json endpoint
+
+• JSON payloads to the /api/v1/echo/json endpoint are automatically formatted
 
 • Optional, colorization and custom ident control for formatted JSON output
 
