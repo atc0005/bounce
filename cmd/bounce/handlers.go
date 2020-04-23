@@ -25,8 +25,6 @@ import (
 
 	"github.com/TylerBrock/colorjson"
 	"github.com/apex/log"
-	// use our fork for now until recent work can be submitted for inclusion
-	// in the upstream project
 )
 
 // API endpoint patterns supported by this application
