@@ -115,7 +115,6 @@ func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard
 	// Be optimistic to start with
 	responseErrorsSection.Text = ClientRequestErrorsNotFound
 
-	// Don't add this section if there are no errors to show
 	if clientRequest.RequestError != "" {
 		responseErrorsSection.Text = ""
 		addFactPair(&msgCard, responseErrorsSection, "RequestError",
