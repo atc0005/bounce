@@ -10,6 +10,27 @@ import (
 	"github.com/atc0005/bounce/config"
 )
 
+type NotifySettingsTeams struct {
+	WebhookURL        string
+	Timeout           time.Duration
+	NotificationDelay time.Duration
+}
+
+type NotifySettingsEmail struct {
+	SMTPServerFQDN     string
+	SMTPServerPort     int
+	SMTPServerUsername string
+	SMTPServerPassword string
+	Timeout            time.Duration
+}
+
+type NotifySettings struct {
+	Teams        NotifySettingsTeams
+	Email        NotifySettingsEmail
+	Retries      int
+	RetriesDelay int
+}
+
 // NotifyResult wraps the results of notification operations to make it easier
 // to inspect the status of various tasks so that we can take action on either
 // error or success conditions
@@ -337,22 +358,20 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 	}
 }
 
-// teamsNotifier is a persistent goroutine used to receive incoming
-// notification requests and spin off goroutines to create and send Microsoft
-// Teams messages.
-func teamsNotifier(
+// notifyWorker is a function intended to be used as a persistent goroutine to
+// receive incoming notification requests, then spin off short-lived
+// goroutines to create and send messages. A different instance of this
+// function is used for each notification type.
+func notifyWorker(
 	ctx context.Context,
-	webhookURL string,
-	sendTimeout time.Duration,
-	sendDelay time.Duration,
-	retries int,
-	retriesDelay int,
+	notifierName string,
+	notifySettings NotifySettings,
 	incoming <-chan clientRequestDetails,
 	notifyMgrResultQueue chan<- NotifyResult,
 	done chan<- struct{},
 ) {
 
-	log.Debug("teamsNotifier: Running")
+	log.Debugf("%s: Running", notifierName)
 
 	// used by goroutines called by this function to return results
 	ourResultQueue := make(chan NotifyResult)
@@ -360,7 +379,7 @@ func teamsNotifier(
 	// Setup new scheduler that we can use to add an intentional delay between
 	// Microsoft Teams notification attempts
 	// https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using
-	notifyScheduler := newNotifyScheduler(sendDelay)
+	notifyScheduler := newNotifyScheduler(notifySettings.Teams.NotificationDelay)
 
 	for {
 
@@ -370,37 +389,41 @@ func teamsNotifier(
 
 			ctxErr := ctx.Err()
 			result := NotifyResult{
-				Val: fmt.Sprintf("teamsNotifier: Received Done signal: %v, shutting down", ctxErr.Error()),
+				Val: fmt.Sprintf(
+					"%s: Received Done signal: %v, shutting down",
+					notifierName,
+					ctxErr.Error(),
+				),
 			}
 			log.Debug(result.Val)
 
-			log.Debug("teamsNotifier: Sending back results")
+			log.Debugf("%s: Sending back results", notifierName)
 			notifyMgrResultQueue <- result
 
-			log.Debug("teamsNotifier: Closing notifyMgrResultQueue channel to signal shutdown")
 			close(notifyMgrResultQueue)
 
-			log.Debug("teamsNotifier: Closing done channel to signal shutdown")
+			log.Debugf("%s: Closing done channel to signal shutdown", notifierName)
 			close(done)
-			log.Debug("teamsNotifier: done channel closed, returning")
+			log.Debugf("%s: done channel closed, returning", notifierName)
 			return
 
 		case clientRequest := <-incoming:
 
-			log.Debugf("teamsNotifier: Request received at %v: %#v",
-				time.Now(), clientRequest)
+			log.Debugf("%s: Request received at %v: %#v",
+				notifierName, time.Now(), clientRequest)
 
-			log.Debug("Calculating next scheduled notification")
+			log.Debugf("%s: Calculating next scheduled notification", notifierName)
 
 			nextScheduledNotification := notifyScheduler()
 
-			log.Debugf("Now: %v, Next scheduled notification: %v",
+			log.Debugf("%s: Now: %v, Next scheduled notification: %v",
+				notifierName,
 				time.Now().Format("15:04:05"),
 				nextScheduledNotification.Format("15:04:05"),
 			)
 
 			timeoutValue := config.GetTimeout(
-				sendTimeout,
+				notifySettings.Teams.Timeout,
 				nextScheduledNotification,
 				retries,
 				retriesDelay,
@@ -591,7 +614,7 @@ func emailNotifier(
 // FIXME: Tweak the description for this function; it seems to have some stutter
 func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-chan clientRequestDetails, done chan<- struct{}) {
 
-	log.Debug("StartNotifyMgr: Running")
+	log.Debug("NotifyMgr: Running")
 
 	// Create separate, buffered channels to hand-off clientRequestDetails
 	// values for processing for each service, e.g., one channel for Microsoft
@@ -610,22 +633,41 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 	notifyStatsQueue := make(chan NotifyStats, 1)
 
 	if !cfg.NotifyTeams() && !cfg.NotifyEmail() {
-		log.Debug("StartNotifyMgr: Teams and email notifications not requested, not starting notifier goroutines")
+		log.Debug("NotifyMgr: Teams and email notifications not requested, not starting notifier goroutines")
 		// NOTE: Do not return/exit here.
 		//
-		// We cannot return/exit the function here because StartNotifyMgr HAS
+		// We cannot return/exit the function here because NotifyMgr HAS
 		// to run in order to keep the notifyWorkQueue from filling up and
 		// blocking other parts of this application that send messages to this
 		// channel.
 	}
 
+	notifySettings := NotifySettings{
+		Teams: NotifySettingsTeams{
+			WebhookURL:        cfg.WebhookURL,
+			Timeout:           config.NotifyMgrTeamsTimeout,
+			NotificationDelay: config.NotifyMgrTeamsNotificationDelay,
+		},
+		Email: NotifySettingsEmail{
+			Timeout: config.NotifyMgrEmailTimeout,
+		},
+		Retries:      cfg.Retries,
+		RetriesDelay: cfg.RetriesDelay,
+	}
+
 	// If enabled, start persistent goroutine to process request details and
 	// submit messages to Microsoft Teams.
 	if cfg.NotifyTeams() {
-		log.Debug("StartNotifyMgr: Teams notifications enabled")
-		log.Debug("StartNotifyMgr: Starting up teamsNotifier")
-		go teamsNotifier(
+
+		log.Debug("NotifyMgr: Teams notifications enabled")
+
+		notifySettings.Teams.WebhookURL = cfg.WebhookURL
+		notifySettings.
+			log.Debug("NotifyMgr: Starting up teamsNotifier")
+		go notifyWorker(
 			ctx,
+			"teamsNotifier",
+			notifySettings,
 			cfg.WebhookURL,
 			config.NotifyMgrTeamsTimeout,
 			config.NotifyMgrTeamsNotificationDelay,
@@ -640,8 +682,8 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 	// If enabled, start persistent goroutine to process request details and
 	// submit messages by email.
 	if cfg.NotifyEmail() {
-		log.Debug("StartNotifyMgr: Email notifications enabled")
-		log.Debug("StartNotifyMgr: Starting up emailNotifier")
+		log.Debug("NotifyMgr: Email notifications enabled")
+		log.Debug("NotifyMgr: Starting up emailNotifier")
 		go emailNotifier(
 			ctx,
 			config.NotifyMgrEmailTimeout,
@@ -711,65 +753,65 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 		case <-ctx.Done():
 			// returning not to leak the goroutine
 			ctxErr := ctx.Err()
-			log.Debugf("StartNotifyMgr: Received Done signal: %v, shutting down ...", ctxErr.Error())
+			log.Debugf("NotifyMgr: Received Done signal: %v, shutting down ...", ctxErr.Error())
 
 			evalResults := func(queueName string, result NotifyResult) {
 				if result.Err != nil {
-					log.Errorf("StartNotifyMgr: Error received from %s: %v", queueName, result.Err)
+					log.Errorf("NotifyMgr: Error received from %s: %v", queueName, result.Err)
 					return
 				}
-				log.Debugf("StartNotifyMgr: OK: non-error status received on %s: %v", queueName, result.Val)
+				log.Debugf("NotifyMgr: OK: non-error status received on %s: %v", queueName, result.Val)
 			}
 
 			// Process any waiting results before blocking and waiting
 			// on final completion response from notifier goroutines
 			if cfg.NotifyTeams() {
-				log.Debug("StartNotifyMgr: Teams notifications are enabled, shutting down teamsNotifier")
+				log.Debug("NotifyMgr: Teams notifications are enabled, shutting down teamsNotifier")
 
-				log.Debug("StartNotifyMgr: Ranging over teamsNotifyResultQueue")
+				log.Debug("NotifyMgr: Ranging over teamsNotifyResultQueue")
 				for result := range teamsNotifyResultQueue {
 					evalResults("teamsNotifyResultQueue", result)
 				}
 
-				log.Debug("StartNotifyMgr: Waiting on teamsNotifyDone")
+				log.Debug("NotifyMgr: Waiting on teamsNotifyDone")
 				select {
 				case <-teamsNotifyDone:
-					log.Debug("StartNotifyMgr: Received from teamsNotifyDone")
+					log.Debug("NotifyMgr: Received from teamsNotifyDone")
 				case <-time.After(config.NotifyMgrServicesShutdownTimeout):
-					log.Debug("StartNotifyMgr: Timeout occurred while waiting for teamsNotifyDone")
-					log.Debug("StartNotifyMgr: Proceeding with shutdown")
+					log.Debug("NotifyMgr: Timeout occurred while waiting for teamsNotifyDone")
+					log.Debug("NotifyMgr: Proceeding with shutdown")
 				}
 
 			}
 
 			if cfg.NotifyEmail() {
-				log.Debug("StartNotifyMgr: Email notifications are enabled, shutting down emailNotifier")
+				log.Debug("NotifyMgr: Email notifications are enabled, shutting down emailNotifier")
 
-				log.Debug("StartNotifyMgr: Ranging over emailNotifyResultQueue")
+				log.Debug("NotifyMgr: Ranging over emailNotifyResultQueue")
 				for result := range emailNotifyResultQueue {
 					evalResults("emailNotifyResultQueue", result)
 				}
 
-				log.Debug("StartNotifyMgr: Waiting on emailNotifyDone")
+				log.Debug("NotifyMgr: Waiting on emailNotifyDone")
 				select {
 				case <-emailNotifyDone:
-					log.Debug("StartNotifyMgr: Received from emailNotifyDone")
+					log.Debug("NotifyMgr: Received from emailNotifyDone")
 				case <-time.After(config.NotifyMgrServicesShutdownTimeout):
-					log.Debug("StartNotifyMgr: Timeout occurred while waiting for emailNotifyDone")
-					log.Debug("StartNotifyMgr: Proceeding with shutdown")
+					log.Debug("NotifyMgr: Timeout occurred while waiting for emailNotifyDone")
+					log.Debug("NotifyMgr: Proceeding with shutdown")
 				}
 
 			}
 
-			log.Debug("StartNotifyMgr: Closing done channel")
+			log.Debug("NotifyMgr: Closing done channel")
 			close(done)
 
-			log.Debug("StartNotifyMgr: About to return")
+			log.Debug("NotifyMgr: About to return")
 			return
 
 		case clientRequest := <-notifyWorkQueue:
 
-			log.Debug("StartNotifyMgr: Input received from notifyWorkQueue")
+			log.Debug("NotifyMgr: Input received from notifyWorkQueue")
 
 			go func() {
 				notifyStatsQueue <- NotifyStats{
@@ -780,12 +822,12 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 			// If we don't have *any* notifications enabled we will just
 			// discard the item we have pulled from the channel
 			if !cfg.NotifyEmail() && !cfg.NotifyTeams() {
-				log.Debug("StartNotifyMgr: Notifications are not currently enabled; ignoring notification request")
+				log.Debug("NotifyMgr: Notifications are not currently enabled; ignoring notification request")
 				continue
 			}
 
 			if cfg.NotifyTeams() {
-				log.Debug("StartNotifyMgr: Creating new goroutine to place clientRequest into teamsNotifyWorkQueue")
+				log.Debug("NotifyMgr: Creating new goroutine to place clientRequest into teamsNotifyWorkQueue")
 
 				go func() {
 					notifyStatsQueue <- NotifyStats{
@@ -794,16 +836,16 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 				}()
 
 				go func() {
-					log.Debugf("StartNotifyMgr: Existing items in teamsNotifyWorkQueue: %d", len(teamsNotifyWorkQueue))
-					log.Debug("StartNotifyMgr: Pending; placing clientRequest into teamsNotifyWorkQueue")
+					log.Debugf("NotifyMgr: Existing items in teamsNotifyWorkQueue: %d", len(teamsNotifyWorkQueue))
+					log.Debug("NotifyMgr: Pending; placing clientRequest into teamsNotifyWorkQueue")
 					teamsNotifyWorkQueue <- clientRequest
-					log.Debug("StartNotifyMgr: Done; placed clientRequest into teamsNotifyWorkQueue")
-					log.Debugf("StartNotifyMgr: Items now in teamsNotifyWorkQueue: %d", len(teamsNotifyWorkQueue))
+					log.Debug("NotifyMgr: Done; placed clientRequest into teamsNotifyWorkQueue")
+					log.Debugf("NotifyMgr: Items now in teamsNotifyWorkQueue: %d", len(teamsNotifyWorkQueue))
 				}()
 			}
 
 			if cfg.NotifyEmail() {
-				log.Debug("StartNotifyMgr: Creating new goroutine to place clientRequest in emailNotifyWorkQueue")
+				log.Debug("NotifyMgr: Creating new goroutine to place clientRequest in emailNotifyWorkQueue")
 
 				go func() {
 					notifyStatsQueue <- NotifyStats{
@@ -812,11 +854,11 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 				}()
 
 				go func() {
-					log.Debugf("StartNotifyMgr: Existing items in emailNotifyWorkQueue: %d", len(emailNotifyWorkQueue))
-					log.Debug("StartNotifyMgr: Pending; placing clientRequest into emailNotifyWorkQueue")
+					log.Debugf("NotifyMgr: Existing items in emailNotifyWorkQueue: %d", len(emailNotifyWorkQueue))
+					log.Debug("NotifyMgr: Pending; placing clientRequest into emailNotifyWorkQueue")
 					emailNotifyWorkQueue <- clientRequest
-					log.Debug("StartNotifyMgr: Done; placed clientRequest into emailNotifyWorkQueue")
-					log.Debugf("StartNotifyMgr: Items now in emailNotifyWorkQueue: %d", len(emailNotifyWorkQueue))
+					log.Debug("NotifyMgr: Done; placed clientRequest into emailNotifyWorkQueue")
+					log.Debugf("NotifyMgr: Items now in emailNotifyWorkQueue: %d", len(emailNotifyWorkQueue))
 				}()
 			}
 
@@ -832,14 +874,14 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 			if !result.Success {
 				if result.Err != nil {
-					log.Errorf("StartNotifyMgr: Error received from teamsNotifyResultQueue: %v", result.Err)
+					log.Errorf("NotifyMgr: Error received from teamsNotifyResultQueue: %v", result.Err)
 				}
 				statsUpdate.TeamsMsgFailure = 1
 			}
 
 			if result.Success {
-				log.Debugf("StartNotifyMgr: OK: non-error status received on teamsNotifyResultQueue: %v", result.Val)
-				log.Infof("StartNotifyMgr: %v", result.Val)
+				log.Debugf("NotifyMgr: OK: non-error status received on teamsNotifyResultQueue: %v", result.Val)
+				log.Infof("NotifyMgr: %v", result.Val)
 				statsUpdate.TeamsMsgSuccess = 1
 			}
 
@@ -861,14 +903,14 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 			if !result.Success {
 				if result.Err != nil {
-					log.Errorf("StartNotifyMgr: Error received from emailNotifyResultQueue: %v", result.Err)
+					log.Errorf("NotifyMgr: Error received from emailNotifyResultQueue: %v", result.Err)
 				}
 				statsUpdate.EmailMsgFailure = 1
 			}
 
 			if result.Success {
-				log.Debugf("StartNotifyMgr: non-error status received on emailNotifyResultQueue: %v", result.Val)
-				log.Infof("StartNotifyMgr: %v", result.Val)
+				log.Debugf("NotifyMgr: non-error status received on emailNotifyResultQueue: %v", result.Val)
+				log.Infof("NotifyMgr: %v", result.Val)
 				statsUpdate.EmailMsgSuccess = 1
 			}
 
