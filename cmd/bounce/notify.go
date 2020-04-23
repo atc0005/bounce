@@ -594,6 +594,8 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 	log.Debug("StartNotifyMgr: Running")
 
+	// TODO: Refactor as part of GH-37
+	//
 	// Create separate, buffered channels to hand-off clientRequestDetails
 	// values for processing for each service, e.g., one channel for Microsoft
 	// Teams outgoing notifications, another for email and so on. Buffered
