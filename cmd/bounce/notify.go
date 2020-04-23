@@ -828,9 +828,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 		case result := <-teamsNotifyResultQueue:
 
-			statsUpdate := NotifyStats{
-				TeamsMsgPending: -1,
-			}
+			statsUpdate := NotifyStats{}
 
 			// NOTE: Only consider explicit success, not a non-error condition
 			// because cancellations and timeouts are (currently) treated as
@@ -857,9 +855,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 
 		case result := <-emailNotifyResultQueue:
 
-			statsUpdate := NotifyStats{
-				EmailMsgPending: -1,
-			}
+			statsUpdate := NotifyStats{}
 
 			// NOTE: Only consider explicit success, not a non-error condition
 			// because cancellations and timeouts are (currently) treated as
