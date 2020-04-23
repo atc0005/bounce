@@ -626,7 +626,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 	// submit messages to Microsoft Teams.
 	if cfg.NotifyTeams() {
 		log.Debug("StartNotifyMgr: Teams notifications enabled")
-		log.Debug("StartNotifyMgr: Starting up teamsNotifier")
+		log.Info("StartNotifyMgr: Starting up teamsNotifier")
 		go teamsNotifier(
 			ctx,
 			cfg.WebhookURL,
@@ -644,7 +644,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 	// submit messages by email.
 	if cfg.NotifyEmail() {
 		log.Debug("StartNotifyMgr: Email notifications enabled")
-		log.Debug("StartNotifyMgr: Starting up emailNotifier")
+		log.Info("StartNotifyMgr: Starting up emailNotifier")
 		go emailNotifier(
 			ctx,
 			config.NotifyMgrEmailTimeout,
