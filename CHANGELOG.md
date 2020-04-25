@@ -26,6 +26,46 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.1] - 2020-04-25
+
+### Changed
+
+- Install specific binary version of golangci-lint instead of building from
+  `master`
+
+- Move golangci-lint settings from Makefile to external config file
+
+- Set go modules mode per `go get` command instead of globally when installing
+  linting tools
+
+- Using [vendoring](https://golang.org/cmd/go/#hdr-Vendor_Directories)
+  - created top-level `vendor` directory using `go mod vendor`
+  - updated GitHub Actions Workflow to specify `-mod=vendor` build flag for
+    all `go` commands that I know of that respect the flag
+  - updated GitHub Actions Workflow to exclude `vendor` directory from
+    Markdown file linting to prevent potential linting issues in vendored
+    dependencies from affecting our CI checks
+  - updated `Makefile` to use `-mod=vendor` where applicable
+  - updated `go vet` linting check to use `-mod=vendor`
+
+- Updated dependencies
+  - `apex/log`
+    - `v1.1.2` to `v1.1.4`
+  - `atc0005/send2teams`
+    - `v0.4.0` to `v0.4.1`
+
+### Fixed
+
+- Perform `ioutil.ReadAll()` error check immediately instead of after another
+  action takes place
+  - minor nit, but potential problem in the future
+
+- CHANGELOG
+  - fix release section header refs
+    - last release didn't include a link to release entry
+
+- Add missing GoDoc coverage for `routes` package
+
 ## [v0.4.0] - 2020-04-23
 
 ### Added
@@ -192,7 +232,9 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.3.3...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.1...HEAD
+[v0.4.1]: https://github.com/atc0005/bounce/releases/tag/v0.4.1
+[v0.4.0]: https://github.com/atc0005/bounce/releases/tag/v0.4.0
 [v0.3.3]: https://github.com/atc0005/bounce/releases/tag/v0.3.3
 [v0.3.2]: https://github.com/atc0005/bounce/releases/tag/v0.3.2
 [v0.3.1]: https://github.com/atc0005/bounce/releases/tag/v0.3.1
