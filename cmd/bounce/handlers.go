@@ -260,12 +260,8 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 				r.Body = http.MaxBytesReader(w, r.Body, 1*MB)
 
 				// read everything from the (size-limited) request body so
-				// that we can display it in a raw format, replace the Body
-				// with a new io.ReadCloser to allow later access to r.Body
-				// for JSON-decoding purposes
+				// that we can display it in a raw format
 				requestBody, err := ioutil.ReadAll(r.Body)
-				r.Body = ioutil.NopCloser(bytes.NewReader(requestBody))
-
 				if err != nil {
 					errorMsg := fmt.Sprintf("Error reading request body: %s", err)
 					ourResponse.BodyError = errorMsg
@@ -280,6 +276,11 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 
 					return
 				}
+
+				// replace the Body with a new io.ReadCloser to allow later
+				// access to r.Body for JSON-decoding purposes
+				r.Body = ioutil.NopCloser(bytes.NewReader(requestBody))
+
 				ourResponse.Body = string(requestBody)
 
 				handleJSONParseError := func(w http.ResponseWriter, err error) {
