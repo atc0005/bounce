@@ -38,8 +38,8 @@ GOLANGCI_LINT_VERSION		= v1.25.0
 
 # The default `go build` process embeds debugging information. Building
 # without that debugging information reduces the binary size by around 28%.
-BUILDCMD				=	go build -a -ldflags="-s -w -X $(VERSION_VAR_PKG).version=$(VERSION)"
-GOCLEANCMD				=	go clean ./...
+BUILDCMD				=	go build -mod=vendor -a -ldflags="-s -w -X $(VERSION_VAR_PKG).version=$(VERSION)"
+GOCLEANCMD				=	go clean -mod=vendor ./...
 GITCLEANCMD				= 	git clean -xfd
 CHECKSUMCMD				=	sha256sum -b
 
@@ -87,16 +87,16 @@ linting:
 		&& exit 1 )
 
 	@echo "Running go vet ..."
-	@go vet ./...
+	@go vet -mod=vendor $(shell go list ./... | grep -v /vendor/)
 
 	@echo "Running golint ..."
-	@golint -set_exit_status ./...
+	@golint -set_exit_status $(shell go list ./... | grep -v /vendor/)
 
 	@echo "Running golangci-lint ..."
 	@golangci-lint run
 
 	@echo "Running staticcheck ..."
-	@staticcheck ./...
+	@staticcheck $(shell go list ./... | grep -v /vendor/)
 
 	@echo "Finished running linting checks"
 
