@@ -60,11 +60,10 @@ lintinstall:
 
 	@export PATH="${PATH}:$(go env GOPATH)/bin"
 
-	@echo "Explicitly enabling Go modules mode"
-	@export GO111MODULE="on"
-	go get golang.org/x/lint/golint
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint
-	go get honnef.co/go/tools/cmd/staticcheck
+	@echo "Explicitly enabling Go modules mode per command"
+	(cd; GO111MODULE="on" go get golang.org/x/lint/golint)
+	(cd; GO111MODULE="on" go get github.com/golangci/golangci-lint/cmd/golangci-lint)
+	(cd; GO111MODULE="on" go get honnef.co/go/tools/cmd/staticcheck)
 	@echo "Finished updating linting tools"
 
 .PHONY: linting
