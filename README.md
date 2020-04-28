@@ -157,18 +157,20 @@ Tested using:
        - see the mingw-w64 project homepage link in the
          [References](#references) section for options for installing `gcc`
          and related packages on Windows
-1. Build an executable ...
-   - for the current operating system (with default `go` build options)
-     - `go build`
-   - for *all* supported platforms
+1. Build
+   - for current operating system
+     - `go build -mod=vendor ./cmd/bounce/`
+       - *forces build to use bundled dependencies in top-level `vendor`
+         folder*
+   - for all supported platforms (where `make` is installed)
       - `make all`
-   - for Windows only
+   - for Windows
       - `make windows`
-   - for Linux only
+   - for Linux
      - `make linux`
-1. Copy the newly compiled binary to whatever systems that need to run it
-   1. Linux: `/tmp/bounce/bounce`
-   1. Windows: `/tmp/bounce/bounce.exe`
+1. Copy the applicable binary to whatever systems needs to run it
+   - if using `Makefile`: look in `/tmp/release_assets/bounce/`
+   - if using `go build`: look in `/tmp/bounce/`
 
 ## Configuration Options
 
