@@ -26,6 +26,20 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.2] - 2020-04-28
+
+### Fixed
+
+- Remove bash shebang from GitHub Actions Workflow files
+- Update README to list accurate build/deploy steps based
+  on recent restructuring work
+
+### Changes
+
+- Update golangci-lint to v1.25.1
+- Remove gofmt and golint as separate checks, enable
+  these linters in golangci-lint config
+
 ## [v0.4.1] - 2020-04-25
 
 ### Changed
@@ -232,7 +246,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.2...HEAD
+[v0.4.2]: https://github.com/atc0005/bounce/releases/tag/v0.4.2
 [v0.4.1]: https://github.com/atc0005/bounce/releases/tag/v0.4.1
 [v0.4.0]: https://github.com/atc0005/bounce/releases/tag/v0.4.0
 [v0.3.3]: https://github.com/atc0005/bounce/releases/tag/v0.3.3
