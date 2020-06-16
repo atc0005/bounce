@@ -30,7 +30,7 @@ go 1.13
 
 require (
 	github.com/TylerBrock/colorjson v0.0.0-20180527164720-95ec53f28296
-	github.com/apex/log v1.1.4
+	github.com/apex/log v1.3.0
 
 	//gopkg.in/dasrick/go-teams-notify.v1 v1.2.0
 
