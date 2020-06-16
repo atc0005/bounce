@@ -26,6 +26,22 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.3] - 2020-06-16
+
+### Changed
+
+- Update dependencies
+  - `apex/log`
+    - `v1.1.4` to `v1.3.0`
+  - `atc0005/send2teams`
+    - `v0.4.1` to `v0.4.4`
+
+- enable dependabot updates
+
+### Fixed
+
+- fix typo in project repo URL
+
 ## [v0.4.2] - 2020-04-28
 
 ### Fixed
@@ -246,7 +262,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.3...HEAD
+[v0.4.3]: https://github.com/atc0005/bounce/releases/tag/v0.4.3
 [v0.4.2]: https://github.com/atc0005/bounce/releases/tag/v0.4.2
 [v0.4.1]: https://github.com/atc0005/bounce/releases/tag/v0.4.1
 [v0.4.0]: https://github.com/atc0005/bounce/releases/tag/v0.4.0
