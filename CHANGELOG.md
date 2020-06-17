@@ -26,6 +26,23 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.4] - 2020-06-17
+
+### Changed
+
+- Dependabot
+  - Enable GitHub Actions updates
+
+- Update dependencies
+  - `apex/log`
+    - `v1.3.0` to `v1.4.0`
+  - `actions/setup-go`
+    - `v1` to `v2.0.3`
+  - `actions/checkout`
+    - `v1` to `v2.3.0`
+  - `actions/setup-node`
+    - `v1` to `v2.0.0`
+
 ## [v0.4.3] - 2020-06-16
 
 ### Changed
@@ -262,7 +279,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.3...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.4...HEAD
+[v0.4.4]: https://github.com/atc0005/bounce/releases/tag/v0.4.4
 [v0.4.3]: https://github.com/atc0005/bounce/releases/tag/v0.4.3
 [v0.4.2]: https://github.com/atc0005/bounce/releases/tag/v0.4.2
 [v0.4.1]: https://github.com/atc0005/bounce/releases/tag/v0.4.1
