@@ -26,6 +26,20 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.6] - 2020-07-19
+
+### Changed
+
+- Dependencies
+  - upgrade `atc0005/send2teams`
+    - `v0.4.4` to `v0.4.5`
+  - upgrade `TylerBrock/colorjson`
+    - `v0.0.0-20180527164720-95ec53f28296` to
+      `v0.0.0-20200706003622-8a50f05110d2`
+  - upgrade `golang/gddo`
+    - `v0.0.0-20200324184333-3c2cc9a6329d` to
+      `v0.0.0-20200715224205-051695c33a3f`
+
 ## [v0.4.5] - 2020-07-19
 
 ### Changed
@@ -293,7 +307,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.5...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.6...HEAD
+[v0.4.6]: https://github.com/atc0005/bounce/releases/tag/v0.4.6
 [v0.4.5]: https://github.com/atc0005/bounce/releases/tag/v0.4.5
 [v0.4.4]: https://github.com/atc0005/bounce/releases/tag/v0.4.4
 [v0.4.3]: https://github.com/atc0005/bounce/releases/tag/v0.4.3
