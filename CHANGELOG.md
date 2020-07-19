@@ -26,6 +26,20 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.5] - 2020-07-19
+
+### Changed
+
+- Dependencies
+  - upgrade `apex/log`
+    - `v1.4.0` to `v1.6.0`
+  - upgrade `actions/setup-go`
+    - `v2.0.3` to `v2.1.0`
+  - upgrade `actions/checkout`
+    - `v2.3.0` to `v2.3.1`
+  - upgrade `actions/setup-node`
+    - `v2.0.0` to `v2.1.0`
+
 ## [v0.4.4] - 2020-06-17
 
 ### Changed
@@ -279,7 +293,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.4...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.5...HEAD
+[v0.4.5]: https://github.com/atc0005/bounce/releases/tag/v0.4.5
 [v0.4.4]: https://github.com/atc0005/bounce/releases/tag/v0.4.4
 [v0.4.3]: https://github.com/atc0005/bounce/releases/tag/v0.4.3
 [v0.4.2]: https://github.com/atc0005/bounce/releases/tag/v0.4.2
