@@ -1,6 +1,6 @@
 # github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2
 github.com/TylerBrock/colorjson
-# github.com/apex/log v1.7.0
+# github.com/apex/log v1.8.0
 github.com/apex/log
 github.com/apex/log/handlers/cli
 github.com/apex/log/handlers/discard
