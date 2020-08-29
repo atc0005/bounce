@@ -7,7 +7,7 @@
 
 module github.com/atc0005/bounce
 
-go 1.13
+go 1.14
 
 // $ go list -m -versions github.com/apex/log
 // github.com/apex/log v1.0.0 v1.1.0 v1.1.1 v1.1.2
