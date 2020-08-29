@@ -26,6 +26,26 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.8] - 2020-08-29
+
+### Changed
+
+- Dependencies
+  - upgrade `go.mod` Go version
+    - `1.13` to `1.14`
+  - upgrade `atc0005/go-teams-notify`
+    - `v1.3.1-0.20200419155834-55cca556e726` to `v2.3.0`
+      - NOTE: This is a significant change reflecting a merge of required
+        functionality from the `atc0005/send2teams` project to the
+        `atc0005/go-teams-notify` project
+  - upgrade `apex/log`
+    - `v1.7.0` to `v1.9.0`
+  - upgrade `actions/checkout`
+    - `v2.3.1` to `v2.3.2`
+  - upgrade `atc0005/send2teams`
+    - `v0.4.5` to `v0.4.6`
+      - since removed
+
 ## [v0.4.7] - 2020-08-04
 
 ### Added
@@ -368,7 +388,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.7...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.8...HEAD
+[v0.4.8]: https://github.com/atc0005/bounce/releases/tag/v0.4.8
 [v0.4.7]: https://github.com/atc0005/bounce/releases/tag/v0.4.7
 [v0.4.6]: https://github.com/atc0005/bounce/releases/tag/v0.4.6
 [v0.4.5]: https://github.com/atc0005/bounce/releases/tag/v0.4.5
