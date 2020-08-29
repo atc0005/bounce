@@ -22,10 +22,7 @@ import (
 	"github.com/apex/log/handlers/logfmt"
 	"github.com/apex/log/handlers/text"
 
-	// use our fork for now until recent work can be submitted for inclusion
-	// in the upstream project
-	goteamsnotify "github.com/atc0005/go-teams-notify"
-	send2teams "github.com/atc0005/send2teams/teams"
+	goteamsnotify "github.com/atc0005/go-teams-notify/v2"
 )
 
 // version is updated via Makefile builds by referencing the fully-qualified
@@ -542,16 +539,9 @@ func validate(c Config) error {
 	// Not having a webhook URL is a valid choice. Perform validation if value
 	// is provided.
 	if c.WebhookURL != "" {
-
-		// TODO: Do we really need both of these?
 		if ok, err := goteamsnotify.IsValidWebhookURL(c.WebhookURL); !ok {
 			return err
 		}
-
-		if err := send2teams.ValidateWebhook(c.WebhookURL); err != nil {
-			return err
-		}
-
 	}
 
 	// if we made it this far then we signal all is well
