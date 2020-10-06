@@ -36,8 +36,8 @@ func (c *Config) handleFlagsConfig() error {
 
 	// FIXME: Is this needed for any reason since our mainFlagSet has already
 	// been parsed?
-	//flag.CommandLine = mainFlagSet
-	//flag.Parse()
+	// flag.CommandLine = mainFlagSet
+	// flag.Parse()
 	if err := mainFlagSet.Parse(os.Args[1:]); err != nil {
 		return err
 	}

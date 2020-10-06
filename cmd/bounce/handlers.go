@@ -119,7 +119,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// For now, we generate plain text responses
-		//w.Header().Set("Content-Type", "text/plain")
+		// w.Header().Set("Content-Type", "text/plain")
 
 		ourResponse := clientRequestDetails{}
 

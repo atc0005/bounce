@@ -280,7 +280,7 @@ func notifyQueueMonitor(ctx context.Context, delay time.Duration, notifyQueues .
 			// if they're not available
 
 			var itemsFound bool
-			//log.Debugf("Length of queues: %d", len(queues))
+			// log.Debugf("Length of queues: %d", len(queues))
 			for _, notifyQueue := range notifyQueues {
 
 				switch queue := notifyQueue.Channel.(type) {
@@ -847,7 +847,7 @@ func StartNotifyMgr(ctx context.Context, cfg *config.Config, notifyWorkQueue <-c
 				statsUpdate.TeamsMsgSuccess = 1
 			}
 
-			//log.Debugf("statsUpdate: %#v", statsUpdate)
+			// log.Debugf("statsUpdate: %#v", statsUpdate)
 
 			go func() {
 				notifyStatsQueue <- statsUpdate
