@@ -38,6 +38,19 @@ func main() {
 	// implementation work
 	goteamsnotify.DisableLogging()
 
+	// Emulate returning exit code from main function by "queuing up" a
+	// default exit code that matches expectations, but allow explicitly
+	// setting the exit code in such a way that is compatible with using
+	// deferred function calls throughout the application.
+	var appExitCode *int
+	defer func(code *int) {
+		var exitCode int
+		if code != nil {
+			exitCode = *code
+		}
+		os.Exit(exitCode)
+	}(appExitCode)
+
 	// This will use default logging settings (level filter, destination)
 	// as the application hasn't "booted up" far enough to apply custom
 	// choices yet.
@@ -46,9 +59,12 @@ func main() {
 	appConfig, err := config.NewConfig()
 	if err != nil {
 		if errors.Is(err, flag.ErrHelp) {
-			os.Exit(0)
+			*appExitCode = 0
+			return
 		}
-		log.Fatalf("Failed to initialize application: %s", err)
+		log.Errorf("Failed to initialize application: %s", err)
+		*appExitCode = 1
+		return
 	}
 
 	log.Debugf("AppConfig: %+v", appConfig)
@@ -185,7 +201,8 @@ func main() {
 		// any other error message.
 		if !errors.Is(err, http.ErrServerClosed) {
 			log.Errorf("error occurred while running httpServer: %v", err)
-			os.Exit(1)
+			*appExitCode = 1
+			return
 		}
 	}
 
