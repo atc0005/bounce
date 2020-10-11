@@ -26,6 +26,37 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.9] - 2020-10-11
+
+### Added
+
+- Binary release
+  - Built using Go 1.15.2
+  - **Statically linked**
+  - Windows
+    - x86
+    - x64
+  - Linux
+    - x86
+    - x64
+
+### Changed
+
+- Dependencies
+  - upgrade `actions/checkout`
+    - `v2.3.2` to `v2.3.3`
+  - upgrade `actions/setup-node`
+    - `v2.1.1` to `v2.1.2`
+- Add `-trimpath` build flag
+- Restore explicit exit code handling
+
+### Fixed
+
+- Makefile build options do not generate static binaries
+- Misc linting errors raised by latest `gocritic` release included with
+  `golangci-lint` `v1.31.0`
+- Makefile generates checksums with qualified path
+
 ## [v0.4.8] - 2020-08-29
 
 ### Changed
@@ -388,7 +419,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.8...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.9...HEAD
+[v0.4.9]: https://github.com/atc0005/bounce/releases/tag/v0.4.9
 [v0.4.8]: https://github.com/atc0005/bounce/releases/tag/v0.4.8
 [v0.4.7]: https://github.com/atc0005/bounce/releases/tag/v0.4.7
 [v0.4.6]: https://github.com/atc0005/bounce/releases/tag/v0.4.6
