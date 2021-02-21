@@ -26,6 +26,34 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.10] - 2021-02-21
+
+### Overview
+
+- Dependency updates
+- Bugfixes
+- built using Go 1.15.8
+
+### Changed
+
+- Swap out GoDoc badge for pkg.go.dev badge
+
+- dependencies
+  - built using Go 1.15.8
+    - Statically linked
+    - Windows (x86, x64)
+    - Linux (x86, x64)
+  - `atc0005/go-teams-notify`
+    - `v2.3.0` to `v2.4.2`
+  - `actions/checkout`
+    - `v2.3.3` to `v2.3.4`
+  - `actions/setup-node`
+    - `v2.1.2` to `v2.1.4`
+
+### Fixed
+
+- Fix explicit exit code handling
+
 ## [v0.4.9] - 2020-10-11
 
 ### Added
@@ -419,7 +447,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.9...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.10...HEAD
+[v0.4.10]: https://github.com/atc0005/bounce/releases/tag/v0.4.10
 [v0.4.9]: https://github.com/atc0005/bounce/releases/tag/v0.4.9
 [v0.4.8]: https://github.com/atc0005/bounce/releases/tag/v0.4.8
 [v0.4.7]: https://github.com/atc0005/bounce/releases/tag/v0.4.7
