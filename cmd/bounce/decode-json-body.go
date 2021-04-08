@@ -22,8 +22,8 @@ import (
 )
 
 type malformedRequest struct {
-	status int
 	msg    string
+	status int
 }
 
 // malformedRequest wraps errors from decoding JSON request bodies
