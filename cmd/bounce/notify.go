@@ -15,13 +15,13 @@ import (
 // error or success conditions
 type NotifyResult struct {
 
-	// Val is the non-error condition message to return from a notification
-	// operation
-	Val string
-
 	// Err is the error condition message to return from a notification
 	// operation
 	Err error
+
+	// Val is the non-error condition message to return from a notification
+	// operation
+	Val string
 
 	// Success indicates whether the notification attempt succeeded or if it
 	// failed for one reason or another (remote API, timeout, cancellation,
@@ -32,12 +32,13 @@ type NotifyResult struct {
 // NotifyQueue represents a channel used to queue input data and responses
 // between the main application, the notifications manager and "notifiers".
 type NotifyQueue struct {
-	// The name of a queue. This is intended for display in log messages or
-	// other output to identify queues with pending items.
-	Name string
 
 	// Channel is a channel used to transport input data and responses.
 	Channel interface{}
+
+	// The name of a queue. This is intended for display in log messages or
+	// other output to identify queues with pending items.
+	Name string
 
 	// Count is the number of items currently in the queue
 	Count int

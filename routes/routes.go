@@ -17,10 +17,10 @@ import (
 // API.
 type Route struct {
 	Name           string
-	AllowedMethods []string
 	Pattern        string
 	Description    string
 	HandlerFunc    http.HandlerFunc
+	AllowedMethods []string
 }
 
 // Routes is a collection of defined routes, intended for bulk registration

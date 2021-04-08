@@ -250,30 +250,9 @@ func Usage(flagSet *flag.FlagSet) func() {
 // command-line flags
 type Config struct {
 
-	// Retries is the number of attempts that this application will make
-	// to deliver messages before giving up.
-	Retries int
-
-	// RetriesDelay is the number of seconds to wait between retry attempts.
-	RetriesDelay int
-
-	// LocalTCPPort is the TCP port that this application should listen on for
-	// incoming requests
-	LocalTCPPort int
-
 	// LocalIPAddress is the IP Address that this application should listen on
 	// for incoming requests
 	LocalIPAddress string
-
-	// ColorizedJSON indicates whether JSON output should be colorized.
-	// Coloring the output could aid in in quick visual evaluation of incoming
-	// payloads
-	ColorizedJSON bool
-
-	// ColorizedJSONIndent controls how many spaces are used when indenting
-	// colorized JSON output. If ColorizedJSON is not enabled, this setting
-	// has no effect.
-	ColorizedJSONIndent int
 
 	// LogLevel is the chosen logging level
 	LogLevel string
@@ -295,6 +274,27 @@ type Config struct {
 	// advance by adding/configuring a Webhook Connector in a Microsoft Teams
 	// channel that you wish to submit messages to using this application.
 	WebhookURL string
+
+	// Retries is the number of attempts that this application will make
+	// to deliver messages before giving up.
+	Retries int
+
+	// RetriesDelay is the number of seconds to wait between retry attempts.
+	RetriesDelay int
+
+	// LocalTCPPort is the TCP port that this application should listen on for
+	// incoming requests
+	LocalTCPPort int
+
+	// ColorizedJSONIndent controls how many spaces are used when indenting
+	// colorized JSON output. If ColorizedJSON is not enabled, this setting
+	// has no effect.
+	ColorizedJSONIndent int
+
+	// ColorizedJSON indicates whether JSON output should be colorized.
+	// Coloring the output could aid in in quick visual evaluation of incoming
+	// payloads
+	ColorizedJSON bool
 }
 
 func (c *Config) String() string {
