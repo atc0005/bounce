@@ -26,6 +26,33 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.12] - 2021-07-19
+
+### Overview
+
+- Dependency updates
+- built using Go 1.16.6
+  - **Statically linked**
+  - Windows (x86, x64)
+  - Linux (x86, x64)
+
+### Added
+
+- Add "canary" Dockerfile to track stable Go releases, serve as a reminder to
+  generate fresh binaries
+
+### Changed
+
+- Dependencies
+  - `Go`
+    - `1.16.3` to `1.16.6`
+  - `atc0005/go-teams-notify`
+    - `v2.5.0` to `v2.6.0`
+  - `actions/setup-node`
+    - `v2.1.5` to `v2.2.0`
+    - update `node-version` value to always use latest LTS version instead of
+      hard-coded version
+
 ## [v0.4.11] - 2021-04-09
 
 ### Overview
@@ -475,7 +502,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.11...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.12...HEAD
+[v0.4.12]: https://github.com/atc0005/bounce/releases/tag/v0.4.12
 [v0.4.11]: https://github.com/atc0005/bounce/releases/tag/v0.4.11
 [v0.4.10]: https://github.com/atc0005/bounce/releases/tag/v0.4.10
 [v0.4.9]: https://github.com/atc0005/bounce/releases/tag/v0.4.9
