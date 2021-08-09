@@ -26,6 +26,24 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.13] - 2021-08-09
+
+### Overview
+
+- Dependency updates
+- built using Go 1.16.7
+  - Statically linked
+  - Windows (x86, x64)
+  - Linux (x86, x64)
+
+### Changed
+
+- Dependencies
+  - `Go`
+    - `1.16.6` to `1.16.7`
+  - `actions/setup-node`
+    - updated from `v2.2.0` to `v2.4.0`
+
 ## [v0.4.12] - 2021-07-19
 
 ### Overview
@@ -502,7 +520,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.12...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.13...HEAD
+[v0.4.13]: https://github.com/atc0005/bounce/releases/tag/v0.4.13
 [v0.4.12]: https://github.com/atc0005/bounce/releases/tag/v0.4.12
 [v0.4.11]: https://github.com/atc0005/bounce/releases/tag/v0.4.11
 [v0.4.10]: https://github.com/atc0005/bounce/releases/tag/v0.4.10
