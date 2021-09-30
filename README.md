@@ -2,7 +2,7 @@
 
 Small utility to assist with building HTTP endpoints
 
-[![Latest Release](https://img.shields.io/github/release/atc0005/bounce.svg?style=flat-square)](https://github.com/atc0005/bounce/releases/latest)
+[![Latest Release](https://img.shields.io/github/release/atc0005/bounce.svg?style=flat-square)][latest-release]
 [![Go Reference](https://pkg.go.dev/badge/github.com/atc0005/bounce.svg)](https://pkg.go.dev/github.com/atc0005/bounce)
 [![Validate Codebase](https://github.com/atc0005/bounce/workflows/Validate%20Codebase/badge.svg)](https://github.com/atc0005/bounce/actions?query=workflow%3A%22Validate+Codebase%22)
 [![Validate Docs](https://github.com/atc0005/bounce/workflows/Validate%20Docs/badge.svg)](https://github.com/atc0005/bounce/actions?query=workflow%3A%22Validate+Docs%22)
@@ -19,6 +19,8 @@ Small utility to assist with building HTTP endpoints
   - [Changelog](#changelog)
   - [Requirements](#requirements)
   - [How to install it](#how-to-install-it)
+    - [From source](#from-source)
+    - [Using release binaries](#using-release-binaries)
   - [Configuration Options](#configuration-options)
     - [Configuration file](#configuration-file)
     - [Command-line Arguments](#command-line-arguments)
@@ -37,9 +39,8 @@ Small utility to assist with building HTTP endpoints
 
 ## Project home
 
-See [our GitHub repo](https://github.com/atc0005/bounce) for the latest code,
-to file an issue or submit improvements for review and potential inclusion
-into the project.
+See [our GitHub repo][repo-url] for the latest code, to file an issue or
+submit improvements for review and potential inclusion into the project.
 
 ## Overview
 
@@ -130,8 +131,10 @@ Tested using:
 
 ## How to install it
 
-1. [Download](https://golang.org/dl/) Go
-1. [Install](https://golang.org/doc/install) Go
+### From source
+
+1. [Download][go-docs-download] Go
+1. [Install][go-docs-install] Go
    - NOTE: Pay special attention to the remarks about `$HOME/.profile`
 1. Clone the repo
    1. `cd /tmp` (or equivalent)
@@ -173,6 +176,12 @@ Tested using:
 1. Copy the applicable binary to whatever systems needs to run it
    - if using `Makefile`: look in `/tmp/release_assets/bounce/`
    - if using `go build`: look in `/tmp/bounce/`
+
+### Using release binaries
+
+1. Download the [latest release][latest-release] binaries
+1. Deploy
+   - Place in a location of your choice
 
 ## Configuration Options
 
@@ -571,3 +580,15 @@ and with colorized JSON output enabled:
 [screenshot-uncolored-json-output]: media/v0.2.0/bounce-json-uncolored-output-2020-03-04.png "Uncolored JSON output example screenshot"
 [screenshot-colored-json-output-v0.2.0]: media/v0.2.0/bounce-json-colorizer-output-2020-03-04.png "Colored JSON output example screenshot for v0.2.0 release"
 [screenshot-microsoft-teams-example-submission-v0.4.0]: media/v0.4.0/microsoft-teams-test-submission-2020-04-23.png "Microsoft Teams test submission example screenshot for v0.4.0 release"
+
+<!-- Additional footnotes here  -->
+
+[repo-url]: <https://github.com/atc0005/bounce>  "This project's GitHub repo"
+
+[latest-release]: <https://github.com/atc0005/bounce/releases/latest> "Latest release for this project"
+
+[go-docs-download]: <https://golang.org/dl>  "Download Go"
+
+[go-docs-install]: <https://golang.org/doc/install>  "Install Go"
+
+<!-- []: PLACEHOLDER "DESCRIPTION_HERE" -->
