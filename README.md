@@ -19,6 +19,8 @@ Small utility to assist with building HTTP endpoints
   - [Changelog](#changelog)
   - [Requirements](#requirements)
   - [How to install it](#how-to-install-it)
+    - [From source](#from-source)
+    - [Using release binaries](#using-release-binaries)
   - [Configuration Options](#configuration-options)
     - [Configuration file](#configuration-file)
     - [Command-line Arguments](#command-line-arguments)
@@ -129,6 +131,8 @@ Tested using:
 
 ## How to install it
 
+### From source
+
 1. [Download][go-docs-download] Go
 1. [Install][go-docs-install] Go
    - NOTE: Pay special attention to the remarks about `$HOME/.profile`
@@ -172,6 +176,12 @@ Tested using:
 1. Copy the applicable binary to whatever systems needs to run it
    - if using `Makefile`: look in `/tmp/release_assets/bounce/`
    - if using `go build`: look in `/tmp/bounce/`
+
+### Using release binaries
+
+1. Download the [latest release][latest-release] binaries
+1. Deploy
+   - Place in a location of your choice
 
 ## Configuration Options
 
