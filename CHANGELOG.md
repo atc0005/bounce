@@ -26,6 +26,24 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.17] - 2022-01-25
+
+### Overview
+
+- Dependency updates
+- built using Go 1.17.6
+  - Statically linked
+  - Windows (x86, x64)
+  - Linux (x86, x64)
+
+### Changed
+
+- Dependencies
+  - `Go`
+    - `1.16.12` to `1.17.6`
+    - (GH-166) Update go.mod file, canary Dockerfile to reflect current
+      dependencies
+
 ## [v0.4.16] - 2021-12-29
 
 ### Overview
@@ -574,7 +592,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.16...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.17...HEAD
+[v0.4.17]: https://github.com/atc0005/bounce/releases/tag/v0.4.17
 [v0.4.16]: https://github.com/atc0005/bounce/releases/tag/v0.4.16
 [v0.4.15]: https://github.com/atc0005/bounce/releases/tag/v0.4.15
 [v0.4.14]: https://github.com/atc0005/bounce/releases/tag/v0.4.14
