@@ -29,7 +29,7 @@ import (
 // path to this variable, including the package. We set a placeholder value so
 // that something resembling a version string will be provided for
 // non-Makefile builds.
-var version string = "x.y.z"
+var version = "x.y.z"
 
 // MyAppName is the public name of this application
 const MyAppName string = "bounce"
