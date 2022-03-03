@@ -26,6 +26,38 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.18] - 2022-03-03
+
+### Overview
+
+- Dependency updates
+- CI / linting improvements
+- built using Go 1.17.7
+  - Statically linked
+  - Windows (x86, x64)
+  - Linux (x86, x64)
+
+### Changed
+
+- Dependencies
+  - `Go`
+    - `1.17.6` to `1.17.7`
+  - `atc0005/go-teams-notify`
+    - `v2.6.0` to `v2.6.1`
+  - `actions/checkout`
+    - `v2.4.0` to `v3`
+  - `actions/setup-node`
+    - `v2.5.1` to `v3`
+
+- (GH-172) Expand linting GitHub Actions Workflow to include `oldstable`,
+  `unstable` container images
+- (GH-171) Switch Docker image source from Docker Hub to GitHub Container
+  Registry (GHCR)
+
+### Fixed
+
+- (GH-174) var-declaration: should omit type string from declaration
+
 ## [v0.4.17] - 2022-01-25
 
 ### Overview
@@ -592,7 +624,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.17...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.18...HEAD
+[v0.4.18]: https://github.com/atc0005/bounce/releases/tag/v0.4.18
 [v0.4.17]: https://github.com/atc0005/bounce/releases/tag/v0.4.17
 [v0.4.16]: https://github.com/atc0005/bounce/releases/tag/v0.4.16
 [v0.4.15]: https://github.com/atc0005/bounce/releases/tag/v0.4.15
