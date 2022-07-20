@@ -9,9 +9,10 @@ github.com/apex/log/handlers/discard
 github.com/apex/log/handlers/json
 github.com/apex/log/handlers/logfmt
 github.com/apex/log/handlers/text
-# github.com/atc0005/go-teams-notify/v2 v2.6.1
+# github.com/atc0005/go-teams-notify/v2 v2.7.0-alpha.5
 ## explicit; go 1.14
 github.com/atc0005/go-teams-notify/v2
+github.com/atc0005/go-teams-notify/v2/messagecard
 # github.com/fatih/color v1.9.0
 ## explicit; go 1.13
 github.com/fatih/color

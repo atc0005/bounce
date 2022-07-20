@@ -19,9 +19,10 @@ import (
 	// use our fork for now until recent work can be submitted for inclusion
 	// in the upstream project
 	goteamsnotify "github.com/atc0005/go-teams-notify/v2"
+	"github.com/atc0005/go-teams-notify/v2/messagecard"
 )
 
-func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard {
+func createMessage(clientRequest clientRequestDetails) *messagecard.MessageCard {
 
 	log.Debugf("createMessage: clientRequestDetails received: %#v", clientRequest)
 
@@ -30,7 +31,7 @@ func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard
 
 	// FIXME: Pull this out as a separate helper function?
 	// FIXME: Rework and offer upstream?
-	addFactPair := func(msg *goteamsnotify.MessageCard, section *goteamsnotify.MessageCardSection, key string, values ...string) {
+	addFactPair := func(msg *messagecard.MessageCard, section *messagecard.Section, key string, values ...string) {
 
 		if err := section.AddFactFromKeyValue(
 			key,
@@ -45,53 +46,53 @@ func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard
 			}
 			errMsg := fmt.Sprintf("%s error returned from attempt to add fact from key/value pair: %v", from, err)
 			log.Errorf("%s %s", from, errMsg)
-			msg.Text = msg.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+			msg.Text = msg.Text + "\n\n" + messagecard.TryToFormatAsCodeSnippet(errMsg)
 		}
 	}
 
 	// build MessageCard for submission
-	msgCard := goteamsnotify.NewMessageCard()
+	msgCard := messagecard.NewMessageCard()
 	msgCard.Title = "Notification from " + config.MyAppName
 	msgCard.Text = fmt.Sprintf(
 		"%s request received on %s endpoint",
-		goteamsnotify.TryToFormatAsCodeSnippet(clientRequest.HTTPMethod),
-		goteamsnotify.TryToFormatAsCodeSnippet(clientRequest.EndpointPath),
+		messagecard.TryToFormatAsCodeSnippet(clientRequest.HTTPMethod),
+		messagecard.TryToFormatAsCodeSnippet(clientRequest.EndpointPath),
 	)
 
 	/*
 		Client Request Summary Section - General client request details
 	*/
 
-	clientRequestSummarySection := goteamsnotify.NewMessageCardSection()
+	clientRequestSummarySection := messagecard.NewSection()
 	clientRequestSummarySection.Title = "## Client Request Summary"
 	clientRequestSummarySection.StartGroup = true
 
-	addFactPair(&msgCard, clientRequestSummarySection, "Received at", clientRequest.Datestamp)
-	addFactPair(&msgCard, clientRequestSummarySection, "Endpoint path", clientRequest.EndpointPath)
-	addFactPair(&msgCard, clientRequestSummarySection, "HTTP Method", clientRequest.HTTPMethod)
-	addFactPair(&msgCard, clientRequestSummarySection, "Client IP Address", clientRequest.ClientIPAddress)
+	addFactPair(msgCard, clientRequestSummarySection, "Received at", clientRequest.Datestamp)
+	addFactPair(msgCard, clientRequestSummarySection, "Endpoint path", clientRequest.EndpointPath)
+	addFactPair(msgCard, clientRequestSummarySection, "HTTP Method", clientRequest.HTTPMethod)
+	addFactPair(msgCard, clientRequestSummarySection, "Client IP Address", clientRequest.ClientIPAddress)
 
 	if err := msgCard.AddSection(clientRequestSummarySection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add clientRequestSummarySection: %v", err)
 		log.Error("createMessage: " + errMsg)
-		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + messagecard.TryToFormatAsCodeSnippet(errMsg)
 	}
 
 	/*
 		Client Request Payload Section
 	*/
 
-	clientPayloadSection := goteamsnotify.NewMessageCardSection()
+	clientPayloadSection := messagecard.NewSection()
 	clientPayloadSection.Title = "## Request body/payload"
 	clientPayloadSection.StartGroup = true
 
 	switch {
 	case clientRequest.Body == "":
 		log.Debugf("createMessage: Body is NOT defined, cannot use it to generate code block")
-		clientPayloadSection.Text = goteamsnotify.TryToFormatAsCodeSnippet("No request body was provided by client.")
+		clientPayloadSection.Text = messagecard.TryToFormatAsCodeSnippet("No request body was provided by client.")
 	case clientRequest.Body != "":
 		log.Debugf("createMessage: Body is defined, using it to generate code block")
-		clientPayloadSection.Text = goteamsnotify.TryToFormatAsCodeBlock(clientRequest.Body)
+		clientPayloadSection.Text = messagecard.TryToFormatAsCodeBlock(clientRequest.Body)
 	}
 
 	log.Debugf("createMessage: Body field contents: %v", clientRequest.Body)
@@ -99,14 +100,14 @@ func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard
 	if err := msgCard.AddSection(clientPayloadSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add clientPayloadSection: %v", err)
 		log.Error("createMessage: " + errMsg)
-		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + messagecard.TryToFormatAsCodeSnippet(errMsg)
 	}
 
 	/*
 		Client Request Errors Section
 	*/
 
-	responseErrorsSection := goteamsnotify.NewMessageCardSection()
+	responseErrorsSection := messagecard.NewSection()
 	responseErrorsSection.Title = "## Client Request errors"
 	responseErrorsSection.StartGroup = true
 
@@ -115,39 +116,39 @@ func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard
 
 	if clientRequest.RequestError != "" {
 		responseErrorsSection.Text = ""
-		addFactPair(&msgCard, responseErrorsSection, "RequestError",
-			goteamsnotify.ConvertEOLToBreak(clientRequest.RequestError))
+		addFactPair(msgCard, responseErrorsSection, "RequestError",
+			messagecard.ConvertEOLToBreak(clientRequest.RequestError))
 	}
 
 	if clientRequest.BodyError != "" {
 		responseErrorsSection.Text = ClientRequestErrorsRecorded
-		addFactPair(&msgCard, responseErrorsSection, "BodyError",
-			goteamsnotify.ConvertEOLToBreak(clientRequest.BodyError))
+		addFactPair(msgCard, responseErrorsSection, "BodyError",
+			messagecard.ConvertEOLToBreak(clientRequest.BodyError))
 	}
 
 	if clientRequest.ContentTypeError != "" {
 		responseErrorsSection.Text = ClientRequestErrorsRecorded
-		addFactPair(&msgCard, responseErrorsSection, "ContentTypeError",
-			goteamsnotify.ConvertEOLToBreak(clientRequest.ContentTypeError))
+		addFactPair(msgCard, responseErrorsSection, "ContentTypeError",
+			messagecard.ConvertEOLToBreak(clientRequest.ContentTypeError))
 	}
 
 	if clientRequest.FormattedBodyError != "" {
 		responseErrorsSection.Text = ClientRequestErrorsRecorded
-		addFactPair(&msgCard, responseErrorsSection, "FormattedBodyError",
-			goteamsnotify.ConvertEOLToBreak(clientRequest.FormattedBodyError))
+		addFactPair(msgCard, responseErrorsSection, "FormattedBodyError",
+			messagecard.ConvertEOLToBreak(clientRequest.FormattedBodyError))
 	}
 
 	if err := msgCard.AddSection(responseErrorsSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add responseErrorsSection: %v", err)
 		log.Error("createMessage: " + errMsg)
-		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + messagecard.TryToFormatAsCodeSnippet(errMsg)
 	}
 
 	/*
 		Client Request Headers Section
 	*/
 
-	clientRequestHeadersSection := goteamsnotify.NewMessageCardSection()
+	clientRequestHeadersSection := messagecard.NewSection()
 	clientRequestHeadersSection.StartGroup = true
 	clientRequestHeadersSection.Title = "## Client Request Headers"
 
@@ -162,28 +163,28 @@ func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard
 		for index, value := range values {
 			// update value with code snippet formatting, assign back using
 			// the available index value
-			values[index] = goteamsnotify.TryToFormatAsCodeSnippet(value)
+			values[index] = messagecard.TryToFormatAsCodeSnippet(value)
 		}
-		addFactPair(&msgCard, clientRequestHeadersSection, header, values...)
+		addFactPair(msgCard, clientRequestHeadersSection, header, values...)
 	}
 
 	if err := msgCard.AddSection(clientRequestHeadersSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add clientRequestHeadersSection: %v", err)
 		log.Error("createMessage: " + errMsg)
-		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + messagecard.TryToFormatAsCodeSnippet(errMsg)
 	}
 
 	/*
 		Message Card Branding/Trailer Section
 	*/
 
-	trailerSection := goteamsnotify.NewMessageCardSection()
+	trailerSection := messagecard.NewSection()
 	trailerSection.StartGroup = true
-	trailerSection.Text = goteamsnotify.ConvertEOLToBreak(config.MessageTrailer())
+	trailerSection.Text = messagecard.ConvertEOLToBreak(config.MessageTrailer())
 	if err := msgCard.AddSection(trailerSection); err != nil {
 		errMsg := fmt.Sprintf("Error returned from attempt to add trailerSection: %v", err)
 		log.Error("createMessage: " + errMsg)
-		msgCard.Text = msgCard.Text + "\n\n" + goteamsnotify.TryToFormatAsCodeSnippet(errMsg)
+		msgCard.Text = msgCard.Text + "\n\n" + messagecard.TryToFormatAsCodeSnippet(errMsg)
 	}
 
 	return msgCard
@@ -193,7 +194,7 @@ func createMessage(clientRequest clientRequestDetails) goteamsnotify.MessageCard
 func sendMessage(
 	ctx context.Context,
 	webhookURL string,
-	msgCard goteamsnotify.MessageCard,
+	msgCard *messagecard.MessageCard,
 	schedule time.Time,
 	retries int,
 	retriesDelay int,
@@ -270,7 +271,7 @@ func sendMessage(
 		}
 
 		// Create Microsoft Teams client
-		mstClient := goteamsnotify.NewClient()
+		mstClient := goteamsnotify.NewTeamsClient()
 
 		// Submit message card using Microsoft Teams client, retry submission
 		// if needed up to specified number of retry attempts.
