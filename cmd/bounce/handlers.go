@@ -15,7 +15,6 @@ import (
 	"fmt"
 	htmlTemplate "html/template"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	textTemplate "text/template"
@@ -183,7 +182,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 
 				// Limit request body to 1 MB
 				r.Body = http.MaxBytesReader(w, r.Body, 1*MB)
-				requestBody, err := ioutil.ReadAll(r.Body)
+				requestBody, err := io.ReadAll(r.Body)
 				if err != nil {
 					errorMsg := fmt.Sprintf("Error reading request body: %s", err)
 					ourResponse.BodyError = errorMsg
@@ -261,7 +260,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 
 				// read everything from the (size-limited) request body so
 				// that we can display it in a raw format
-				requestBody, err := ioutil.ReadAll(r.Body)
+				requestBody, err := io.ReadAll(r.Body)
 				if err != nil {
 					errorMsg := fmt.Sprintf("Error reading request body: %s", err)
 					ourResponse.BodyError = errorMsg
@@ -279,7 +278,7 @@ func echoHandler(ctx context.Context, tmpl *textTemplate.Template, coloredJSON b
 
 				// replace the Body with a new io.ReadCloser to allow later
 				// access to r.Body for JSON-decoding purposes
-				r.Body = ioutil.NopCloser(bytes.NewReader(requestBody))
+				r.Body = io.NopCloser(bytes.NewReader(requestBody))
 
 				ourResponse.Body = string(requestBody)
 
