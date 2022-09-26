@@ -4,10 +4,10 @@ Small utility to assist with building HTTP endpoints
 
 [![Latest Release](https://img.shields.io/github/release/atc0005/bounce.svg?style=flat-square)][latest-release]
 [![Go Reference](https://pkg.go.dev/badge/github.com/atc0005/bounce.svg)](https://pkg.go.dev/github.com/atc0005/bounce)
-[![Validate Codebase](https://github.com/atc0005/bounce/workflows/Validate%20Codebase/badge.svg)](https://github.com/atc0005/bounce/actions?query=workflow%3A%22Validate+Codebase%22)
-[![Validate Docs](https://github.com/atc0005/bounce/workflows/Validate%20Docs/badge.svg)](https://github.com/atc0005/bounce/actions?query=workflow%3A%22Validate+Docs%22)
-[![Lint and Build using Makefile](https://github.com/atc0005/bounce/workflows/Lint%20and%20Build%20using%20Makefile/badge.svg)](https://github.com/atc0005/bounce/actions?query=workflow%3A%22Lint+and+Build+using+Makefile%22)
-[![Quick Validation](https://github.com/atc0005/bounce/workflows/Quick%20Validation/badge.svg)](https://github.com/atc0005/bounce/actions?query=workflow%3A%22Quick+Validation%22)
+[![go.mod Go version](https://img.shields.io/github/go-mod/go-version/atc0005/bounce)](https://github.com/atc0005/bounce)
+[![Lint and Build](https://github.com/atc0005/bounce/actions/workflows/lint-and-build.yml/badge.svg)](https://github.com/atc0005/bounce/actions/workflows/lint-and-build.yml)
+[![Project Analysis](https://github.com/atc0005/bounce/actions/workflows/project-analysis.yml/badge.svg)](https://github.com/atc0005/bounce/actions/workflows/project-analysis.yml)
+[![Push Validation](https://github.com/atc0005/bounce/actions/workflows/push-validation.yml/badge.svg)](https://github.com/atc0005/bounce/actions/workflows/push-validation.yml)
 
 - [bounce](#bounce)
   - [Project home](#project-home)
