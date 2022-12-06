@@ -13,29 +13,26 @@ github.com/apex/log/handlers/text
 ## explicit; go 1.14
 github.com/atc0005/go-teams-notify/v2
 github.com/atc0005/go-teams-notify/v2/messagecard
-# github.com/fatih/color v1.9.0
+# github.com/fatih/color v1.13.0
 ## explicit; go 1.13
 github.com/fatih/color
-# github.com/go-logfmt/logfmt v0.4.0
-## explicit
+# github.com/go-logfmt/logfmt v0.5.1
+## explicit; go 1.17
 github.com/go-logfmt/logfmt
-# github.com/golang/gddo v0.0.0-20200715224205-051695c33a3f
+# github.com/golang/gddo v0.0.0-20210115222349-20d68f94ee1f
 ## explicit; go 1.13
 github.com/golang/gddo/httputil/header
 # github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 ## explicit
-# github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
-## explicit
-github.com/kr/logfmt
-# github.com/mattn/go-colorable v0.1.4
-## explicit
+# github.com/mattn/go-colorable v0.1.13
+## explicit; go 1.15
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.11
-## explicit; go 1.12
+# github.com/mattn/go-isatty v0.0.16
+## explicit; go 1.15
 github.com/mattn/go-isatty
-# github.com/pkg/errors v0.8.1
+# github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
-# golang.org/x/sys v0.0.0-20191026070338-33540a1f6037
-## explicit; go 1.12
+# golang.org/x/sys v0.3.0
+## explicit; go 1.17
 golang.org/x/sys/unix
