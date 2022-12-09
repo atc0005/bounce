@@ -26,6 +26,50 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.19] - 2022-12-09
+
+### Overview
+
+- Bug fixes
+- Dependency updates
+- GitHub Actions Workflows updates
+- built using Go 1.19.4
+  - Statically linked
+  - Windows (x86, x64)
+  - Linux (x86, x64)
+
+### Changed
+
+- Dependencies
+  - `Go`
+    - `1.17.7` to `1.19.4`
+  - `atc0005/go-teams-notify`
+    - `v2.6.1` to `v2.7.0.rc2`
+  - `github.com/mattn/go-colorable`
+    - `v0.1.4` to `v0.1.13`
+  - `github.com/mattn/go-isatty`
+    - `v0.0.11` to `v0.0.16`
+  - `golang.org/x/sys`
+    - `v0.0.0-20191026070338-33540a1f6037` to `v0.3.0`
+  - `github.com/golang/gddo`
+    - `v0.0.0-20200715224205-051695c33a3f` to
+      `v0.0.0-20210115222349-20d68f94ee1f`
+  - `github.com/fatih/color`
+    - `v1.9.0` to `v1.13.0`
+  - `github.com/go-logfmt/logfmt`
+    - `v0.4.0` to `v0.5.1`
+  - `github.com/pkg/errors`
+    - `v0.8.1` to `v0.9.1`
+- (GH-192) Update project to Go 1.19
+- (GH-194) Update Makefile and GitHub Actions Workflows
+- (GH-201) Refactor GitHub Actions workflows to import logic
+
+### Fixed
+
+- (GH-188) Update lintinstall Makefile recipe
+- (GH-193) Linting fixes, add missing cmd doc file
+- (GH-205) Fix Makefile Go module base path detection
+
 ## [v0.4.18] - 2022-03-03
 
 ### Overview
@@ -624,7 +668,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.18...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.19...HEAD
+[v0.4.19]: https://github.com/atc0005/bounce/releases/tag/v0.4.19
 [v0.4.18]: https://github.com/atc0005/bounce/releases/tag/v0.4.18
 [v0.4.17]: https://github.com/atc0005/bounce/releases/tag/v0.4.17
 [v0.4.16]: https://github.com/atc0005/bounce/releases/tag/v0.4.16
