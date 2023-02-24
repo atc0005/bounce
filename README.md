@@ -7,7 +7,6 @@ Small utility to assist with building HTTP endpoints
 [![go.mod Go version](https://img.shields.io/github/go-mod/go-version/atc0005/bounce)](https://github.com/atc0005/bounce)
 [![Lint and Build](https://github.com/atc0005/bounce/actions/workflows/lint-and-build.yml/badge.svg)](https://github.com/atc0005/bounce/actions/workflows/lint-and-build.yml)
 [![Project Analysis](https://github.com/atc0005/bounce/actions/workflows/project-analysis.yml/badge.svg)](https://github.com/atc0005/bounce/actions/workflows/project-analysis.yml)
-[![Push Validation](https://github.com/atc0005/bounce/actions/workflows/push-validation.yml/badge.svg)](https://github.com/atc0005/bounce/actions/workflows/push-validation.yml)
 
 - [bounce](#bounce)
   - [Project home](#project-home)
