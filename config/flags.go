@@ -38,10 +38,5 @@ func (c *Config) handleFlagsConfig() error {
 	// been parsed?
 	// flag.CommandLine = mainFlagSet
 	// flag.Parse()
-	if err := mainFlagSet.Parse(os.Args[1:]); err != nil {
-		return err
-	}
-
-	return nil
-
+	return mainFlagSet.Parse(os.Args[1:])
 }
