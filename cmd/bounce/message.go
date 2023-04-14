@@ -278,7 +278,7 @@ func sendMessage(
 		if err := mstClient.SendWithRetry(ctx, webhookURL, msgCard, retries, retriesDelay); err != nil {
 			errMsg := NotifyResult{
 				Err: fmt.Errorf(
-					"sendMessage: ERROR: Failed to submit message to Microsoft Teams at %v: %v",
+					"sendMessage: ERROR: Failed to submit message to Microsoft Teams at %v: %w",
 					time.Now().Format("15:04:05"),
 					err,
 				),
