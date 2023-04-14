@@ -26,6 +26,48 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.4.20] - 2023-04-14
+
+### Overview
+
+- Bug fixes
+- Dependency updates
+- GitHub Actions workflow updates
+- built using Go 1.19.8
+  - Statically linked
+  - Windows (x86, x64)
+  - Linux (x86, x64)
+
+### Added
+
+- (GH-213) Add Go Module Validation, Dependency Updates jobs
+
+### Changed
+
+- Dependencies
+  - `Go`
+    - `1.19.4` to `1.19.8`
+  - `atc0005/go-teams-notify`
+    - `v2.7.0.rc2` to `v2.7.0`
+  - `mattn/go-isatty`
+    - `v0.0.16` to `v0.0.18`
+  - `golang.org/x/sys`
+    - `v0.3.0` to `v0.7.0`
+  - `fatih/color`
+    - `v1.13.0` to `v1.15.0`
+  - `go-logfmt/logfmt`
+    - `v0.5.1` to `v0.6.0`
+- CI
+  - (GH-219) Drop `Push Validation` workflow
+  - (GH-220) Rework workflow scheduling
+  - (GH-222) Remove `Push Validation` workflow status badge
+
+### Fixed
+
+- (GH-226) Update vuln analysis GHAW to use on.push hook
+- (GH-230) Fix various revive linter errors
+- (GH-231) Fix errwrap linting error
+
 ## [v0.4.19] - 2022-12-09
 
 ### Overview
@@ -668,7 +710,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.19...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.20...HEAD
+[v0.4.20]: https://github.com/atc0005/bounce/releases/tag/v0.4.20
 [v0.4.19]: https://github.com/atc0005/bounce/releases/tag/v0.4.19
 [v0.4.18]: https://github.com/atc0005/bounce/releases/tag/v0.4.18
 [v0.4.17]: https://github.com/atc0005/bounce/releases/tag/v0.4.17
