@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/apex/log"
-	"github.com/atc0005/bounce/config"
+	"github.com/atc0005/bounce/internal/config"
 )
 
 // NotifyResult wraps the results of notification operations to make it easier

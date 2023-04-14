@@ -18,8 +18,8 @@ import (
 	"os/signal"
 	textTemplate "text/template"
 
-	"github.com/atc0005/bounce/config"
-	"github.com/atc0005/bounce/routes"
+	"github.com/atc0005/bounce/internal/config"
+	"github.com/atc0005/bounce/internal/routes"
 	goteamsnotify "github.com/atc0005/go-teams-notify/v2"
 
 	"github.com/apex/log"
