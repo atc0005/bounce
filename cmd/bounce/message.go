@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/apex/log"
-	"github.com/atc0005/bounce/config"
+	"github.com/atc0005/bounce/internal/config"
 
 	// use our fork for now until recent work can be submitted for inclusion
 	// in the upstream project

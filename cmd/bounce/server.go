@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/apex/log"
-	"github.com/atc0005/bounce/config"
+	"github.com/atc0005/bounce/internal/config"
 )
 
 // shutdownListener listens for an os.Signal on the provided quit channel.

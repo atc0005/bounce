@@ -20,7 +20,7 @@ import (
 	textTemplate "text/template"
 	"time"
 
-	"github.com/atc0005/bounce/routes"
+	"github.com/atc0005/bounce/internal/routes"
 
 	"github.com/TylerBrock/colorjson"
 	"github.com/apex/log"

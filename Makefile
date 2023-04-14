@@ -28,7 +28,7 @@ SHELL = /bin/bash
 WHAT					= bounce
 
 # What package holds the "version" variable used in branding/version output?
-VERSION_VAR_PKG			= $(shell go list -m)/config
+VERSION_VAR_PKG			= $(shell go list -m)/internal/config
 
 OUTPUTDIR 				= release_assets
 
