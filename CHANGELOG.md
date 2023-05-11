@@ -26,6 +26,42 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.5.0] - 2023-05-11
+
+### Overview
+
+- Add support for generating DEB, RPM packages
+- Build improvements
+- Dependency updates
+- Generated binary changes
+  - filename patterns
+  - compression (~ 66% smaller)
+  - executable metadata
+- built using Go 1.19.9
+  - Statically linked
+  - Windows (x86, x64)
+  - Linux (x86, x64)
+
+### Added
+
+- (GH-233) Generate RPM/DEB packages using nFPM
+- (GH-236) Add version details to Windows executables
+
+### Changed
+
+- Dependencies
+  - `Go`
+    - `1.19.8` to `1.19.9`
+  - `golang.org/x/sys`
+    - `v0.7.0` to `v0.8.0`
+- (GH-237) Switch to semantic versioning (semver) compatible versioning
+  pattern
+- (GH-238) Makefile: Compress binaries & use fixed filenames
+- (GH-235) Makefile: Refresh recipes to add "standard" set, new
+  package-related options
+- (GH-234) Build dev/stable releases using go-ci Docker image
+- (GH-239) Move internal packages to internal subdir
+
 ## [v0.4.20] - 2023-04-14
 
 ### Overview
@@ -710,7 +746,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.4.20...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.5.0...HEAD
+[v0.5.0]: https://github.com/atc0005/bounce/releases/tag/v0.5.0
 [v0.4.20]: https://github.com/atc0005/bounce/releases/tag/v0.4.20
 [v0.4.19]: https://github.com/atc0005/bounce/releases/tag/v0.4.19
 [v0.4.18]: https://github.com/atc0005/bounce/releases/tag/v0.4.18
