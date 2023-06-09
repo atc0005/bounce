@@ -15,7 +15,7 @@ go 1.19
 require (
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2
 	github.com/apex/log v1.9.0
-	github.com/atc0005/go-teams-notify/v2 v2.7.0
+	github.com/atc0005/go-teams-notify/v2 v2.7.1
 	github.com/golang/gddo v0.0.0-20210115222349-20d68f94ee1f
 )
 
