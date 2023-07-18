@@ -26,6 +26,32 @@ The following types of changes will be recorded in this file:
 
 - placeholder
 
+## [v0.5.1] - 2023-07-18
+
+### Added
+
+- (GH-260) Add initial automated release notes config
+
+### Changed
+
+- Dependencies
+  - `Go`
+    - `1.19.9` to `1.19.11`
+  - `atc0005/go-ci`
+    - `go-ci-oldstable-build-v0.10.5` to `go-ci-oldstable-build-v0.11.5`
+  - `atc0005/go-teams-notify`
+    - `v2.7.0` to `v2.7.1`
+  - `mattn/go-isatty`
+    - `v0.0.18` to `v0.0.19`
+  - `golang.org/x/sys`
+    - `v0.8.0` to `v0.10.0`
+- (GH-250) Update vuln analysis GHAW to remove on.push hook
+
+### Fixed
+
+- (GH-247) Disable depguard linter
+- (GH-253) Restore local CodeQL workflow
+
 ## [v0.5.0] - 2023-05-11
 
 ### Overview
@@ -746,7 +772,8 @@ Worth noting (in no particular order):
 - Makefile for general use cases (including local linting)
   - Note: See README for available options if building on Windows
 
-[Unreleased]: https://github.com/atc0005/bounce/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/atc0005/bounce/compare/v0.5.1...HEAD
+[v0.5.1]: https://github.com/atc0005/bounce/releases/tag/v0.5.1
 [v0.5.0]: https://github.com/atc0005/bounce/releases/tag/v0.5.0
 [v0.4.20]: https://github.com/atc0005/bounce/releases/tag/v0.4.20
 [v0.4.19]: https://github.com/atc0005/bounce/releases/tag/v0.4.19
